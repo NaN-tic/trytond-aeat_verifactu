@@ -1,0 +1,54 @@
+<?xml version="1.0"?>
+<!-- This file is part of Tryton.  The COPYRIGHT file at the top level of
+this repository contains the full copyright notices and license terms. -->
+<tryton>
+    <data grouped="1">
+        <record model="ir.message" id="msg_missing_fernet_key">
+            <field name="text">Missing Fernet key configuration</field>
+        </record>
+        <record model="ir.message" id="msg_delete_cancel">
+            <field name="text">Report "%(report)s" must be cancelled before deletion.</field>
+        </record>
+        <record model="ir.message" id="msg_invoices_verifactu">
+            <field name="text">The next invoices are related with Verifactu books:
+%(invoices)s.
+If you edit them take care if you need to update again to Verifactu</field>
+        </record>
+        <record model="ir.message" id="msg_invoices_verifactu_pending">
+            <field name="text">The next invoices are related with Verifactu books on draft state.</field>
+        </record>
+      <record model="ir.message" id="reports_exist">
+          <field name="text">There are some reports in draft and/or confirmed. Any report won't be created until this reports will be processed.</field>
+      </record>
+        <record model="ir.message" id="msg_missing_nif">
+            <field name="text">The party of the invoice %(invoice)s must has a valid Tax Identifier.</field>
+        </record>
+        <record model="ir.message" id="msg_verifactu_operation_key_wrong">
+            <field name="text">The invoice %(invoice)s has wrong subjected and opertion verifactu combination.</field>
+        </record>
+        <record model="ir.message" id="msg_wrong_identifier_type">
+            <field name="text">The party [%(party)s] of the invoice %(invoice)s must has a valid Verifactu Identifier [VAT (only for intracommunity operators)].</field>
+        </record>
+        <record model="ir.message" id="msg_report_wrong_invoice_state">
+            <field name="text">Invoice "%(invoice)s" must be posted, paid or refunded.</field>
+        </record>
+        <record model="ir.message" id="msg_report_duplicated_invoice">
+            <field name="text">Invoice "%(invoice)s" is duplicated on Verifactu Report "%(report)s".</field>
+        </record>
+        <record model="ir.message" id="msg_set_simplified_party">
+            <field name="text">The parties of the invoices "%(invoices)s" has the Verifactu Identfier as 'Simplified Invoice'. The Verifactu operation key will be switched to 'Simplified Invoice (ticket)' or 'Invoice summary entry' as appropriate, and the invoices will be send to AEAT without destination identification.</field>
+        </record>
+        <record model="ir.message" id="msg_set_simplified_invoice">
+            <field name="text">The parties of the invoices "%(invoices)s" has not set the Verifactu Identfier as 'Simplified Invoice', but the invoice Verifactu operation key is set as 'Simplified Invoice (ticket)' or 'Invoice summary entry'. The invoices will be send to AEAT without destination identification.</field>
+        </record>
+        <record model="ir.message" id="msg_missing_certificate">
+            <field name="text">There isn't a certificate deffined in the account configuration for the Verifactu.</field>
+        </record>
+        <record model="ir.message" id="msg_invoice_in_missing_ref">
+            <field name="text">The invoices "%(invoices)s" haven't got reference.</field>
+        </record>
+        <record model="ir.message" id="msg_missing_verifactu_keys">
+            <field name="text">The invoice "%(invoice)s" haven't got the necessary Verifactu keys filled.</field>
+        </record>
+    </data>
+</tryton>

@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+<!-- The COPYRIGHT file at the top level of this repository contains the full
+     copyright notices and license terms. -->
+<tryton>
+  <data>
+      <!-- account.configuration -->
+      <record model="ir.ui.view" id="configuration_view_form">
+          <field name="model">account.configuration</field>
+          <field name="inherit" ref="account.configuration_view_form"/>
+          <field name="name">configuration_form</field>
+      </record>
+
+      <!-- account.tax -->
+      <record model="ir.ui.view" id="aeat_verifactu_tax_form_view">
+          <field name="model">account.tax</field>
+          <field name="inherit" ref="account.tax_view_form"/>
+          <field name="name">tax_form</field>
+      </record>
+      <record model="ir.ui.view" id="aeat_verifactu_template_tax_form_view">
+          <field name="model">account.tax.template</field>
+          <field name="inherit" ref="account.tax_template_view_form"/>
+          <field name="name">template_tax_form</field>
+      </record>
+  </data>
+</tryton>

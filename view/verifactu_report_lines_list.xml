@@ -1,0 +1,27 @@
+<?xml version="1.0"?>
+<!-- The COPYRIGHT file at the top level of this repository contains the full
+     copyright notices and license terms. -->
+<tree>
+    <field name="report"/>
+    <field name="invoice"/>
+    <field name="invoice_operation_key"/>
+    <field name="vat_code"/>
+    <field name="identifier_type"/>
+    <field name="state"/>
+    <field name="last_modify_date" widget="date"/>
+    <field name="communication_code"/>
+    <field name="communication_msg"/>
+    <field name="issuer_vat_number"/>
+    <field name="serial_number"/>
+    <field name="final_serial_number"/>
+    <field name="issue_date"/>
+    <field name="invoice_kind"/>
+    <field name="special_key"/>
+    <field name="total_amount"/>
+    <field name="counterpart_name"/>
+    <field name="counterpart_id"/>
+    <field name="presenter"/>
+    <field name="presentation_date" widget="date"/>
+    <field name="csv"/>
+    <field name="balance_state"/>
+</tree>

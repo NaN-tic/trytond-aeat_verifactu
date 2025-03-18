@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+<!-- This file is part of Tryton.  The COPYRIGHT file at the top level of
+this repository contains the full copyright notices and license terms. -->
+<form col="2">
+    <image name="tryton-info" xexpand="0" xfill="0"/>
+    <group id="strings">
+        <label string="The AEAT Verifactu Pending Issued Ivoices books will be create."
+            id="upgraded" yalign="0.0" xalign="0.0" xexpand="1"/>
+        <newline/>
+        <label string="Note that this operation may take a few minutes."
+            id="operation"
+            yalign="0.0" xalign="0.0" xexpand="1"/>
+    </group>
+</form>

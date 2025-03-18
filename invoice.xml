@@ -1,0 +1,45 @@
+<?xml version="1.0"?>
+<!-- The COPYRIGHT file at the top level of this repository contains the full
+     copyright notices and license terms. -->
+<tryton>
+    <data>
+        <record model="ir.ui.view" id="aeat_verifactu_invoice_form_view">
+            <field name="model">account.invoice</field>
+            <field name="inherit" ref="account_invoice.invoice_view_form"/>
+            <field name="name">account_invoice_form</field>
+        </record>
+
+        <record model="ir.ui.view" id="aeat_verifactu_invoice_list_view">
+            <field name="model">account.invoice</field>
+            <field name="inherit" ref="account_invoice.invoice_view_tree"/>
+            <field name="name">account_invoice_list</field>
+        </record>
+
+        <record model="ir.ui.view" id="aeat_verifactu_reset_keys_start_view">
+            <field name="model">aeat.verifactu.reset.keys.start</field>
+            <field name="type">form</field>
+            <field name="name">reset_keys_start</field>
+        </record>
+        <record model="ir.ui.view" id="aeat_verifactu_reset_keys_end_view">
+            <field name="model">aeat.verifactu.reset.keys.end</field>
+            <field name="type">form</field>
+            <field name="name">reset_keys_end</field>
+        </record>
+
+        <record model="ir.action.wizard" id="act_aeat_verifactu_reset_keys">
+            <field name="name">Reset AEAT Verifactu Keys</field>
+            <field name="wiz_name">aeat.verifactu.reset.keys</field>
+        </record>
+        <record model="ir.action.keyword" id="act_aeat_verifactu_reset_keys_keyword">
+            <field name="action" ref="act_aeat_verifactu_reset_keys"/>
+            <field name="keyword">form_action</field>
+            <field name="model">account.invoice,-1</field>
+        </record>
+        <record model="ir.action-res.group"
+            id="act_recalculate-group_aeat347">
+            <field name="action" ref="act_aeat_verifactu_reset_keys"/>
+            <field name="group" ref="group_aeat_verifactu_admin"/>
+        </record>
+
+    </data>
+</tryton>

@@ -1,0 +1,42 @@
+<?xml version="1.0"?>
+<!-- The COPYRIGHT file at the top level of this repository contains the full
+     copyright notices and license terms. -->
+<form col="6">
+    <label name="company"/>
+    <field name="company"/>
+    <label name="company_vat"/>
+    <field name="company_vat"/>
+    <label name="currency"/>
+    <field name="currency"/>
+    <label name="book"/>
+    <field name="book"/>
+    <label name="operation_type"/>
+    <field name="operation_type"/>
+    <label name="version"/>
+    <field name="version"/>
+    <label name="fiscalyear"/>
+    <field name="fiscalyear"/>
+    <label name="period"/>
+    <field name="period"/>
+    <label name="load_date"/>
+    <field name="load_date"/>
+    <label name="send_date"/>
+    <field name="send_date"/>
+    <button name="load_invoices" colspan="2"/>
+    <field name="lines" colspan="6"
+        mode="tree"
+        view_ids="aeat_verifactu.aeat_verifactu_report_line_tree_seq_view"/>
+    <label name="state"/>
+    <field name="state"/>
+    <label name="communication_state"/>
+    <field name="communication_state"/>
+    <label name="csv"/>
+    <field name="csv"/>
+    <group id="buttons" colspan="5">
+        <button name="draft"/>
+        <button name="confirm"/>
+        <button name="send"/>
+        <button name="cancel"/>
+	<button name="process_response"/> 
+    </group>
+</form>

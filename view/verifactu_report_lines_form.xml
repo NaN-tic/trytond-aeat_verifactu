@@ -1,0 +1,49 @@
+<?xml version="1.0"?>
+<!-- The COPYRIGHT file at the top level of this repository contains the full
+     copyright notices and license terms. -->
+<form>
+    <notebook>
+        <page string="Main Information" id="main_registers">
+    <label name="report"/>
+    <field name="report"/>
+    <label name="invoice"/>
+    <field name="invoice"/>
+    <label name="state"/>
+    <field name="state"/>
+    <label name="last_modify_date"/>
+    <field name="last_modify_date"/>
+    <label name="communication_msg"/>
+    <field name="communication_msg"/>
+    <label name="issuer_vat_number"/>
+    <field name="issuer_vat_number"/>
+    <label name="serial_number"/>
+    <field name="serial_number"/>
+    <label name="final_serial_number"/>
+    <field name="final_serial_number"/>
+    <label name="issue_date"/>
+    <field name="issue_date"/>
+    <label name="invoice_kind"/>
+    <field name="invoice_kind"/>
+    <label name="special_key"/>
+    <field name="special_key"/>
+    <label name="total_amount"/>
+    <field name="total_amount"/>
+    <field name="taxes" colspan="4"/>
+    <label name="counterpart_name"/>
+    <field name="counterpart_name"/>
+    <label name="counterpart_id"/>
+    <field name="counterpart_id"/>
+    <label name="presenter"/>
+    <field name="presenter"/>
+    <label name="presentation_date"/>
+    <field name="presentation_date"/>
+    <label name="csv"/>
+    <field name="csv"/>
+    <label name="balance_state"/>
+    <field name="balance_state"/>
+   </page>
+   <page id="aeat_registers">
+      <field name="aeat_register"/>
+   </page>
+    </notebook>
+</form>

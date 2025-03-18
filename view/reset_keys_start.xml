@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+<!--The COPYRIGHT file at the top level of this repository
+contains the full copyright notices and license terms. -->
+<form col="2">
+    <image name="tryton-info" xexpand="0"
+        xfill="0"/>
+    <group id="strings">
+        <label string="The AEAT Verifactu Keys for selected invoices will be reset to default."
+            id="reset" yalign="0.0" xalign="0.0" xexpand="1"/>
+        <newline/>
+        <label string="Only will be reset the draft invoices."
+            id="reset_draft" yalign="0.0" xalign="0.0" xexpand="1"/>
+        <newline/>
+        <label string="Note that this operation may take a few minutes."
+            id="operation" yalign="0.0" xalign="0.0" xexpand="1"/>
+    </group>
+</form>
