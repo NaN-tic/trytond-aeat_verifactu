@@ -1,6 +1,5 @@
 import os
 from trytond.model import ModelSQL, ModelView, fields
-from trytond.pool import Pool
 import zeep
 from lxml import etree
 import logging
@@ -58,7 +57,7 @@ class Invoice(ModelSQL, ModelView):
         }
 
         envelope = etree.Element(etree.QName(nsmap['soapenv'], 'Envelope'), nsmap=nsmap)
-        header = etree.SubElement(envelope, etree.QName(nsmap['soapenv'], 'Header'))
+        etree.SubElement(envelope, etree.QName(nsmap['soapenv'], 'Header'))
         body = etree.SubElement(envelope, etree.QName(nsmap['soapenv'], 'Body'))
         reg_factu = etree.SubElement(body, etree.QName(nsmap['sum'], 'RegFactuSistemaFacturacion'))
 

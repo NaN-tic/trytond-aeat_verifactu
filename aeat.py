@@ -70,9 +70,6 @@ OPERATION_KEY = [    # L2_EMI - L2_RECI
     ('F2', 'Simplified Invoice (ticket) and Invoices without destination '
         'identidication (Art 6.1.d of RD1619/2012)'),
     ('F3', 'Invoice issued to replace simplified invoices issued and filed'),
-    ('F4', 'Invoice summary entry'),
-    ('F5', 'Import (DUA)'),
-    ('F6', 'Other accounting documents'),
     # R1: errores fundados de derecho y causas del artículo 80.Uno, Dos y Seis
     #    LIVA
     ('R1', 'Corrected Invoice '
@@ -84,7 +81,6 @@ OPERATION_KEY = [    # L2_EMI - L2_RECI
     # R4: resto de causas
     ('R4', 'Corrected Invoice (Other)'),
     ('R5', 'Corrected Invoice in simplified invoices'),
-    ('LC', 'Duty - Complementary clearing'),  # Not supported
     ]
 
 # IDType
@@ -102,8 +98,8 @@ PARTY_IDENTIFIER_TYPE = [
     ('SI', 'Simplified Invoice'),
     ]
 
-# ClaveRegimenEspecialOTrascendencia
-SEND_SPECIAL_REGIME_KEY = [  # L3.1
+# Desglose -> DetalleDesglose -> ClaveRegimen
+SEND_SPECIAL_REGIME_KEY = [  # L8.A
     (None, ''),
     ('01', 'General tax regime activity'),
     ('02', 'Export'),
@@ -124,36 +120,14 @@ SEND_SPECIAL_REGIME_KEY = [  # L3.1
         'professional organisations or other entities that, amongst their '
         'functions, undertake collections'),
     ('11', 'Business premises lease activities subject to withholding'),
-    ('12', 'Business premises lease activities not subject to withholding'),
-    ('13', 'Business premises lease activities subject and not subject '
-        'to withholding'),
     ('14', 'Invoice with VAT pending accrual (work certifications with Public '
         'Administration recipients)'),
     ('15', 'Invoice with VAT pending accrual - '
         'operations of successive tract'),
-    ('16', 'First semester 2017 and other invoices before the verifactu'),
-    ]
-
-# ClaveRegimenEspecialOTrascendencia
-RECEIVE_SPECIAL_REGIME_KEY = [  # L3.2
-    (None, ''),
-    ('01', 'General tax regime activity'),
-    ('02', 'Activities through which businesses pay compensation for special '
-        'VAT arrangements for agriculture and fisheries (REAGYP)'),
-    ('03', 'Activities to which the special scheme of used goods, '
-        'works of art, antiquities and collectables (REBU) [135-139 of the VAT'
-        ' Law]'),
-    ('04', 'Special scheme for investment gold'),
-    ('05', 'Special scheme for travel agencies'),
-    ('06', 'Special scheme applicable to groups of entities, VAT (Advanced)'),
-    ('07', 'Special cash basis scheme'),
-    ('08', 'Activities subject to Canary Islands General Indirect Tax/Tax '
-        'on Production, Services and Imports (IPSI/IGIC)'),
-    ('09', 'Intra-Community acquisition of assets and provisions of services'),
-    ('12', 'Business premises lease activities'),
-    ('13', 'Invoice corresponding to an import '
-        '(reported without been associated with a DUA)'),
-    ('14', 'First semester 2017 and other invoices before the verifactu'),
+    ('17', 'Operation covered by one of the regimes provided for in Chapter XI of Title IX (OSS and IOSS)'),
+    ('18', 'Equivalence surcharge'),
+    ('19', 'Operations of activities included in the Special Regime for Agriculture, Livestock and Fisheries (REAGYP)'),
+    ('20', 'Simplified regime'),
     ]
 
 AEAT_COMMUNICATION_STATE = [
@@ -185,16 +159,16 @@ PROPERTY_STATE = [  # L6
     ('4', '4. Property located abroad'),
     ]
 
-# L7 - Iva Subjected
+# L9 - Iva Subjected
 IVA_SUBJECTED = [
     (None, ''),
     ('S1', 'Subject - Not exempt. Non VAT reverse charge'),
     ('S2', 'Subject - Not exempt. VAT reverse charge'),
-    ('S3', 'Subject - Not exempt. Both non VAT reverse charge '
-        'and VAT reverse charge')
+    ('N1', 'Exempt on acconunt of Articles 7, 14, others'),
+    ('N2', 'Exempt by location rules'),
     ]
 
-# L9 - Exemption cause
+# L10 - Exemption cause
 EXEMPTION_CAUSE = [
     (None, ''),
     ('E1', 'Exempt on account of Article 20'),
@@ -205,11 +179,6 @@ EXEMPTION_CAUSE = [
     ('E6', 'Exempt on other grounds'),
     ('NotSubject', 'Not Subject'),
     ]
-
-_STATES = {
-    'readonly': Eval('state') != 'draft',
-    }
-_DEPENDS = ['state']
 
 
 class VerifactuReport(Workflow, ModelSQL, ModelView):

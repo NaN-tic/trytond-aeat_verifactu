@@ -2,11 +2,11 @@
 # copyright notices and license terms.
 from trytond.model import fields, ModelSQL
 from trytond.pool import Pool, PoolMeta
-from trytond.pyson import Eval
+from trytond.pyson import Eval, Bool
 from trytond.transaction import Transaction
 from trytond.modules.company.model import CompanyValueMixin
 from .aeat import (BOOK_KEY, OPERATION_KEY, SEND_SPECIAL_REGIME_KEY,
-    RECEIVE_SPECIAL_REGIME_KEY, IVA_SUBJECTED, EXEMPTION_CAUSE)
+    IVA_SUBJECTED, EXEMPTION_CAUSE)
 
 
 class Configuration(metaclass=PoolMeta):
@@ -27,7 +27,7 @@ class Configuration(metaclass=PoolMeta):
     #readonly if it is not none
     verifactu_start_date = fields.MultiValue(fields.Date('Verifactu Start Date',
         states={
-            'readonly': Eval('verifactu_start_date', None),
+            'readonly': Bool(Eval('verifactu_start_date', None)),
         },
         help='Start date for Verifactu'))
 

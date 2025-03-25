@@ -40,7 +40,7 @@ class Invoice(metaclass=PoolMeta):
             readonly=True)
     verifactu_header = fields.Text('Header')
     verifactu_sent = fields.Function(fields.Boolean('Verifactu Sent'),
-            'get_verifactu_sent')
+            'get_verifactu_sent', searcher='search_verifactu_sent')
 
     @classmethod
     def __setup__(cls):
@@ -81,12 +81,20 @@ class Invoice(metaclass=PoolMeta):
 
     @classmethod
     def get_verifactu_sent(cls, invoices, name):
-        pool = Pool()
-        Report = pool.get('aeat.verifactu.report')
         for invoice in invoices:
             if invoice.verifactu_records:
                 return True
         return False
+
+    @classmethod
+    def search_verifactu_sent(cls, name, clause):
+        _, operator, value = clause
+        if operator not in ('=', '!='):
+            return []
+        domain = [('verifactu_records', '!=', None)]
+        if (operator == '=' and not value) or (operator == '!=' and value):
+            domain = [('verifactu_records', '=', None)]
+        return domain
 
     @staticmethod
     def default_verifactu_pending_sending():
@@ -314,10 +322,6 @@ class Invoice(metaclass=PoolMeta):
 
     @classmethod
     def post(cls, invoices):
-        pool = Pool()
-        Warning = pool.get('res.user.warning')
-        Configuration = pool.get('account.configuration')
-
         to_write = []
 
         invoices2checkverifactu = []
@@ -354,75 +358,97 @@ class Invoice(metaclass=PoolMeta):
             cls.write(*to_write)
 
         # Control the simplified operation Verifactu key is setted correctly
-        cls.simplified_aeat_verifactu_invoices(invoices)
+        # cls.simplified_aeat_verifactu_invoices(invoices)
         cls.send_verifactu()
 
     @classmethod
     def send_verifactu(cls):
-
         pool = Pool()
-        VerifactuLine = pool.get('aeat.verifactu.report.lines')
         Configuration = pool.get('account.configuration')
         verifactu_start_date = Configuration(1).verifactu_start_date
-        domain = [('sent_verifactu', '=', False)]
-        if verifactu_start_date:
-            domain.append(('invoice_date', '>=', verifactu_start_date))
-        invoices = cls.search(domain, order=[('post_date', 'ASC')])
-
+        if not verifactu_start_date:
+            return
+        invoices = cls.search([('verifactu_sent', '=', False),
+                               ('invoice_date', '>=', verifactu_start_date)],
+                              order=[('invoice_date', 'ASC')])
+        print([x.invoice_date for x in invoices])
+        huella, last_line = cls.syncro_query(invoices)
         invoice = invoices[0]
         headers = tools.get_headers(
             name=tools.unaccent(invoice.company.party.name),
             vat='B65247983',
             version='1.0')
-
         certificate = invoice._get_certificate()
+
         with certificate.tmp_ssl_credentials() as (crt, key):
             srv = service.bind_issued_invoices_service(
                 crt, key, test=True)
-
-        registers = cls.syncro_query(invoice)
-        huella = None
-        for reg in registers:
-            huella = reg['DatosRegistroFacturacion']['Huella']
-            verifactu_line = VerifactuLine.search([('huella', '=', huella)])
-            if verifactu_line:
-                break
-            else:
-                new_line = VerifactuLine()
-                new_line.huella = huella
-                invoices = cls.search([('number', '=', reg['IDFactura']['NumSerieFactura'])])
-                if not invoices:
-                    raise UserError(gettext('aeat_verifactu.msg_invoice_not_found'))
-                new_line.invoice = invoices[0]
-                new_line.state = reg['EstadoRegistro']['EstadoRegistro']
-                new_line.save()
-
-        res = srv.submit(
-            headers,
-            invoices,
-            last_huella=huella)
-
-        #crear lineas de verifactu de las facturas junto con la response
+            srv.submit(
+                headers,
+                invoices,
+                last_huella=huella,
+                last_line=last_line)
+        cls.syncro_query(invoices)
         return True
-    def syncro_query(headers, invoice):
-        # mirar como maximo 24 meses atras
+
+    def get_period(year, period, invoices):
+        records = []
+        invoice = invoices[0]
+        headers = tools.get_headers(
+            name=tools.unaccent(invoice.company.party.name),
+            vat='B65247983',
+            version='1.0')
+        certificate = invoice._get_certificate()
+        pagination = 'S'
+        clave_paginacion = None
+        while pagination == 'S':
+            with certificate.tmp_ssl_credentials() as (crt, key):
+                srv = service.bind_issued_invoices_service(
+                    crt, key, test=True)
+                res = srv.query(headers, year=year, period=period, clave_paginacion=clave_paginacion)
+                invoices = res.RegistroRespuestaConsultaFactuSistemaFacturacion
+                if invoices:
+                    records.extend(invoices)
+            pagination = res.IndicadorPaginacion
+            if pagination == 'S':
+                clave_paginacion = res.ClavePaginacion
+        return records
+
+    @classmethod
+    def syncro_query(cls, invoices):
+        pool = Pool()
+        VerifactuLine = pool.get('aeat.verifactu.report.lines')
+        records = []
         today = datetime.today()
         year = today.year
         period = today.month
-       
+        attempts = 24
+        while attempts > 0:
+            records = cls.get_period(year, period, invoices)
+            huella = None
+            for record in records:
+                huella = record['DatosRegistroFacturacion']['Huella']
+                verifactu_line = VerifactuLine.search([('huella', '=', huella)])
+                if verifactu_line:
+                    attempts = 0
+                    last_line = verifactu_line[0]
+                    break
+                else:
+                    new_line = VerifactuLine()
+                    new_line.huella = huella
+                    invoices = cls.search([('number', '=', record['IDFactura']['NumSerieFactura'])])
+                    if not invoices:
+                        raise UserError(gettext('aeat_verifactu.msg_invoice_not_found'))
+                    new_line.invoice = invoices[0]
+                    new_line.state = record['EstadoRegistro']['EstadoRegistro']
+                    new_line.save()
+            period -= 1
+            if period == 0:
+                period = 12
+                year -= 1
+            attempts -= 1
+        return huella, last_line
 
-
-
-            
-            #res = sorted full res 
-            res = srv.query(
-                headers,
-                year=year,
-                period=period,
-                last_invoice=None)
-            print(dir(res))
-        registers = res.RegistroRespuestaConsultaFactuSistemaFacturacion
-        return registers
     def _get_certificate(self):
         Configuration = Pool().get('account.configuration')
         config = Configuration(1)

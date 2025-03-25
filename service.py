@@ -62,13 +62,13 @@ class _IssuedInvoiceService(object):
     def __init__(self, service):
         self.service = service
 
-    def submit(self, headers, invoices, last_huella=None):
+    def submit(self, headers, invoices, last_huella=None, last_line=None):
         print('entro submit')
         pool = Pool()
         IssuedMapper = pool.get('aeat.verifactu.issued.invoice.mapper')
         mapper = IssuedMapper()
 
-        body = [mapper.build_submit_request(i, last_huella) for i in invoices]
+        body = [mapper.build_submit_request(i, last_huella, last_line) for i in invoices]
 
         print('body', body)
         _logger.debug(body)
@@ -86,19 +86,17 @@ class _IssuedInvoiceService(object):
         _logger.debug(response_)
         return response_
 
-    def query(self, headers, year=None, period=None, last_invoice=None):
+    def query(self, headers, year=None, period=None, clave_paginacion=None):
         print('entro query')
         pool = Pool()
         IssuedMapper = pool.get('aeat.verifactu.issued.invoice.mapper')
         mapper = IssuedMapper()
 
         filter_ = mapper.build_query_filter(year=year, period=period,
-            last_invoice=last_invoice)
+            clave_paginacion=clave_paginacion)
         _logger.debug(filter_)
-        from inspect import signature
-        print(signature(self.service.ConsultaFactuSistemaFacturacion))
         response_ = self.service.ConsultaFactuSistemaFacturacion(
             headers, filter_)
-        print(response_)
+        print(len(response_.RegistroRespuestaConsultaFactuSistemaFacturacion))
         _logger.debug(response_)
         return response_

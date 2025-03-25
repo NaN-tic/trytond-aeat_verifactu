@@ -4,7 +4,7 @@
 from decimal import Decimal
 from logging import getLogger
 from operator import attrgetter
-from datetime import datetime, timedelta
+from datetime import datetime
 import pytz
 
 from trytond.i18n import gettext
@@ -55,14 +55,10 @@ class IssuedInvoiceMapper(Model):
 
     def counterpart_nif(self, invoice):
         nif = ''
-        if invoice.verifactu_operation_key == 'F5':
-            # Assume that the company party is configured correctly.
-            nif = invoice.company.party.tax_identifier.code
-        else:
-            if invoice.party.tax_identifier:
-                nif = invoice.party.tax_identifier.code
-            elif invoice.party.identifiers:
-                nif = invoice.party.identifiers[0].code
+        if invoice.party.tax_identifier:
+            nif = invoice.party.tax_identifier.code
+        elif invoice.party.identifiers:
+            nif = invoice.party.identifiers[0].code
         if nif.startswith('ES'):
             nif = nif[2:]
         return nif
@@ -94,17 +90,14 @@ class IssuedInvoiceMapper(Model):
         return (taxes_amount + taxes_base + taxes_surcharge)
 
     def counterpart_id_type(self, invoice):
-        if invoice.verifactu_operation_key == 'F5':
-            return invoice.company.party.verifactu_identifier_type
-        else:
-            for tax in invoice.taxes:
-                if (self.exempt_kind(tax.tax) == 'E5' and
-                        invoice.party.verifactu_identifier_type != '02'):
-                    raise UserError(gettext(
-                            'aeat_verifactu.msg_wrong_identifier_type',
-                            invoice=invoice.number,
-                            party=invoice.party.rec_name))
-            return invoice.party.verifactu_identifier_type
+        for tax in invoice.taxes:
+            if (self.exempt_kind(tax.tax) == 'E5' and
+                    invoice.party.verifactu_identifier_type != '02'):
+                raise UserError(gettext(
+                        'aeat_verifactu.msg_wrong_identifier_type',
+                        invoice=invoice.number,
+                        party=invoice.party.rec_name))
+        return invoice.party.verifactu_identifier_type
 
     counterpart_id = counterpart_nif
     total_amount = get_invoice_total
@@ -187,6 +180,17 @@ class IssuedInvoiceMapper(Model):
             ret['NIF'] = self.counterpart_nif(invoice)
         return ret
 
+    def _build_encadenamiento(self, last_line=None):
+        if not last_line:
+            return {"PrimerRegistro": "S" },
+        invoice = last_line.invoice
+        return {"RegistroAnterior": {
+                    "IDEmisorFactura": self.nif(invoice),
+                    "NumSerieFactura": invoice.number,
+                    "FechaExpedicionFactura": invoice.invoice_date.strftime(_DATE_FMT),
+                    "Huella": last_line.huella
+                }}
+
     def _description(self, invoice):
         description = ''
         if invoice.description:
@@ -199,18 +203,15 @@ class IssuedInvoiceMapper(Model):
             else _FIRST_SEMESTER_RECORD_DESCRIPTION
         )
 
-    def build_query_filter(self, year=None, period=None, last_invoice=None):
-        # TODO: IDFactura, Contraparte,
-        # FechaPresentacion, FechaCuadre, FacturaModificada,
-        # EstadoCuadre
+    def build_query_filter(self, year=None, period=None, clave_paginacion=None):
         result = {
             'PeriodoImputacion': {
                 'Ejercicio': year,
                 'Periodo': tools._format_period(period),
                 }
             }
-        # if last_invoice:
-        #     result['ClavePaginacion'] = last_invoice
+        if clave_paginacion:
+            result['ClavePaginacion'] = clave_paginacion
         return result
 
     def _is_first_semester(self, invoice):
@@ -223,9 +224,9 @@ class IssuedInvoiceMapper(Model):
             'IDFactura': self._build_invoice_id(invoice),
         }
 
-    def build_submit_request(self, invoice):
+    def build_submit_request(self, invoice, last_huella=None, last_line=None):
         request = {}
-        request['RegistroAlta'] = self.build_issued_invoice(invoice)
+        request['RegistroAlta'] = self.build_issued_invoice(invoice, last_huella, last_line=last_line)
         return request
 
     def build_taxes(self, tax):
@@ -275,47 +276,39 @@ class IssuedInvoiceMapper(Model):
         hash_object = hashlib.sha256(data_string.encode('utf-8'))
         return hash_object.hexdigest().upper()  # Salida en mayúsculas, formato hexadecimal
 
-    def build_issued_invoice(self, invoice, last_huella=None):
-
-
-        # Zona horaria específica (ejemplo: Madrid)
+    def build_issued_invoice(self, invoice, last_huella=None, last_line=None):
         tz = pytz.timezone("Europe/Madrid")
-
-        # Obtener la fecha y hora actual con zona horaria
-        dt_now = datetime.now(tz).replace(microsecond=0)  # Eliminamos microsegundos
-
-        # Convertir al formato ISO 8601
+        dt_now = datetime.now(tz).replace(microsecond=0)
         formatted_now = dt_now.isoformat()
-        
-        #use now - 24h
-        formatted_yesterday = (dt_now - timedelta(days=1)).isoformat()
-
-        print(formatted_now)  # Ejemplo: 2025-03-06T12:24:18+01:00
         ret = {
             "IDVersion": "1.0",
             "IDFactura": self._build_invoice_id(invoice),
             "NombreRazonEmisor": tools.unaccent(invoice.company.party.name),
             "TipoFactura": self.invoice_kind(invoice),
             "DescripcionOperacion": self._description(invoice),
-            # "Destinatarios": {
-            #     "IDDestinatario": self._build_counterpart(invoice)
-            # },
+            "Destinatarios": {
+                "IDDestinatario": self._build_counterpart(invoice)
+            },
             "Desglose": {
                 "DetalleDesglose": [
                 {
-                    "ClaveRegimen": "01",
-                    "CalificacionOperacion": "S1",
+                    "ClaveRegimen": tax.tax.verifactu_issued_key,
+                    **(
+                        {"CalificacionOperacion": tax.tax.verifactu_subjected_key}
+                        if tax.tax.verifactu_subjected_key is not None
+                        else {"OperacionExenta": tax.tax.verifactu_exemption_cause}
+                    ),
                     "TipoImpositivo": tools._rate_to_percent(self.tax_rate(tax)),
                     "BaseImponibleOimporteNoSujeto": self.tax_base(tax),
                     "CuotaRepercutida": self.tax_amount(tax)
+                    # TipoRecargoEquivalencia: Porcentaje asociado en función del impuesto y tipo impositivo
+                    # CuotaRecargoEquivalencia: Cuota resultante de aplicar a la base imponible el tipo de recargo de equivalencia.
                 } for tax in self.taxes(invoice)
                 ]
             },
             "CuotaTotal": sum(self.tax_amount(tax) for tax in self.taxes(invoice)),
             "ImporteTotal": self.total_amount(invoice),
-            "Encadenamiento": {
-                "PrimerRegistro": "S"
-            },
+            "Encadenamiento": self._build_encadenamiento(last_line),
             "SistemaInformatico": {
                 "NombreRazon": "NaN Projectes de Programari Lliure, S.L.",
                 "NIF": 'B65247983', #invoice.company.party.tax_identifier.code,
