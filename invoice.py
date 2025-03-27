@@ -200,9 +200,6 @@ class Invoice(metaclass=PoolMeta):
             if invoice.verifactu_state:
                 invoices_verifactu.append('%s: %s' % (
                     invoice.number, invoice.verifactu_state))
-            for record in invoice.verifactu_records:
-                if record.report.state == 'draft':
-                    raise UserError(gettext('aeat_verifactu.msg_invoices_verifactu_pending'))
         if invoices_verifactu:
             warning_name = 'invoices_verifactu.' + hashlib.md5(
                 ''.join(invoices_verifactu).encode('utf-8')).hexdigest()

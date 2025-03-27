@@ -23,8 +23,6 @@ def register():
         invoice.Invoice,
         invoice.ResetVerifactuKeysStart,
         invoice.ResetVerifactuKeysEnd,
-        aeat.CreateVerifactuIssuedPendingView,
-        aeat.VerifactuReport,
         aeat.VerifactuReportLine,
         aeat.VerifactuReportLineTax,
         aeat_mapping.IssuedInvoiceMapper,
@@ -39,5 +37,4 @@ def register():
         module='aeat_verifactu', type_='model')
     Pool.register(
         invoice.ResetVerifactuKeys,
-        aeat.CreateVerifactuIssuedPending,
         module='aeat_verifactu', type_='wizard')

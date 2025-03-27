@@ -3,10 +3,10 @@
      copyright notices and license terms. -->
 <tryton>
     <data>
-        <record model="ir.cron" id="cron_calculate_verifactu">
+        <!-- <record model="ir.cron" id="cron_calculate_verifactu">
             <field name="interval_number" eval="1"/>
             <field name="interval_type">days</field>
             <field name="method">aeat.verifactu.report|calculate_verifactu</field>
-        </record>
+        </record> -->
     </data>
 </tryton>

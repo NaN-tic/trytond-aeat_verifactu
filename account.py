@@ -14,14 +14,6 @@ class Configuration(metaclass=PoolMeta):
 
     aeat_certificate_verifactu = fields.MultiValue(fields.Many2One('certificate',
         'AEAT Certificate Verifactu'))
-    aeat_pending_verifactu = fields.MultiValue(fields.Boolean('AEAT Pending Verifactu',
-        help='Automatically generate AEAT Pending Verifactu reports by cron'))
-    aeat_pending_verifactu_send = fields.MultiValue(fields.Boolean('AEAT Pending Verifactu Send',
-        states={
-            'invisible': ~Eval('aeat_pending_verifactu', False),
-        },
-        help='Automatically send AEAT Pending Verifactu reports by cron'))
-    #readonly if it is not none
     verifactu_start_date = fields.MultiValue(fields.Date('Verifactu Start Date',
         states={
             'readonly': Bool(Eval('verifactu_start_date', None)),
@@ -31,23 +23,10 @@ class Configuration(metaclass=PoolMeta):
     @classmethod
     def multivalue_model(cls, field):
         pool = Pool()
-        if field in {'aeat_certificate_verifactu', 'aeat_pending_verifactu',
-                'aeat_pending_verifactu_send', 'verifactu_default_offset_days',
+        if field in {'aeat_certificate_verifactu', 'verifactu_default_offset_days',
                 'verifactu_start_date'}:
             return pool.get('account.configuration.default_verifactu')
         return super().multivalue_model(field)
-
-    @classmethod
-    def default_aeat_pending_verifactu(cls, **pattern):
-        return False
-
-    @classmethod
-    def default_aeat_pending_verifactu_send(cls, **pattern):
-        return False
-
-    @classmethod
-    def default_verifactu_default_offset_days(cls, **pattern):
-        return 0
 
     @classmethod
     def default_verifactu_start_date(cls, **pattern):
@@ -60,13 +39,6 @@ class ConfigurationDefaultVerifactu(ModelSQL, CompanyValueMixin):
 
     aeat_certificate_verifactu = fields.Many2One('certificate',
         'AEAT Certificate Verifactu')
-    aeat_pending_verifactu = fields.Boolean('AEAT Pending Verifactu',
-        help='Automatically generate AEAT Pending Verifactu reports by cron')
-    aeat_pending_verifactu_send = fields.Boolean('AEAT Pending Verifactu Send',
-        states={
-            'invisible': ~Eval('aeat_pending_verifactu', False),
-        },
-        help='Automatically send AEAT Pending Verifactu reports by cron')
     verifactu_start_date = fields.Date('Verifactu Start Date',
         help='Start date for Verifactu')
 

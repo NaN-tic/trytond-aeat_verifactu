@@ -8,10 +8,6 @@ copyright notices and license types. -->
         <field name="aeat_certificate_verifactu"/>
         <label name="verifactu_default_offset_days"/>
         <field name="verifactu_default_offset_days"/>
-        <label name="aeat_pending_verifactu"/>
-        <field name="aeat_pending_verifactu"/>
-        <label name="aeat_pending_verifactu_send"/>
-        <field name="aeat_pending_verifactu_send"/>
         <label name="verifactu_start_date"/>
         <field name="verifactu_start_date"/>
 	<newline/>
