@@ -196,20 +196,6 @@
           <field name="group" ref="group_aeat_verifactu_admin"/>
       </record>
 
-        <record model="ir.action.act_window" id="act_aeat_verifactu_issued_report">
-            <field name="name">Verifactu Report Issued</field>
-            <field name="res_model">aeat.verifactu.report</field>
-            <field name="domain" eval="[('book', '=', 'E')]" pyson="1"/>
-            <field name="search_value"
-                eval="[('fiscalyear.start_date', '>=', Date(day=1, month=1))]"
-                pyson="1"/>
-        </record>
-        <menuitem action="act_aeat_verifactu_issued_report"
-            id="menu_aeat_verifactu_report_issued"
-            parent="menu_aeat_verifactu_report_menu" sequence="3"
-            name="AEAT Verifactu Report Issued"/>
-
-
       <record model="ir.ui.view" id="aeat_verifactu_issued_pending_view_form">
            <field name="model">aeat.verifactu.issued.pending.view</field>
            <field name="type">form</field>

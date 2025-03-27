@@ -8,8 +8,6 @@ contains the full copyright notices and license terms. -->
             <field name="tax_used"/>
             <label name="invoice_used"/>
             <field name="invoice_used"/>
-            <label name="verifactu_book_key"/>
-            <field name="verifactu_book_key"/>
             <label name="verifactu_operation_key"/>
             <field name="verifactu_operation_key"/>
             <label name="verifactu_issued_key"/>

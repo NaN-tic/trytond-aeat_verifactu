@@ -5,7 +5,7 @@ from trytond.pool import Pool, PoolMeta
 from trytond.pyson import Eval, Bool
 from trytond.transaction import Transaction
 from trytond.modules.company.model import CompanyValueMixin
-from .aeat import (BOOK_KEY, OPERATION_KEY, SEND_SPECIAL_REGIME_KEY,
+from .aeat import (OPERATION_KEY, SEND_SPECIAL_REGIME_KEY,
     IVA_SUBJECTED, EXEMPTION_CAUSE)
 
 
@@ -21,9 +21,6 @@ class Configuration(metaclass=PoolMeta):
             'invisible': ~Eval('aeat_pending_verifactu', False),
         },
         help='Automatically send AEAT Pending Verifactu reports by cron'))
-
-    verifactu_default_offset_days = fields.MultiValue(fields.Integer('Verifactu Default Offset Days',
-        help='Default offset days in the invoices search for the Verifactu Books'))
     #readonly if it is not none
     verifactu_start_date = fields.MultiValue(fields.Date('Verifactu Start Date',
         states={
@@ -70,12 +67,6 @@ class ConfigurationDefaultVerifactu(ModelSQL, CompanyValueMixin):
             'invisible': ~Eval('aeat_pending_verifactu', False),
         },
         help='Automatically send AEAT Pending Verifactu reports by cron')
-    verifactu_default_offset_days = fields.Integer('Verifactu Default Offset Days',
-        help='Default offset days in the invoices search for the Verifactu Books',
-        domain=[
-            ('verifactu_default_offset_days', '>=', 0),
-            ('verifactu_default_offset_days', '<=', 4),
-            ],)
     verifactu_start_date = fields.Date('Verifactu Start Date',
         help='Start date for Verifactu')
 
@@ -83,7 +74,6 @@ class ConfigurationDefaultVerifactu(ModelSQL, CompanyValueMixin):
 class TemplateTax(metaclass=PoolMeta):
     __name__ = 'account.tax.template'
 
-    verifactu_book_key = fields.Selection(BOOK_KEY, 'Book Key')
     verifactu_operation_key = fields.Selection(OPERATION_KEY, 'Verifactu Operation Key')
     verifactu_issued_key = fields.Selection(SEND_SPECIAL_REGIME_KEY, 'Issued Key')
     verifactu_subjected_key = fields.Selection(IVA_SUBJECTED, 'Subjected Key')
@@ -113,7 +103,7 @@ class TemplateTax(metaclass=PoolMeta):
 
     def _get_tax_value(self, tax=None):
         res = super()._get_tax_value(tax)
-        for field in ('verifactu_book_key', 'verifactu_operation_key', 'verifactu_issued_key',
+        for field in ('verifactu_operation_key', 'verifactu_issued_key',
                 'verifactu_subjected_key', 'verifactu_exemption_cause', 'tax_used', 'invoice_used'):
 
             if not tax or getattr(tax, field) != getattr(self, field):
@@ -125,7 +115,6 @@ class TemplateTax(metaclass=PoolMeta):
 class Tax(metaclass=PoolMeta):
     __name__ = 'account.tax'
 
-    verifactu_book_key = fields.Selection(BOOK_KEY, 'Book Key')
     verifactu_operation_key = fields.Selection(OPERATION_KEY, 'Verifactu Operation Key')
     verifactu_issued_key = fields.Selection(SEND_SPECIAL_REGIME_KEY, 'Issued Key')
     verifactu_subjected_key = fields.Selection(IVA_SUBJECTED, 'Subjected Key')

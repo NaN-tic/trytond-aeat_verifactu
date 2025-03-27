@@ -101,7 +101,7 @@ class Invoice(ModelSQL, ModelView):
             print(e)
             LOGGER.error(f"Error sending invoice to VeriFactu: {e}")
             return {'error': str(e)}
-            
+
 
     def process_response(self, response):
         print(response)

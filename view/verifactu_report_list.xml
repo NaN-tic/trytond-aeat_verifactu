@@ -4,7 +4,6 @@
 <tree>
     <field name="company"/>
     <field name="company_vat"/>
-    <field name="book"/>
     <field name="currency"/>
     <field name="fiscalyear"/>
     <field name="period"/>

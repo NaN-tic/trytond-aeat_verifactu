@@ -18,7 +18,6 @@ from trytond.transaction import Transaction
 from trytond.config import config
 from trytond.i18n import gettext
 from trytond.exceptions import UserError
-from trytond.tools import grouped_slice
 from trytond.modules.account.exceptions import FiscalYearNotFoundError
 from . import tools
 from . import service
@@ -53,14 +52,6 @@ COMMUNICATION_TYPE = [   # L0
     # ('A6', 'Amendment of travellers tax devolutions'), # Not supported
     ('C0', 'Query Invoices'),  # Not in L0
     ('D0', 'Delete Invoices'),  # Not In L0
-    ]
-
-BOOK_KEY = [
-    (None, ''),
-    ('E', 'Issued Invoices'),
-    ('I', 'Investment Goods'),
-    ('R', 'Received Invoices'),
-    ('U', 'Particular Intracommunity Operations'),
     ]
 
 # TipoFactura
@@ -222,11 +213,6 @@ class VerifactuReport(Workflow, ModelSQL, ModelView):
         states={
             'readonly': ((~Eval('state').in_(['draft', 'confirmed']))
                 | (Eval('lines', [0]) & Eval('operation_type'))),
-        })
-    book = fields.Selection(BOOK_KEY, 'Book', required=True,
-        states={
-            'readonly': ((~Eval('state').in_(['draft', 'confirmed']))
-                | (Eval('lines', [0]) & Eval('book'))),
         })
     state = fields.Selection([
             ('draft', 'Draft'),
@@ -486,7 +472,6 @@ class VerifactuReport(Workflow, ModelSQL, ModelView):
                     report.load_date = report.load_date_end
                 report.save()
             domain = [
-                ('verifactu_book_key', '=', report.book),
                 ('move.period', '=', report.period.id),
                 ['OR',
                     ('state', 'in', ['posted', 'paid']),
@@ -502,11 +487,6 @@ class VerifactuReport(Workflow, ModelSQL, ModelView):
                         ], [
                         ('accounting_date', '<=', report.load_date),
                         ]],]
-
-            if report.book == 'E':
-                domain.append(('type', '=', 'out'))
-            else:
-                domain.append(('type', '=', 'in'))
 
             if report.operation_type == 'A0':
                 domain.append(('verifactu_state', 'in', [None, 'Incorrecto',
@@ -831,7 +811,6 @@ class VerifactuReport(Workflow, ModelSQL, ModelView):
             # search issued invoices [new]
             new_issued_invoices = Invoice.search([
                     ('company', '=', company),
-                    ('verifactu_book_key', '=', 'E'),
                     ['OR',
                         ('state', 'in', ['posted', 'paid']),
                         [
@@ -857,74 +836,8 @@ class VerifactuReport(Workflow, ModelSQL, ModelView):
                     periods1[period] = [invoice]
             issued_invoices[company]['A0'] = periods1
 
-        book_type = 'E'  # Issued
-        return cls.create_verifactu_book(issued_invoices, book_type)
+        return
 
-
-    @classmethod
-    def create_verifactu_book(cls, company_invoices, book):
-        pool = Pool()
-        VerifactuReport = pool.get('aeat.verifactu.report')
-        VerifactuReportLine = pool.get('aeat.verifactu.report.lines')
-        Company = pool.get('company.company')
-        Configuration = pool.get('account.configuration')
-        Date = pool.get('ir.date')
-
-        config = Configuration(1)
-        today = Date.today()
-
-        cursor = Transaction().connection.cursor()
-        report_line_table = VerifactuReportLine.__table__()
-
-        reports = []
-        for company, book_invoices in company_invoices.items():
-            company = Company(company)
-            company_vat = company.party.verifactu_vat_code
-            for operation in ['D0', 'A1', 'A0']:
-                values = book_invoices[operation]
-                delete = True if operation == 'D0' else False
-                for period, invoices in values.items():
-                    for invs in grouped_slice(invoices, MAX_VERIFACTU_LINES):
-                        report = VerifactuReport()
-                        report.company = company
-                        report.company_vat = company_vat
-                        report.fiscalyear = period.fiscalyear
-                        report.period = period
-                        report.operation_type = operation
-                        report.book = book
-                        if (today >= report.load_date_start
-                                and today < report.load_date_end):
-                            report.load_date = (today -
-                                timedelta(days=config.verifactu_default_offset_days
-                                    if config.verifactu_default_offset_days else 0))
-                        else:
-                            report.load_date = report.load_date_end
-                        report.save()
-                        reports.append(report)
-
-                        values = []
-                        for inv in invs:
-                            verifactu_header = str(inv.get_verifactu_header(inv, delete))
-                            values.append(
-                                [report.id, inv.id, verifactu_header, company.id])
-
-                        cursor.execute(*report_line_table.insert(
-                                columns=[report_line_table.report,
-                                    report_line_table.invoice,
-                                    report_line_table.verifactu_header,
-                                    report_line_table.company],
-                                values=values
-                                ))
-        return reports
-
-    @classmethod
-    def find_reports(cls, book='E'):
-        companies = cls.get_allowed_companies()
-        return cls.search([
-                ('company', 'in', companies),
-                ('state', 'in', ('draft', 'confirmed')),
-                ('book', '=', book),
-                ], count=True)
 
     @classmethod
     def calculate_verifactu(cls):
@@ -1167,13 +1080,8 @@ class VerifactuReportLine(ModelSQL, ModelView):
         Invoice = pool.get('account.invoice')
         return Invoice.fields_get(['type'])['type']['selection']
 
-    @fields.depends('report', '_parent_report.book')
     def on_change_with_invoice_types(self, name=None):
-        if self.report and self.report.book == 'E':
-            return ['out']
-        elif self.report and self.report.book == 'R':
-            return ['in']
-        return ['in', 'out']
+        return ['out']
 
 
 class VerifactuReportLineTax(ModelSQL, ModelView):

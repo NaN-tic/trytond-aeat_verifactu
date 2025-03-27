@@ -4,21 +4,18 @@ this repository contains the full copyright notices and license terms. -->
 <tryton>
     <data depends="account_es" grouped="1">
         <record model="account.tax.template" id="account_es.iva_X0">
-            <field name="verifactu_book_key">E</field>
             <field name="verifactu_issued_key">02</field>
             <field name="verifactu_exemption_cause">E2</field>
             <field name="tax_used" eval="True"/>
             <field name="invoice_used" eval="True"/>
         </record>
         <record model="account.tax.template" id="account_es.iva_X0_spanish_excluded_tax">
-            <field name="verifactu_book_key">E</field>
             <field name="verifactu_issued_key">02</field>
             <field name="verifactu_exemption_cause">E2</field>
             <field name="tax_used" eval="True"/>
             <field name="invoice_used" eval="True"/>
         </record>
         <record model="account.tax.template" id="account_es.iva_ISP_compras_16">
-            <field name="verifactu_book_key">E</field>
             <field name="verifactu_operation_key">F1</field>
             <field name="verifactu_issued_key">01</field>
             <field name="verifactu_subjected_key">S2</field>
@@ -26,7 +23,6 @@ this repository contains the full copyright notices and license terms. -->
             <field name="invoice_used" eval="True"/>
         </record>
         <record model="account.tax.template" id="account_es.iva_isp">
-            <field name="verifactu_book_key">E</field>
             <field name="verifactu_operation_key">F1</field>
             <field name="verifactu_issued_key">01</field>
             <field name="verifactu_subjected_key">S2</field>
@@ -34,7 +30,6 @@ this repository contains the full copyright notices and license terms. -->
             <field name="invoice_used" eval="True"/>
         </record>
         <record model="account.tax.template" id="account_es.iva_ISP_reciclaje_0">
-            <field name="verifactu_book_key">E</field>
             <field name="verifactu_operation_key">F1</field>
             <field name="verifactu_issued_key">01</field>
             <field name="verifactu_subjected_key">S2</field>
@@ -42,7 +37,6 @@ this repository contains the full copyright notices and license terms. -->
             <field name="invoice_used" eval="True"/>
         </record>
         <record model="account.tax.template" id="account_es.iva_ISP_obra_0">
-            <field name="verifactu_book_key">E</field>
             <field name="verifactu_operation_key">F1</field>
             <field name="verifactu_issued_key">01</field>
             <field name="verifactu_subjected_key">S2</field>
@@ -50,40 +44,34 @@ this repository contains the full copyright notices and license terms. -->
             <field name="invoice_used" eval="True"/>
         </record>
         <record model="account.tax.template" id="account_es.iva_IO">
-            <field name="verifactu_book_key">E</field>
             <field name="verifactu_issued_key">01</field>
             <field name="verifactu_exemption_cause">E5</field>
             <field name="tax_used" eval="True"/>
             <field name="invoice_used" eval="True"/>
         </record>
         <record model="account.tax.template" id="account_es.iva_IO_serv">
-            <field name="verifactu_book_key">E</field>
             <field name="verifactu_issued_key">01</field>
             <field name="verifactu_exemption_cause">NotSubject</field>
             <field name="tax_used" eval="True"/>
             <field name="invoice_used" eval="True"/>
         </record>
         <record model="account.tax.template" id="account_es.suplido_ventas">
-            <field name="verifactu_book_key">E</field>
             <field name="verifactu_issued_key">10</field>
             <field name="tax_used" eval="False"/>
             <field name="invoice_used" eval="True"/>
         </record>
         <record model="account.tax.template" id="account_es.iva_rep_no_sujeto">
-            <field name="verifactu_book_key">E</field>
             <field name="verifactu_issued_key">01</field>
             <field name="verifactu_exemption_cause">NotSubject</field>
             <field name="tax_used" eval="False"/>
             <field name="invoice_used" eval="True"/>
         </record>
         <record model="account.tax.template" id="account_es.iva_rep_no_sujeto_2">
-            <field name="verifactu_book_key">E</field>
             <field name="verifactu_issued_key">08</field>
             <field name="tax_used" eval="False"/>
             <field name="invoice_used" eval="True"/>
         </record>
         <record model="account.tax.template" id="account_es.iva_rep_no_sujeto_2_serv">
-            <field name="verifactu_book_key">E</field>
             <field name="verifactu_issued_key">08</field>
             <field name="tax_used" eval="False"/>
             <field name="invoice_used" eval="True"/>
@@ -91,84 +79,72 @@ this repository contains the full copyright notices and license terms. -->
     </data>
     <data depends="account_es" grouped="1">
         <record model="account.tax.template" id="account_es.iva_rep_ex">
-            <field name="verifactu_book_key">E</field>
             <field name="verifactu_issued_key">01</field>
             <field name="verifactu_exemption_cause">E6</field>
             <field name="tax_used" eval="True"/>
             <field name="invoice_used" eval="True"/>
         </record>
         <record model="account.tax.template" id="account_es.iva_rep_ex_form">
-            <field name="verifactu_book_key">E</field>
             <field name="verifactu_issued_key">01</field>
             <field name="verifactu_exemption_cause">E1</field>
             <field name="tax_used" eval="True"/>
             <field name="invoice_used" eval="True"/>
         </record>
         <record model="account.tax.template" id="account_es.iva_rep_0_asis">
-            <field name="verifactu_book_key">E</field>
             <field name="verifactu_issued_key">01</field>
             <field name="verifactu_exemption_cause">E1</field>
             <field name="tax_used" eval="True"/>
             <field name="invoice_used" eval="True"/>
         </record>
         <record model="account.tax.template" id="account_es.iva_rep_0_ter_rus">
-            <field name="verifactu_book_key">E</field>
             <field name="verifactu_issued_key">01</field>
             <field name="verifactu_exemption_cause">E1</field>
             <field name="tax_used" eval="True"/>
             <field name="invoice_used" eval="True"/>
         </record>
         <record model="account.tax.template" id="account_es.iva_rep_0">
-            <field name="verifactu_book_key">E</field>
             <field name="verifactu_issued_key">01</field>
             <field name="verifactu_subjected_key">S1</field>
             <field name="tax_used" eval="True"/>
             <field name="invoice_used" eval="True"/>
         </record>
         <record model="account.tax.template" id="account_es.iva_rep_2">
-            <field name="verifactu_book_key">E</field>
             <field name="verifactu_issued_key">01</field>
             <field name="verifactu_subjected_key">S1</field>
             <field name="tax_used" eval="True"/>
             <field name="invoice_used" eval="True"/>
         </record>
         <record model="account.tax.template" id="account_es.iva_rep_4">
-            <field name="verifactu_book_key">E</field>
             <field name="verifactu_issued_key">01</field>
             <field name="verifactu_subjected_key">S1</field>
             <field name="tax_used" eval="True"/>
             <field name="invoice_used" eval="True"/>
         </record>
         <record model="account.tax.template" id="account_es.iva_rep_5">
-            <field name="verifactu_book_key">E</field>
             <field name="verifactu_issued_key">01</field>
             <field name="verifactu_subjected_key">S1</field>
             <field name="tax_used" eval="True"/>
             <field name="invoice_used" eval="True"/>
         </record>
         <record model="account.tax.template" id="account_es.iva_rep_75">
-            <field name="verifactu_book_key">E</field>
             <field name="verifactu_issued_key">01</field>
             <field name="verifactu_subjected_key">S1</field>
             <field name="tax_used" eval="True"/>
             <field name="invoice_used" eval="True"/>
         </record>
         <record model="account.tax.template" id="account_es.iva_rep_10">
-            <field name="verifactu_book_key">E</field>
             <field name="verifactu_issued_key">01</field>
             <field name="verifactu_subjected_key">S1</field>
             <field name="tax_used" eval="True"/>
             <field name="invoice_used" eval="True"/>
         </record>
         <record model="account.tax.template" id="account_es.iva_rep_21">
-            <field name="verifactu_book_key">E</field>
             <field name="verifactu_issued_key">01</field>
             <field name="verifactu_subjected_key">S1</field>
             <field name="tax_used" eval="True"/>
             <field name="invoice_used" eval="True"/>
         </record>
         <record model="account.tax.template" id="account_es.iva_rep_alq_ex">
-            <field name="verifactu_book_key">E</field>
             <field name="verifactu_issued_key">01</field>
             <field name="verifactu_exemption_cause">E6</field>
             <field name="tax_used" eval="False"/>

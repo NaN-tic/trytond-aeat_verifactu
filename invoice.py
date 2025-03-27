@@ -10,26 +10,22 @@ from trytond.i18n import gettext
 from trytond.exceptions import UserError, UserWarning
 from trytond.wizard import Wizard, StateView, StateTransition, Button
 from .aeat import (
-    OPERATION_KEY, BOOK_KEY, SEND_SPECIAL_REGIME_KEY, COMMUNICATION_TYPE,
+    OPERATION_KEY, SEND_SPECIAL_REGIME_KEY, COMMUNICATION_TYPE,
     AEAT_INVOICE_STATE)
 from . import service
 from . import tools
 from datetime import datetime
 
 
-_VERIFACTU_INVOICE_KEYS = ['verifactu_book_key', 'verifactu_operation_key', 'verifactu_issued_key']
+_VERIFACTU_INVOICE_KEYS = ['verifactu_operation_key', 'verifactu_issued_key']
 
 
 class Invoice(metaclass=PoolMeta):
     __name__ = 'account.invoice'
 
-    verifactu_book_key = fields.Selection(BOOK_KEY, 'Verifactu Book Key')
     verifactu_operation_key = fields.Selection(OPERATION_KEY, 'Verifactu Operation Key')
     verifactu_issued_key = fields.Selection(SEND_SPECIAL_REGIME_KEY,
-        'Verifactu Issued Key',
-        states={
-            'invisible': ~Eval('verifactu_book_key').in_(['E']),
-        })
+        'Verifactu Issued Key')
     verifactu_records = fields.One2Many('aeat.verifactu.report.lines', 'invoice',
         "Verifactu Report Lines")
     verifactu_state = fields.Selection(AEAT_INVOICE_STATE,
@@ -45,7 +41,7 @@ class Invoice(metaclass=PoolMeta):
     @classmethod
     def __setup__(cls):
         super().__setup__()
-        verifactu_fields = {'verifactu_book_key', 'verifactu_operation_key',
+        verifactu_fields = {'verifactu_operation_key',
             'verifactu_issued_key', 'verifactu_state', 'verifactu_pending_sending',
             'verifactu_communication_type', 'verifactu_header'}
         cls._check_modify_exclude |= verifactu_fields
@@ -111,7 +107,7 @@ class Invoice(metaclass=PoolMeta):
     def _set_verifactu_keys(self):
         tax = None
         for t in self.taxes:
-            if t.tax and t.tax.verifactu_book_key:
+            if t.tax and t.tax.tax_used:
                 tax = t.tax
                 break
         if not tax:
@@ -121,8 +117,7 @@ class Invoice(metaclass=PoolMeta):
 
     @property
     def verifactu_keys_filled(self):
-        if (self.verifactu_book_key and self.verifactu_operation_key
-                and ((self.type == 'out' and self.verifactu_issued_key))):
+        if self.verifactu_operation_key and self.type == 'out' and self.verifactu_issued_key:
             return True
         return False
 
@@ -339,14 +334,6 @@ class Invoice(metaclass=PoolMeta):
         # NoSujeta --> Can only be one
 
         for invoice in invoices2checkverifactu:
-            values = {}
-            if invoice.verifactu_book_key:
-                if not invoice.verifactu_operation_key:
-                    values['verifactu_operation_key'] =\
-                        invoice._get_verifactu_operation_key()
-                values['verifactu_pending_sending'] = True
-                values['verifactu_header'] = str(cls.get_verifactu_header(invoice, False))
-                to_write.extend(([invoice], values))
             for tax in invoice.taxes:
                 if (tax.tax.verifactu_subjected_key in ('S2', 'S3')
                         and invoice.verifactu_operation_key not in (

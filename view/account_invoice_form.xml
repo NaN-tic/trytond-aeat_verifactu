@@ -4,8 +4,6 @@ contains the full copyright notices and license terms. -->
 <data>
     <xpath expr="/form/notebook" position="inside">
       <page id="verifactu" string="AEAT Verifactu" col="4">
-          <label name="verifactu_book_key"/>
-          <field name="verifactu_book_key" colspan="3"/>
           <label name="verifactu_operation_key"/>
           <field name="verifactu_operation_key" colspan="3"/>
           <label name="verifactu_issued_key"/>
