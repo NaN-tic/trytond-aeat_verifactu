@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 # The COPYRIGHT file at the top level of this repository contains the full
 # copyright notices and license terms.
-from decimal import Decimal
 from logging import getLogger
 from operator import attrgetter
 from datetime import datetime
@@ -137,11 +136,6 @@ class IssuedInvoiceMapper(Model):
                 break
         return surcharge_tax
 
-    def tax_equivalence_surcharge_rate(self, invoice_tax):
-        surcharge_tax = self._tax_equivalence_surcharge(invoice_tax)
-        if surcharge_tax:
-            return self.tax_rate(surcharge_tax)
-
     def tax_equivalence_surcharge_amount(self, invoice_tax):
         surcharge_tax = self._tax_equivalence_surcharge(invoice_tax)
         if surcharge_tax:
@@ -180,7 +174,7 @@ class IssuedInvoiceMapper(Model):
 
     def _build_encadenamiento(self, last_line=None):
         if not last_line:
-            return {"PrimerRegistro": "S" },
+            return {"PrimerRegistro": "S"}
         invoice = last_line.invoice
         return {"RegistroAnterior": {
                     "IDEmisorFactura": self.nif(invoice),
@@ -204,17 +198,7 @@ class IssuedInvoiceMapper(Model):
                 'Ejercicio': year,
                 'Periodo': tools._format_period(period),
                 },
-            'SistemaInformatico':{
-                'NombreRazon': "NaN Projectes de Programari Lliure, S.L.",
-                'NIF': 'B65247983', #invoice.company.party.tax_identifier.code,
-                'NombreSistemaInformatico': "Tryton",
-                'IdSistemaInformatico': "77",
-                'Version': "7.2",
-                'NumeroInstalacion': "383",
-                'TipoUsoPosibleSoloVerifactu': "N",
-                'TipoUsoPosibleMultiOT': "S",
-                'IndicadorMultiplesOT': "S"
-                }
+            'SistemaInformatico':tools.get_sistema_informatico(),
             }
         if clave_paginacion:
             result['ClavePaginacion'] = clave_paginacion
@@ -231,29 +215,6 @@ class IssuedInvoiceMapper(Model):
         request['RegistroAlta'] = self.build_issued_invoice(invoice, last_huella, last_line=last_line)
         return request
 
-    def build_taxes(self, tax):
-        if not tax:
-            return {}
-
-        res = {
-            'TipoImpositivo': tools._rate_to_percent(self.tax_rate(tax)),
-            'BaseImponible': self.tax_base(tax),
-            'CuotaRepercutida': self.tax_amount(tax)
-            }
-
-        # In case base is 0, return only the tax, not the possible IRPF.
-        if self.tax_base(tax) == Decimal(0):
-            return res
-
-        if self.tax_equivalence_surcharge_rate(tax):
-            res['TipoRecargoEquivalencia'] = (
-                tools._rate_to_percent(self.tax_equivalence_surcharge_rate(
-                        tax)))
-
-        if self.tax_equivalence_surcharge_amount(tax):
-            res['CuotaRecargoEquivalencia'] = (
-                self.tax_equivalence_surcharge_amount(tax))
-        return res
 
     def location_rules(self, invoice):
         base = 0
@@ -295,7 +256,8 @@ class IssuedInvoiceMapper(Model):
                 for tax2 in invoice.taxes:
                     if (tax2.tax.recargo_equivalencia and
                             tax.tax.recargo_equivalencia_related_tax ==
-                            tax2.tax):
+                            tax2.tax and tax2.base ==
+                            tax2.base.copy_sign(tax.base)):
                         desglose["TipoRecargoEquivalencia"] = tools._rate_to_percent(
                             self.tax_rate(tax2))
                         desglose["CuotaRecargoEquivalencia"] = self.tax_amount(tax2)
@@ -323,17 +285,7 @@ class IssuedInvoiceMapper(Model):
             "CuotaTotal": sum(self.tax_amount(tax) for tax in self.taxes(invoice)),
             "ImporteTotal": self.total_amount(invoice),
             "Encadenamiento": self._build_encadenamiento(last_line),
-            "SistemaInformatico": {
-                "NombreRazon": "NaN Projectes de Programari Lliure, S.L.",
-                "NIF": 'B65247983', #invoice.company.party.tax_identifier.code,
-                "NombreSistemaInformatico": "Tryton",
-                "IdSistemaInformatico": "77",
-                "Version": "7.2",
-                "NumeroInstalacion": "383",
-                "TipoUsoPosibleSoloVerifactu": "N",
-                "TipoUsoPosibleMultiOT": "S",
-                "IndicadorMultiplesOT": "S"
-            },
+            "SistemaInformatico": tools.get_sistema_informatico(),
             "FechaHoraHusoGenRegistro": formatted_now,
             "TipoHuella": "01",
             "Huella": self.build_huella(invoice, last_huella, formatted_now)

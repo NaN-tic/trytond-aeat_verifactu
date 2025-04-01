@@ -404,6 +404,7 @@ class Invoice(metaclass=PoolMeta):
         year = today.year
         period = today.month
         attempts = 24
+        last_line = None
         while attempts > 0:
             records = cls.get_period(year, period, invoices)
             huella = None
