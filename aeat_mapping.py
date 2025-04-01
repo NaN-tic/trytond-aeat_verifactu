@@ -16,7 +16,6 @@ from . import tools
 _logger = getLogger(__name__)
 
 _DATE_FMT = '%d-%m-%Y'
-_FIRST_SEMESTER_RECORD_DESCRIPTION = "Registro del Primer semestre"
 
 RECTIFIED_KINDS = frozenset({'R1', 'R2', 'R3', 'R4', 'R5'})
 OTHER_ID_TYPES = frozenset({'02', '03', '04', '05', '06', '07'})
@@ -36,7 +35,6 @@ class IssuedInvoiceMapper(Model):
     issue_date = attrgetter('invoice_date')
     invoice_kind = attrgetter('verifactu_operation_key')
     rectified_invoice_kind = tools.fixed_value('I')
-    specialkey_or_trascendence = attrgetter('verifactu_issued_key')
 
     def not_exempt_kind(self, tax):
         return attrgetter('verifactu_subjected_key')(tax)
@@ -198,25 +196,29 @@ class IssuedInvoiceMapper(Model):
         if invoice.lines and invoice.lines[0].description:
             description = tools.unaccent(invoice.lines[0].description)
         description = self.serial_number(invoice)
-
-        return (description if not self._is_first_semester(invoice)
-            else _FIRST_SEMESTER_RECORD_DESCRIPTION
-        )
+        return description
 
     def build_query_filter(self, year=None, period=None, clave_paginacion=None):
         result = {
             'PeriodoImputacion': {
                 'Ejercicio': year,
                 'Periodo': tools._format_period(period),
+                },
+            'SistemaInformatico':{
+                'NombreRazon': "NaN Projectes de Programari Lliure, S.L.",
+                'NIF': 'B65247983', #invoice.company.party.tax_identifier.code,
+                'NombreSistemaInformatico': "Tryton",
+                'IdSistemaInformatico': "77",
+                'Version': "7.2",
+                'NumeroInstalacion': "383",
+                'TipoUsoPosibleSoloVerifactu': "N",
+                'TipoUsoPosibleMultiOT': "S",
+                'IndicadorMultiplesOT': "S"
                 }
             }
         if clave_paginacion:
             result['ClavePaginacion'] = clave_paginacion
         return result
-
-    def _is_first_semester(self, invoice):
-        return self.specialkey_or_trascendence(invoice) == \
-            SEMESTER1_ISSUED_SPECIALKEY
 
     def build_delete_request(self, invoice):
         return {

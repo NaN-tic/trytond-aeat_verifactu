@@ -6,8 +6,6 @@ contains the full copyright notices and license terms. -->
       <page id="verifactu" string="AEAT Verifactu" col="4">
           <label name="verifactu_operation_key"/>
           <field name="verifactu_operation_key" colspan="3"/>
-          <label name="verifactu_issued_key"/>
-          <field name="verifactu_issued_key" colspan="3"/>
           <field name="verifactu_records" colspan="4"/>
           <label name="verifactu_communication_type"/>
           <field name="verifactu_communication_type"/>

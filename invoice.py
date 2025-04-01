@@ -10,22 +10,19 @@ from trytond.i18n import gettext
 from trytond.exceptions import UserError, UserWarning
 from trytond.wizard import Wizard, StateView, StateTransition, Button
 from .aeat import (
-    OPERATION_KEY, SEND_SPECIAL_REGIME_KEY, COMMUNICATION_TYPE,
-    AEAT_INVOICE_STATE)
+    OPERATION_KEY, COMMUNICATION_TYPE, AEAT_INVOICE_STATE)
 from . import service
 from . import tools
 from datetime import datetime
 
 
-_VERIFACTU_INVOICE_KEYS = ['verifactu_operation_key', 'verifactu_issued_key']
+_VERIFACTU_INVOICE_KEYS = ['verifactu_operation_key']
 
 
 class Invoice(metaclass=PoolMeta):
     __name__ = 'account.invoice'
 
     verifactu_operation_key = fields.Selection(OPERATION_KEY, 'Verifactu Operation Key')
-    verifactu_issued_key = fields.Selection(SEND_SPECIAL_REGIME_KEY,
-        'Verifactu Issued Key')
     verifactu_records = fields.One2Many('aeat.verifactu.report.lines', 'invoice',
         "Verifactu Report Lines")
     verifactu_state = fields.Selection(AEAT_INVOICE_STATE,
@@ -42,7 +39,7 @@ class Invoice(metaclass=PoolMeta):
     def __setup__(cls):
         super().__setup__()
         verifactu_fields = {'verifactu_operation_key',
-            'verifactu_issued_key', 'verifactu_state', 'verifactu_pending_sending',
+            'verifactu_state', 'verifactu_pending_sending',
             'verifactu_communication_type', 'verifactu_header'}
         cls._check_modify_exclude |= verifactu_fields
         if hasattr(cls, '_intercompany_excluded_fields'):
@@ -117,7 +114,7 @@ class Invoice(metaclass=PoolMeta):
 
     @property
     def verifactu_keys_filled(self):
-        if self.verifactu_operation_key and self.type == 'out' and self.verifactu_issued_key:
+        if self.verifactu_operation_key and self.type == 'out':
             return True
         return False
 
