@@ -276,6 +276,32 @@ class IssuedInvoiceMapper(Model):
         hash_object = hashlib.sha256(data_string.encode('utf-8'))
         return hash_object.hexdigest().upper()  # Salida en mayúsculas, formato hexadecimal
 
+    def build_desglose(self, invoice):
+        desgloses = []
+        taxes = self.taxes(invoice)
+        for tax in taxes:
+            desglose = {}
+            desglose["ClaveRegimen"] = tax.tax.verifactu_issued_key
+            if tax.tax.verifactu_subjected_key is not None:
+                desglose["CalificacionOperacion"]= tax.tax.verifactu_subjected_key
+            else:
+                desglose["OperacionExenta"] = tax.tax.verifactu_exemption_cause
+            desglose["TipoImpositivo"] = tools._rate_to_percent(self.tax_rate(tax))
+            desglose["BaseImponibleOimporteNoSujeto"] = self.tax_base(tax)
+            desglose["CuotaRepercutida"] = self.tax_amount(tax)
+            if tax.tax.recargo_equivalencia_related_tax:
+                for tax2 in invoice.taxes:
+                    if (tax2.tax.recargo_equivalencia and
+                            tax.tax.recargo_equivalencia_related_tax ==
+                            tax2.tax):
+                        desglose["TipoRecargoEquivalencia"] = tools._rate_to_percent(
+                            self.tax_rate(tax2))
+                        desglose["CuotaRecargoEquivalencia"] = self.tax_amount(tax2)
+                        desglose["ClaveRegimen"] = 18 # Recargo de equivalencia
+                        break
+            desgloses.append(desglose)
+        return desgloses
+
     def build_issued_invoice(self, invoice, last_huella=None, last_line=None):
         tz = pytz.timezone("Europe/Madrid")
         dt_now = datetime.now(tz).replace(microsecond=0)
@@ -290,21 +316,7 @@ class IssuedInvoiceMapper(Model):
                 "IDDestinatario": self._build_counterpart(invoice)
             },
             "Desglose": {
-                "DetalleDesglose": [
-                {
-                    "ClaveRegimen": tax.tax.verifactu_issued_key,
-                    **(
-                        {"CalificacionOperacion": tax.tax.verifactu_subjected_key}
-                        if tax.tax.verifactu_subjected_key is not None
-                        else {"OperacionExenta": tax.tax.verifactu_exemption_cause}
-                    ),
-                    "TipoImpositivo": tools._rate_to_percent(self.tax_rate(tax)),
-                    "BaseImponibleOimporteNoSujeto": self.tax_base(tax),
-                    "CuotaRepercutida": self.tax_amount(tax)
-                    # TipoRecargoEquivalencia: Porcentaje asociado en función del impuesto y tipo impositivo
-                    # CuotaRecargoEquivalencia: Cuota resultante de aplicar a la base imponible el tipo de recargo de equivalencia.
-                } for tax in self.taxes(invoice)
-                ]
+                "DetalleDesglose": self.build_desglose(invoice),
             },
             "CuotaTotal": sum(self.tax_amount(tax) for tax in self.taxes(invoice)),
             "ImporteTotal": self.total_amount(invoice),
@@ -326,95 +338,6 @@ class IssuedInvoiceMapper(Model):
         }
 
         self._update_counterpart(ret, invoice)
-
-        must_detail_op = (ret.get('Contraparte', {}) and (
-            'IDOtro' in ret['Contraparte'] or ('NIF' in ret['Contraparte'] and
-                ret['Contraparte']['NIF'].startswith('N')))
-        )
-        detail = {
-            'Sujeta': {},
-            'NoSujeta': {}
-        }
-
-        taxes = self.taxes(invoice)
-        for tax in taxes:
-            exempt_kind = self.exempt_kind(tax.tax)
-            not_exempt_kind = self.not_exempt_kind(tax.tax)
-            if (not_exempt_kind in ('S2', 'S3') and
-                    'NIF' not in ret.get('Contraparte', {})):
-                raise UserError(gettext('aeat_verifactu.msg_missing_nif',
-                    invoice=invoice))
-
-            if not_exempt_kind:
-                if not_exempt_kind == 'S2':
-                    # inv. subj. pass.
-                    tax_detail = {
-                        'TipoImpositivo': 0,
-                        'BaseImponible': self.get_tax_base(tax),
-                        'CuotaRepercutida': 0
-                    }
-                else:
-                    tax_detail = self.build_taxes(tax)
-                if tax_detail:
-                    if (not detail['Sujeta'] or
-                            not detail['Sujeta'].get('NoExenta')):
-                        detail['Sujeta'].update({
-                            'NoExenta': {
-                                'TipoNoExenta': not_exempt_kind,
-                                'DesgloseIVA': {
-                                    'DetalleIVA': [tax_detail]
-                                }
-                            }
-                        })
-                    else:
-                        detail['Sujeta']['NoExenta']['DesgloseIVA'][
-                            'DetalleIVA'].append(tax_detail)
-            elif exempt_kind:
-                if exempt_kind != 'NotSubject':
-                    baseimponible = self.get_tax_base(tax)
-                    if detail['Sujeta'].get('Exenta', {}).get(
-                            'DetalleExenta', {}).get(
-                            'CausaExencion', None) == exempt_kind:
-                        baseimponible += detail['Sujeta'].get('Exenta').get(
-                            'DetalleExenta').get('BaseImponible', 0)
-                    detail['Sujeta'].update({
-                        'Exenta': {
-                            'DetalleExenta': {
-                                'CausaExencion': exempt_kind,
-                                'BaseImponible': baseimponible,
-                            }
-                        }
-                    })
-        if self.location_rules(invoice):
-            detail['NoSujeta'].update({
-                    'ImporteTAIReglasLocalizacion': self.location_rules(
-                        invoice)
-                    })
-        elif self.not_subject(invoice):
-            detail['NoSujeta'].update({
-                    'ImportePorArticulos7_14_Otros': self.not_subject(
-                        invoice),
-                    })
-
-        # remove unused key
-        for key in ('Sujeta', 'NoSujeta'):
-            if not detail[key]:
-                detail.pop(key)
-
-        if must_detail_op:
-            if not taxes:
-                if self.not_subject(invoice):
-                    ret['TipoDesglose']['DesgloseTipoOperacion'].pop(
-                        'PrestacionServicios')
-                elif self.location_rules(invoice):
-                    ret['TipoDesglose']['DesgloseTipoOperacion'].pop('Entrega')
-            else:
-                if tax.tax.service:
-                    ret['TipoDesglose']['DesgloseTipoOperacion'].pop('Entrega')
-                else:
-                    ret['TipoDesglose']['DesgloseTipoOperacion'].pop(
-                        'PrestacionServicios')
-
         self._update_total_amount(ret, invoice)
         self._update_rectified_invoice(ret, invoice)
         print('=======', ret)
