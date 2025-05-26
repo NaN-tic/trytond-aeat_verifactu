@@ -3,8 +3,10 @@
 # copyright notices and license terms.
 from logging import getLogger
 from operator import attrgetter
-from datetime import datetime
+from datetime import datetime, timedelta
 import pytz
+import hashlib
+
 
 from trytond.i18n import gettext
 from trytond.model import Model
@@ -227,7 +229,6 @@ class IssuedInvoiceMapper(Model):
         return base
 
     def build_huella(self, invoice, previous_hash=None, time=None):
-        import hashlib
         data_string = f"IDEmisorFactura={self.nif(invoice)}&" \
               f"NumSerieFactura={invoice.number}&" \
               f"FechaExpedicionFactura={invoice.invoice_date.strftime('%d-%m-%Y')}&" \
@@ -237,7 +238,7 @@ class IssuedInvoiceMapper(Model):
               f"Huella={previous_hash or ''}&" \
               f"FechaHoraHusoGenRegistro={time}"
         hash_object = hashlib.sha256(data_string.encode('utf-8'))
-        return hash_object.hexdigest().upper()  # Salida en mayúsculas, formato hexadecimal
+        return hash_object.hexdigest().upper()
 
     def build_desglose(self, invoice):
         desgloses = []
@@ -270,15 +271,15 @@ class IssuedInvoiceMapper(Model):
         tz = pytz.timezone("Europe/Madrid")
         dt_now = datetime.now(tz).replace(microsecond=0)
         formatted_now = dt_now.isoformat()
+        # yesterday = dt_now - timedelta(days=1)
+        # formatted_yesterday = yesterday.isoformat()
+
         ret = {
             "IDVersion": "1.0",
             "IDFactura": self._build_invoice_id(invoice),
             "NombreRazonEmisor": tools.unaccent(invoice.company.party.name),
             "TipoFactura": self.invoice_kind(invoice),
             "DescripcionOperacion": self._description(invoice),
-            "Destinatarios": {
-                "IDDestinatario": self._build_counterpart(invoice)
-            },
             "Desglose": {
                 "DetalleDesglose": self.build_desglose(invoice),
             },
@@ -286,36 +287,28 @@ class IssuedInvoiceMapper(Model):
             "ImporteTotal": self.total_amount(invoice),
             "Encadenamiento": self._build_encadenamiento(last_line),
             "SistemaInformatico": tools.get_sistema_informatico(),
-            "FechaHoraHusoGenRegistro": formatted_now,
+            "FechaHoraHusoGenRegistro":  formatted_now,
             "TipoHuella": "01",
             "Huella": self.build_huella(invoice, last_huella, formatted_now)
         }
-
+        self._update_subsanacion(ret, invoice)
         self._update_counterpart(ret, invoice)
-        self._update_total_amount(ret, invoice)
         self._update_rectified_invoice(ret, invoice)
         print('=======', ret)
         return ret
 
-    def _update_total_amount(self, ret, invoice):
-        if (
-            ret['TipoFactura'] == 'R5' and
-            ret['TipoDesglose']['DesgloseFactura']['Sujeta'].get('NoExenta',
-                None) and
-            len(
-                ret['TipoDesglose']['DesgloseFactura']['Sujeta']['NoExenta']
-                ['DesgloseIVA']['DetalleIVA']
-            ) == 1 and
-            (
-                ret['TipoDesglose']['DesgloseFactura']['Sujeta']['NoExenta']
-                ['DesgloseIVA']['DetalleIVA'][0]['BaseImponible'] == 0
-            )
-        ):
-            ret['ImporteTotal'] = self.total_amount(invoice)
+    def _update_subsanacion(self, ret, invoice):
+        if not invoice.verifactu_records:
+            return
+        if invoice.verifactu_state == 'PendienteEnvioSubsanacion':
+            ret['Subsanacion'] = 'S'
+            ret['RechazoPrevio'] = 'S'
 
     def _update_counterpart(self, ret, invoice):
-        if ret['TipoFactura'] not in {'F2', 'F4', 'R5'}:
-            ret['Contraparte'] = self._build_counterpart(invoice)
+        if ret['TipoFactura'] not in {'F2', 'R5'}:
+            ret['Destinatarios'] = {
+                "IDDestinatario": self._build_counterpart(invoice)
+            }
 
     def _update_rectified_invoice(self, ret, invoice):
         if ret['TipoFactura'] in RECTIFIED_KINDS:

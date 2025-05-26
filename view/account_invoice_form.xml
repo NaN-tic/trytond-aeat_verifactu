@@ -13,6 +13,9 @@ contains the full copyright notices and license terms. -->
           <field name="verifactu_state"/>
           <label name="verifactu_pending_sending"/>
           <field name="verifactu_pending_sending"/>
+          <label name="aeat_qr_url"/>
+          <field name="aeat_qr_url"/>
+          <field name="is_verifactu" invisible="1"/>
         </page>
     </xpath>
 </data>

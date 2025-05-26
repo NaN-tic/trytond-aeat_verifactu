@@ -2,7 +2,6 @@
 <!-- The COPYRIGHT file at the top level of this repository contains the full
      copyright notices and license terms. -->
 <tree editable="1">
-    <field name="report"/>
     <field name="invoice"/>
     <field name="invoice_operation_key"/>
     <field name="vat_code"/>

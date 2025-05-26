@@ -4,8 +4,6 @@
 <form>
     <notebook>
         <page string="Main Information" id="main_registers">
-    <label name="report"/>
-    <field name="report"/>
     <label name="invoice"/>
     <field name="invoice"/>
     <label name="state"/>
@@ -28,6 +26,8 @@
     <field name="special_key"/>
     <label name="total_amount"/>
     <field name="total_amount"/>
+    <label name="error_message"/>
+    <field name="error_message"/>
     <field name="taxes" colspan="4"/>
     <label name="counterpart_name"/>
     <field name="counterpart_name"/>

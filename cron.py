@@ -9,6 +9,6 @@ class Cron(metaclass=PoolMeta):
     @classmethod
     def __setup__(cls):
         super().__setup__()
-        # cls.method.selection.extend([
-        #         ('aeat.verifactu.report|calculate_verifactu', "AEAT Verifactu"),
-        #         ])
+        cls.method.selection.extend([
+                ('account.invoice|send_verifactu', "AEAT Verifactu"),
+                ])

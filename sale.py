@@ -18,18 +18,18 @@ class Sale(metaclass=PoolMeta):
         # create_invoice() from sale not add untaxed_amount and taxes fields
         # call on_change_lines to add untaxed_amount and taxes
         invoice.on_change_lines()
+        if invoice.on_change_with_is_verifactu():
+            if invoice.untaxed_amount < ZERO:
+                invoice.verifactu_operation_key = 'R1'
+            else:
+                invoice.verifactu_operation_key = 'F1'
 
-        if invoice.untaxed_amount < ZERO:
-            invoice.verifactu_operation_key = 'R1'
-        else:
-            invoice.verifactu_operation_key = 'F1'
+            tax = invoice.taxes and invoice.taxes[0]
+            if not tax:
+                return invoice
 
-        tax = invoice.taxes and invoice.taxes[0]
-        if not tax:
-            return invoice
-
-        for field in _VERIFACTU_INVOICE_KEYS:
-            setattr(invoice, field, getattr(tax.tax, field))
-        invoice.save()
+            for field in _VERIFACTU_INVOICE_KEYS:
+                setattr(invoice, field, getattr(tax.tax, field))
+            invoice.save()
 
         return invoice

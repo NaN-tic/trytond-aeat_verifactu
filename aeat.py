@@ -100,6 +100,8 @@ AEAT_COMMUNICATION_STATE = [
 
 AEAT_INVOICE_STATE = [
     (None, ''),
+    ('PendienteEnvio', 'Pending Sending'),
+    ('PendienteEnvioSubsanacion', 'Pending Sending Fix'),
     ('Correcto', 'Accepted '),
     ('Correcta', 'Accepted'),  # You guys are disgusting
     ('AceptadoConErrores', 'Accepted with Errors '),
@@ -193,6 +195,7 @@ class VerifactuReportLine(ModelSQL, ModelView):
     aeat_register = fields.Text('Register from AEAT Webservice', readonly=True)
     verifactu_header = fields.Text('Header')
     huella = fields.Text('Huella', readonly=True)
+    error_message = fields.Char('Error Message', readonly=True)
 
     @classmethod
     def __register__(cls, module_name):
