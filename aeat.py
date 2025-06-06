@@ -9,7 +9,7 @@ from trytond.transaction import Transaction
 from trytond.config import config
 
 # AEAT verifactu test
-VERIFACTU_TEST = config.getboolean('aeat', 'verifactu_test', default=True)
+VERIFACTU_TEST = not config.getboolean('database', 'production', default=False)
 MAX_VERIFACTU_LINES = config.getint('aeat', 'verifactu_lines', default=300)
 
 
