@@ -8,7 +8,6 @@ from . import party
 from . import account
 from . import aeat_mapping
 from . import sale
-from . import contract
 
 
 def register():
@@ -26,10 +25,6 @@ def register():
         aeat.VerifactuReportLine,
         aeat.VerifactuReportLineTax,
         aeat_mapping.IssuedInvoiceMapper,
-        module='aeat_verifactu', type_='model')
-    Pool.register(
-        contract.ContractConsumption,
-        depends=['contract'],
         module='aeat_verifactu', type_='model')
     Pool.register(
         sale.Sale,
