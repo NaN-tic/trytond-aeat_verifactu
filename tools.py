@@ -6,13 +6,12 @@ from logging import getLogger
 from lxml import etree
 from zeep import Plugin
 from trytond.config import config
-# from trytond.pool import Pool
+import trytond
 
 NOMBRE_RAZON = config.get('aeat_verifactu', 'nombre_razon')
 NIF = config.get('aeat_verifactu', 'nif')
-NOMBRE_SISTEMA_INFORMATICO = config.get('aeat_verifactu', 'nombre_sistema_informatico')
+NOMBRE_SISTEMA_INFORMATICO = config.get('aeat_verifactu', 'nombre_sistema_informatico', 'Tryton')
 ID_SISTEMA_INFORMATICO = config.get('aeat_verifactu', 'id_sistema_informatico')
-VERSION = config.get('aeat_verifactu', 'version')
 NUMERO_INSTALACION = config.get('aeat_verifactu', 'numero_instalacion')
 TIPO_USO_POSIBLE_SOLO_VERIFACTU = 'N'
 TIPO_USO_POSIBLE_MULTIOT = 'S'
@@ -72,7 +71,7 @@ def get_sistema_informatico():
             'NIF': NIF,
             'NombreSistemaInformatico': NOMBRE_SISTEMA_INFORMATICO,
             'IdSistemaInformatico': ID_SISTEMA_INFORMATICO,
-            'Version': VERSION,
+            'Version': trytond.__version__,
             'NumeroInstalacion': NUMERO_INSTALACION,
             'TipoUsoPosibleSoloVerifactu': TIPO_USO_POSIBLE_SOLO_VERIFACTU,
             'TipoUsoPosibleMultiOT': TIPO_USO_POSIBLE_MULTIOT,
