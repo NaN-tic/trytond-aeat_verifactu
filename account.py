@@ -3,7 +3,6 @@
 from trytond.model import fields, ModelSQL
 from trytond.pool import Pool, PoolMeta
 from trytond.pyson import Eval, Bool
-from trytond.transaction import Transaction
 from trytond.modules.company.model import CompanyValueMixin
 from .aeat import (OPERATION_KEY, SEND_SPECIAL_REGIME_KEY,
     IVA_SUBJECTED, EXEMPTION_CAUSE)
@@ -53,26 +52,6 @@ class TemplateTax(metaclass=PoolMeta):
     tax_used = fields.Boolean('Used in Tax')
     invoice_used = fields.Boolean('Used in invoice Total')
 
-    @classmethod
-    def __register__(cls, module_name):
-        cursor = Transaction().connection.cursor()
-        table = cls.__table_handler__(module_name)
-        sql_table = cls.__table__()
-
-        exist_verifactu_excemption_key = table.column_exist('verifactu_excemption_key')
-        exist_verifactu_intracomunity_key = table.column_exist('verifactu_intracomunity_key')
-
-        super().__register__(module_name)
-
-        if exist_verifactu_excemption_key:
-            # Don't use UPDATE FROM because SQLite nor MySQL support it.
-            cursor.execute(*sql_table.update([sql_table.verifactu_exemption_cause],
-                    [sql_table.verifactu_excemption_key])),
-            table.drop_column('verifactu_excemption_key')
-
-        if exist_verifactu_intracomunity_key:
-            table.drop_column('verifactu_intracomunity_key')
-
     def _get_tax_value(self, tax=None):
         res = super()._get_tax_value(tax)
         for field in ('verifactu_operation_key', 'verifactu_issued_key',
@@ -94,22 +73,3 @@ class Tax(metaclass=PoolMeta):
     tax_used = fields.Boolean('Used in Tax')
     invoice_used = fields.Boolean('Used in invoice Total')
 
-    @classmethod
-    def __register__(cls, module_name):
-        cursor = Transaction().connection.cursor()
-        table = cls.__table_handler__(module_name)
-        sql_table = cls.__table__()
-
-        exist_verifactu_excemption_key = table.column_exist('verifactu_excemption_key')
-        exist_verifactu_intracomunity_key = table.column_exist('verifactu_intracomunity_key')
-
-        super().__register__(module_name)
-
-        if exist_verifactu_excemption_key:
-            # Don't use UPDATE FROM because SQLite nor MySQL support it.
-            cursor.execute(*sql_table.update([sql_table.verifactu_exemption_cause],
-                    [sql_table.verifactu_excemption_key])),
-            table.drop_column('verifactu_excemption_key')
-
-        if exist_verifactu_intracomunity_key:
-            table.drop_column('verifactu_intracomunity_key')

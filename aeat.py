@@ -197,16 +197,6 @@ class VerifactuReportLine(ModelSQL, ModelView):
     huella = fields.Text('Huella', readonly=True)
     error_message = fields.Char('Error Message', readonly=True)
 
-    @classmethod
-    def __register__(cls, module_name):
-        table = cls.__table_handler__(module_name)
-
-        exist_verifactu_excemption_key = table.column_exist('exemption_key')
-        if exist_verifactu_excemption_key:
-            table.column_rename('exemption_key', 'exemption_cause')
-
-        super().__register__(module_name)
-
     def get_invoice_operation_key(self, name):
         return self.invoice.verifactu_operation_key if self.invoice else None
 

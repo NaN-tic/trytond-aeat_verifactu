@@ -2,7 +2,6 @@
 # copyright notices and license terms.
 import hashlib
 from decimal import Decimal
-from sql import Null
 from trytond.model import ModelView, fields
 from trytond.pool import Pool, PoolMeta
 from trytond.pyson import Bool, Eval
@@ -62,43 +61,6 @@ class Invoice(metaclass=PoolMeta):
             )
         if 'readonly' in cls.reference.states:
             cls.reference.states['readonly'] |= readonly
-
-    @classmethod
-    def __register__(cls, module_name):
-        AccountConfigurationVerifactu = Pool().get('account.configuration.default_verifactu')
-
-        table = cls.__table_handler__(module_name)
-
-        sql_table = cls.__table__()
-        account_configuration_verifactu = AccountConfigurationVerifactu.__table__()
-
-        transaction = Transaction()
-        cursor = transaction.connection.cursor()
-
-        exist_verifactu_intracomunity_key = table.column_exist(
-            'verifactu_intracomunity_key')
-        exist_verifactu_subjected_key = table.column_exist('verifactu_subjected_key')
-        exist_verifactu_excemption_key = table.column_exist('verifactu_excemption_key')
-        exist_is_verifactu = table.column_exist('is_verifactu')
-
-        super().__register__(module_name)
-
-        if exist_verifactu_intracomunity_key:
-            table.drop_column('verifactu_intracomunity_key')
-        if exist_verifactu_subjected_key:
-            table.drop_column('verifactu_subjected_key')
-        if exist_verifactu_excemption_key:
-            table.drop_column('verifactu_excemption_key')
-        if not exist_is_verifactu:
-            query = account_configuration_verifactu.select(
-                account_configuration_verifactu.company,
-                where=account_configuration_verifactu.aeat_certificate_verifactu != Null,
-                group_by=account_configuration_verifactu.company)
-            cursor.execute(*query)
-            company_ids = [r[0] for r in cursor.fetchall()]
-            cursor.execute(*sql_table.update(
-                    [sql_table.is_verifactu], [True],
-                    where=sql_table.company.in_(company_ids)))
 
     @classmethod
     def view_attributes(cls):
