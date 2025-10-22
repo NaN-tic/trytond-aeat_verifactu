@@ -407,24 +407,21 @@ class Invoice(metaclass=PoolMeta):
         verifactu_start_date = Configuration(1).verifactu_start_date
         if not verifactu_start_date:
             return
-        invoices = cls.search([('invoice_date', '>=', verifactu_start_date),
-                        ('type', '=', 'out'),
-                        ('is_verifactu', '=', True),
-                        ['OR',
-                        ('verifactu_state', '=', 'Incorrecto'),
-                        ('verifactu_state', '=', 'PendienteEnvio')],],
-                        order=[('invoice_date', 'ASC')])
-        # for invoice in invoices:
-        #     print(invoice.number, invoice.verifactu_state)
-        # raise UserError('stop')
+        invoices = cls.search([
+                ('invoice_date', '>=', verifactu_start_date),
+                ('type', '=', 'out'),
+                ('is_verifactu', '=', True),
+                ['OR',
+                    ('verifactu_state', '=', 'Incorrecto'),
+                    ('verifactu_state', '=', 'PendienteEnvio')],
+                ], order=[('invoice_date', 'ASC')])
         huella, last_line = cls.syncro_query(invoices)
         if not invoices:
             return
-        # print([(x.id, x.verifactu_operation_key) for x in invoices])
         invoice = invoices[0]
         headers = tools.get_headers(
             name=tools.unaccent(invoice.company.party.name),
-            vat='B65247983',
+            vat=invoice.company.tax_identifier[2:],
             version='1.0')
         certificate = invoice._get_certificate()
 
@@ -454,7 +451,6 @@ class Invoice(metaclass=PoolMeta):
             VerifactuLine.save(lines_to_save)
             cls.save(invoices_to_save)
         cls.syncro_query(invoices)
-        return True
 
     def get_period(year, period, invoices):
         records = []
@@ -463,7 +459,7 @@ class Invoice(metaclass=PoolMeta):
         invoice = invoices[0]
         headers = tools.get_headers(
             name=tools.unaccent(invoice.company.party.name),
-            vat='B65247983',
+            vat=invoice.company.party.tax_identifier[2:],
             version='1.0')
         certificate = invoice._get_certificate()
         pagination = 'S'
@@ -485,6 +481,7 @@ class Invoice(metaclass=PoolMeta):
     def syncro_query(cls, invoices):
         pool = Pool()
         VerifactuLine = pool.get('aeat.verifactu.report.line')
+
         records = []
         today = datetime.today()
         year = today.year
@@ -498,15 +495,17 @@ class Invoice(metaclass=PoolMeta):
             huella = None
             for record in records:
                 huella = record['DatosRegistroFacturacion']['Huella']
-                verifactu_line = VerifactuLine.search([('huella', '=', huella)])
-                if verifactu_line:
+                verifactu_lines = VerifactuLine.search([('huella', '=', huella)])
+                if verifactu_lines:
                     attempts = 0
-                    last_line = verifactu_line[0]
+                    last_line = verifactu_lines[0]
                     break
                 else:
                     new_line = VerifactuLine()
                     new_line.huella = huella
-                    invoices = cls.search([('number', '=', record['IDFactura']['NumSerieFactura'])])
+                    invoices = cls.search([
+                            ('number', '=', record['IDFactura']['NumSerieFactura']),
+                            ])
                     if not invoices:
                         raise UserError(gettext('aeat_verifactu.msg_invoice_not_found'))
                     invoice = invoices[0]
@@ -515,6 +514,7 @@ class Invoice(metaclass=PoolMeta):
                     new_line.state = record['EstadoRegistro']['EstadoRegistro']
                     new_line.save()
                     invoice.save()
+
             period -= 1
             if period == 0:
                 period = 12
@@ -530,7 +530,6 @@ class Invoice(metaclass=PoolMeta):
         if not certificate:
             raise UserError(gettext('aeat_verifactu.msg_missing_certificate'))
         return certificate
-
 
     @classmethod
     def cancel(cls, invoices):
