@@ -397,6 +397,13 @@ class Invoice(metaclass=PoolMeta):
         pool = Pool()
         Configuration = pool.get('account.configuration')
         VerifactuLine = pool.get('aeat.verifactu.report.line')
+        VerifactuConfig = pool.get('account.configuration.default_verifactu')
+
+        configs = VerifactuConfig.search([
+                ('company', '=', Transaction().context.get('company')),
+                ], limit=1)
+        VerifactuConfig.lock(configs)
+
         verifactu_start_date = Configuration(1).verifactu_start_date
         if not verifactu_start_date:
             return
