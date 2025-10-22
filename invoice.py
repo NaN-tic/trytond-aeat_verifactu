@@ -390,7 +390,7 @@ class Invoice(metaclass=PoolMeta):
         # Control the simplified operation Verifactu key is setted correctly
         cls.simplified_aeat_verifactu_invoices(invoices)
         cls.save(invoices)
-        cls.send_verifactu()
+        cls.__queue__.send_verifactu()
 
     @classmethod
     def send_verifactu(cls):
