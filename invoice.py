@@ -200,10 +200,9 @@ class Invoice(metaclass=PoolMeta):
     def reset_verifactu_keys(cls, invoices):
         to_write = []
         for invoice in invoices:
-            if invoice.state == 'canceled':
+            if invoice.state == 'cancelled':
                 continue
-            for field in _VERIFACTU_INVOICE_KEYS:
-                setattr(invoice, field, None)
+            invoice.verifactu_operation_key = None
             invoice._set_verifactu_keys()
             if not invoice.verifactu_operation_key:
                 invoice.verifactu_operation_key = invoice._get_verifactu_operation_key()
