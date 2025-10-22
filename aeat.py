@@ -147,14 +147,14 @@ class VerifactuReportLine(ModelSQL, ModelView):
     '''
     AEAT verifactu Issued
     '''
-    __name__ = 'aeat.verifactu.report.lines'
+    __name__ = 'aeat.verifactu.report.line'
 
-    invoice = fields.Many2One('account.invoice', 'Invoice',
+    invoice = fields.Many2One('account.invoice', 'Invoice', required=True,
         domain=[
             ('type', 'in', Eval('invoice_types')),
             ],
         states={
-            'required': Eval('_parent_report', {}).get(
+            'required': Eval('_parent_invoice', {}).get(
                 'operation_type') != 'C0',
         })
     invoice_types = fields.Function(
@@ -310,13 +310,12 @@ class VerifactuReportLine(ModelSQL, ModelView):
 
 class VerifactuReportLineTax(ModelSQL, ModelView):
     '''
-    verifactu Report Line Tax
+    Verifactu Report Line Tax
     '''
     __name__ = 'aeat.verifactu.report.line.tax'
 
-    line = fields.Many2One(
-        'aeat.verifactu.report.lines', 'Report Line', ondelete='CASCADE')
-
+    line = fields.Many2One('aeat.verifactu.report.line', 'Report Line',
+        required=True, ondelete='CASCADE')
     base = fields.Numeric('Base', readonly=True)
     rate = fields.Numeric('Rate', readonly=True)
     amount = fields.Numeric('Amount', readonly=True)
@@ -324,3 +323,8 @@ class VerifactuReportLineTax(ModelSQL, ModelView):
     surcharge_amount = fields.Numeric('Surcharge Amount', readonly=True)
     reagyp_rate = fields.Numeric('REAGYP Rate', readonly=True)
     reagyp_amount = fields.Numeric('REAGYP Amount', readonly=True)
+
+    @classmethod
+    def __setup__(cls):
+        super().__setup__()
+        cls.__access__.add('line')

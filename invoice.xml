@@ -35,10 +35,9 @@
             <field name="keyword">form_action</field>
             <field name="model">account.invoice,-1</field>
         </record>
-        <record model="ir.action-res.group"
-            id="act_recalculate-group_aeat347">
+        <record model="ir.action-res.group" id="act_recalculate-group_aeat347">
             <field name="action" ref="act_aeat_verifactu_reset_keys"/>
-            <field name="group" ref="group_aeat_verifactu_admin"/>
+            <field name="group" ref="account.group_account"/>
         </record>
 
     </data>

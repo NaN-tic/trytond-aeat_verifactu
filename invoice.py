@@ -25,7 +25,7 @@ class Invoice(metaclass=PoolMeta):
     __name__ = 'account.invoice'
 
     verifactu_operation_key = fields.Selection(OPERATION_KEY, 'Verifactu Operation Key')
-    verifactu_records = fields.One2Many('aeat.verifactu.report.lines', 'invoice',
+    verifactu_records = fields.One2Many('aeat.verifactu.report.line', 'invoice',
         "Verifactu Report Lines")
     verifactu_state = fields.Selection(AEAT_INVOICE_STATE,
             'Verifactu State', readonly=True)
@@ -397,7 +397,7 @@ class Invoice(metaclass=PoolMeta):
     def send_verifactu(cls):
         pool = Pool()
         Configuration = pool.get('account.configuration')
-        VerifactuLine = pool.get('aeat.verifactu.report.lines')
+        VerifactuLine = pool.get('aeat.verifactu.report.line')
         verifactu_start_date = Configuration(1).verifactu_start_date
         if not verifactu_start_date:
             return
@@ -478,7 +478,7 @@ class Invoice(metaclass=PoolMeta):
     @classmethod
     def syncro_query(cls, invoices):
         pool = Pool()
-        VerifactuLine = pool.get('aeat.verifactu.report.lines')
+        VerifactuLine = pool.get('aeat.verifactu.report.line')
         records = []
         today = datetime.today()
         year = today.year

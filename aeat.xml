@@ -3,92 +3,84 @@
      copyright notices and license terms. -->
 <tryton>
     <data>
-      <record model="res.group" id="group_aeat_verifactu_admin">
-          <field name="name">AEAT Verifactu Administration</field>
-      </record>
-      <record model="res.user-res.group" id="user_admin_group_aeat_verifactu_admin">
-          <field name="user" ref="res.user_admin"/>
-          <field name="group" ref="group_aeat_verifactu_admin"/>
-      </record>
+        <menuitem id="menu_aeat_verifactu_report_menu"
+            sequence="999" parent="account.menu_reporting"
+            name="AEAT Verifactu"/>
 
-      <menuitem id="menu_aeat_verifactu_report_menu"
-          sequence="999" parent="account.menu_reporting"
-          name="AEAT Verifactu"/>
+        <!-- aeat.verifactu.report.line -->
+        <record model="ir.ui.view" id="aeat_verifactu_report_line_form_view">
+            <field name="model">aeat.verifactu.report.line</field>
+            <field name="type">form</field>
+            <field name="name">verifactu_report_lines_form</field>
+        </record>
 
-      <!-- aeat.verifactu.report.lines -->
-      <record model="ir.ui.view" id="aeat_verifactu_report_line_form_view">
-          <field name="model">aeat.verifactu.report.lines</field>
-          <field name="type">form</field>
-          <field name="name">verifactu_report_lines_form</field>
-      </record>
+        <record model="ir.ui.view" id="aeat_verifactu_report_line_tree_view">
+            <field name="model">aeat.verifactu.report.line</field>
+            <field name="type">tree</field>
+            <field name="name">verifactu_report_lines_list</field>
+        </record>
+        <record model="ir.ui.view" id="aeat_verifactu_report_line_tree_seq_view">
+            <field name="model">aeat.verifactu.report.line</field>
+            <field name="type">tree</field>
+            <field name="name">verifactu_report_lines_list_seq</field>
+        </record>
 
-      <record model="ir.ui.view" id="aeat_verifactu_report_line_tree_view">
-          <field name="model">aeat.verifactu.report.lines</field>
-          <field name="type">tree</field>
-          <field name="name">verifactu_report_lines_list</field>
-      </record>
-      <record model="ir.ui.view" id="aeat_verifactu_report_line_tree_seq_view">
-          <field name="model">aeat.verifactu.report.lines</field>
-          <field name="type">tree</field>
-          <field name="name">verifactu_report_lines_list_seq</field>
-      </record>
+        <record model="ir.action.act_window" id="act_aeat_verifactu_report_line">
+            <field name="name">AEAT Verifactu Report Lines</field>
+            <field name="res_model">aeat.verifactu.report.line</field>
+            <field name="search_value"></field>
+        </record>
+        <record model="ir.action.act_window.view" id="act_aeat_verifactu_report_line_view1">
+            <field name="sequence" eval="10"/>
+            <field name="view" ref="aeat_verifactu_report_line_tree_view"/>
+            <field name="act_window" ref="act_aeat_verifactu_report_line"/>
+        </record>
+        <record model="ir.action.act_window.view" id="act_aeat_verifactu_report_line_view2">
+            <field name="sequence" eval="20"/>
+            <field name="view" ref="aeat_verifactu_report_line_form_view"/>
+            <field name="act_window" ref="act_aeat_verifactu_report_line"/>
+        </record>
 
-      <record model="ir.action.act_window" id="act_aeat_verifactu_report_line">
-          <field name="name">AEAT Verifactu Report Lines</field>
-          <field name="res_model">aeat.verifactu.report.lines</field>
-          <field name="search_value"></field>
-      </record>
-      <record model="ir.action.act_window.view" id="act_aeat_verifactu_report_line_view1">
-          <field name="sequence" eval="10"/>
-          <field name="view" ref="aeat_verifactu_report_line_tree_view"/>
-          <field name="act_window" ref="act_aeat_verifactu_report_line"/>
-      </record>
-      <record model="ir.action.act_window.view" id="act_aeat_verifactu_report_line_view2">
-          <field name="sequence" eval="20"/>
-          <field name="view" ref="aeat_verifactu_report_line_form_view"/>
-          <field name="act_window" ref="act_aeat_verifactu_report_line"/>
-      </record>
+        <record model="ir.action.act_window" id="act_aeat_verifactu_report_lines">
+            <field name="name">Verifactu Report Lines</field>
+            <field name="res_model">aeat.verifactu.report.line</field>
+        </record>
+        <menuitem action="act_aeat_verifactu_report_lines"
+            id="menu_aeat_verifactu_lines_report"
+            parent="menu_aeat_verifactu_report_menu" sequence="1"
+            name="AEAT Verifactu Report Lines"/>
 
-      <record model="ir.action.act_window" id="act_aeat_verifactu_report_lines">
-          <field name="name">Verifactu Report Lines</field>
-          <field name="res_model">aeat.verifactu.report.lines</field>
-      </record>
-      <menuitem action="act_aeat_verifactu_report_lines"
-          id="menu_aeat_verifactu_lines_report"
-          parent="menu_aeat_verifactu_report_menu" sequence="1"
-          name="AEAT Verifactu Report Lines"/>
+        <record model="ir.model.access" id="access_aeat_verifactu_report_line">
+            <field name="model">aeat.verifactu.report.line</field>
+            <field name="perm_read" eval="False"/>
+            <field name="perm_write" eval="False"/>
+            <field name="perm_create" eval="False"/>
+            <field name="perm_delete" eval="False"/>
+        </record>
+        <record model="ir.model.access" id="access_aeat_verifactu_report_line_account">
+            <field name="model">aeat.verifactu.report.line</field>
+            <field name="group" ref="account.group_account"/>
+            <field name="perm_read" eval="True"/>
+            <field name="perm_write" eval="False"/>
+            <field name="perm_create" eval="False"/>
+            <field name="perm_delete" eval="False"/>
+        </record>
 
-      <record model="ir.model.access" id="access_aeat_verifactu_report_line">
-          <field name="model">aeat.verifactu.report.lines</field>
-          <field name="perm_read" eval="True"/>
-          <field name="perm_write" eval="False"/>
-          <field name="perm_create" eval="False"/>
-          <field name="perm_delete" eval="False"/>
-      </record>
-      <record model="ir.model.access" id="access_aeat_verifactu_report_line_admin">
-          <field name="model">aeat.verifactu.report.lines</field>
-          <field name="group" ref="group_aeat_verifactu_admin"/>
-          <field name="perm_read" eval="True"/>
-          <field name="perm_write" eval="True"/>
-          <field name="perm_create" eval="True"/>
-          <field name="perm_delete" eval="True"/>
-      </record>
+        <record model="ir.ui.view" id="aeat_verifactu_report_line_tax_tree_view">
+            <field name="model">aeat.verifactu.report.line.tax</field>
+            <field name="type">tree</field>
+            <field name="name">verifactu_report_line_tax_list</field>
+        </record>
 
-      <record model="ir.ui.view" id="aeat_verifactu_report_line_tax_tree_view">
-          <field name="model">aeat.verifactu.report.line.tax</field>
-          <field name="type">tree</field>
-          <field name="name">verifactu_report_line_tax_list</field>
-      </record>
+        <record model="ir.rule.group" id="rule_group_verifactu_report_line">
+            <field name="name">User in company</field>
+            <field name="model">aeat.verifactu.report.line</field>
+            <field name="global_p" eval="True"/>
+        </record>
+        <record model="ir.rule" id="rule_verifactu_report_line1">
+           <field name="domain" eval="[['company', 'in', Eval('companies', [])]]" pyson="1" />
+           <field name="rule_group" ref="rule_group_verifactu_report_line"/>
+        </record>
 
-      <record model="ir.rule.group" id="rule_group_verifactu_report_line">
-          <field name="name">User in company</field>
-          <field name="model">aeat.verifactu.report.lines</field>
-          <field name="global_p" eval="True"/>
-      </record>
-      <record model="ir.rule" id="rule_verifactu_report_line1">
-         <field name="domain" eval="[['company', 'in', Eval('companies', [])]]" pyson="1" />
-         <field name="rule_group" ref="rule_group_verifactu_report_line"/>
-      </record>
-
-</data>
+    </data>
 </tryton>

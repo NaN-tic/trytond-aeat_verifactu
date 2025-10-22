@@ -22,7 +22,7 @@ class Configuration(metaclass=PoolMeta):
     @classmethod
     def multivalue_model(cls, field):
         pool = Pool()
-        if field in {'aeat_certificate_verifactu', 'verifactu_default_offset_days',
+        if field in {'aeat_certificate_verifactu', 'veerifactu_start_date',
                 'verifactu_start_date'}:
             return pool.get('account.configuration.default_verifactu')
         return super().multivalue_model(field)
