@@ -3,7 +3,7 @@
 # copyright notices and license terms.
 from logging import getLogger
 from operator import attrgetter
-from datetime import datetime, timedelta
+from datetime import datetime
 import pytz
 import hashlib
 
