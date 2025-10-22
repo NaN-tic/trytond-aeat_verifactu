@@ -45,17 +45,21 @@ class ConfigurationDefaultVerifactu(ModelSQL, CompanyValueMixin):
 class TemplateTax(metaclass=PoolMeta):
     __name__ = 'account.tax.template'
 
-    verifactu_operation_key = fields.Selection(OPERATION_KEY, 'Verifactu Operation Key')
-    verifactu_issued_key = fields.Selection(SEND_SPECIAL_REGIME_KEY, 'Issued Key')
+    verifactu_operation_key = fields.Selection(OPERATION_KEY,
+        'Verifactu Operation Key')
+    verifactu_issued_key = fields.Selection(SEND_SPECIAL_REGIME_KEY,
+        'Issued Key')
     verifactu_subjected_key = fields.Selection(IVA_SUBJECTED, 'Subjected Key')
-    verifactu_exemption_cause = fields.Selection(EXEMPTION_CAUSE, 'Exemption Cause')
+    verifactu_exemption_cause = fields.Selection(EXEMPTION_CAUSE,
+        'Exemption Cause')
     tax_used = fields.Boolean('Used in Tax')
     invoice_used = fields.Boolean('Used in invoice Total')
 
     def _get_tax_value(self, tax=None):
         res = super()._get_tax_value(tax)
         for field in ('verifactu_operation_key', 'verifactu_issued_key',
-                'verifactu_subjected_key', 'verifactu_exemption_cause', 'tax_used', 'invoice_used'):
+                'verifactu_subjected_key', 'verifactu_exemption_cause',
+                'tax_used', 'invoice_used'):
 
             if not tax or getattr(tax, field) != getattr(self, field):
                 res[field] = getattr(self, field)
