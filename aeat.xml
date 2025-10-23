@@ -11,18 +11,18 @@
         <record model="ir.ui.view" id="aeat_verifactu_report_line_form_view">
             <field name="model">aeat.verifactu.report.line</field>
             <field name="type">form</field>
-            <field name="name">verifactu_report_lines_form</field>
+            <field name="name">verifactu_report_line_form</field>
         </record>
 
         <record model="ir.ui.view" id="aeat_verifactu_report_line_tree_view">
             <field name="model">aeat.verifactu.report.line</field>
             <field name="type">tree</field>
-            <field name="name">verifactu_report_lines_list</field>
+            <field name="name">verifactu_report_line_list</field>
         </record>
         <record model="ir.ui.view" id="aeat_verifactu_report_line_tree_seq_view">
             <field name="model">aeat.verifactu.report.line</field>
             <field name="type">tree</field>
-            <field name="name">verifactu_report_lines_list_seq</field>
+            <field name="name">verifactu_report_line_list_seq</field>
         </record>
 
         <record model="ir.action.act_window" id="act_aeat_verifactu_report_line">
@@ -46,7 +46,7 @@
             <field name="res_model">aeat.verifactu.report.line</field>
         </record>
         <menuitem action="act_aeat_verifactu_report_lines"
-            id="menu_aeat_verifactu_lines_report"
+            id="menu_aeat_verifactu_line_report"
             parent="menu_aeat_verifactu_report_menu" sequence="1"
             name="AEAT Verifactu Report Lines"/>
 
