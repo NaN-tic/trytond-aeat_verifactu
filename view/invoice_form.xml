@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<!--The COPYRIGHT file at the top level of this repository
+contains the full copyright notices and license terms. -->
+<data>
+    <xpath expr="/form/notebook" position="inside">
+        <page id="verifactu" string="AEAT Verifactu" col="4">
+            <label name="verifactu_operation_key"/>
+            <field name="verifactu_operation_key" colspan="3"/>
+            <field name="verifactu_records" colspan="4"/>
+            <label name="verifactu_communication_type"/>
+            <field name="verifactu_communication_type"/>
+            <label name="verifactu_state"/>
+            <field name="verifactu_state"/>
+            <label name="verifactu_pending_sending"/>
+            <field name="verifactu_pending_sending"/>
+            <label name="aeat_qr_url"/>
+            <field name="aeat_qr_url"/>
+            <field name="is_verifactu" invisible="1"/>
+        </page>
+    </xpath>
+</data>

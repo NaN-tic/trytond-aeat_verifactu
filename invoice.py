@@ -17,10 +17,6 @@ from datetime import datetime
 from urllib.parse import urlencode
 
 
-
-_VERIFACTU_INVOICE_KEYS = ['verifactu_operation_key']
-
-
 class Invoice(metaclass=PoolMeta):
     __name__ = 'account.invoice'
 
@@ -41,7 +37,7 @@ class Invoice(metaclass=PoolMeta):
     post_date = fields.Date('Post Date', readonly=True)
     is_verifactu = fields.Boolean('Is Verifactu', states={
             'readonly': Bool(Eval('company', False)),
-        })
+            })
 
     @classmethod
     def __setup__(cls):
@@ -90,7 +86,6 @@ class Invoice(metaclass=PoolMeta):
             domain = [('verifactu_records', '=', None)]
         return domain
 
-
     @classmethod
     def get_verifactu_errors(cls, invoices, name):
         for invoice in invoices:
@@ -98,8 +93,6 @@ class Invoice(metaclass=PoolMeta):
                 last_record = invoice.verifactu_records[0]
                 if last_record.state != 'Correcto':
                     return True
-
-
 
     @classmethod
     def search_verifactu_errors(cls, name, clause):
@@ -121,18 +114,18 @@ class Invoice(metaclass=PoolMeta):
 
     def _credit(self, **values):
         credit = super()._credit(**values)
-        for field in _VERIFACTU_INVOICE_KEYS:
-            setattr(credit, field, getattr(self, field))
-
+        # TODO: Verifactu operatioin key should be a selection in the credit
+        # wizard with R1 as default
+        credit.verifactu_operation_key = self.verifactu_operation_key
         credit.verifactu_operation_key = 'R1'
         return credit
 
-    @fields.depends('company')
+    @fields.depends('company', 'type')
     def on_change_with_is_verifactu(self):
         Configuration = Pool().get('account.configuration')
-
-        config = Configuration(1)
-        return True if config.aeat_certificate_verifactu else False
+        if type == 'out':
+            config = Configuration(1)
+            return config.aeat_certificate_verifactu
 
     def _set_verifactu_keys(self):
         tax = None
@@ -142,8 +135,7 @@ class Invoice(metaclass=PoolMeta):
                 break
         if not tax:
             return
-        for field in _VERIFACTU_INVOICE_KEYS:
-            setattr(self, field, getattr(tax, field))
+        self.verifactu_operation_key = tax.verifactu_operation_key
 
     @classmethod
     def create(cls, vlist):
@@ -172,13 +164,11 @@ class Invoice(metaclass=PoolMeta):
             return True
         return False
 
-    @fields.depends(*_VERIFACTU_INVOICE_KEYS)
+    @fields.depends('verifactu_operation_key', methods=['_set_verifactu_keys'])
     def _on_change_lines_taxes(self):
         super()._on_change_lines_taxes()
-        for field in _VERIFACTU_INVOICE_KEYS:
-            if getattr(self, field):
-                return
-        self._set_verifactu_keys()
+        if not self.verifactu_operation_key:
+            self._set_verifactu_keys()
 
     @classmethod
     def copy(cls, records, default=None):
@@ -188,7 +178,6 @@ class Invoice(metaclass=PoolMeta):
         default.setdefault('verifactu_records')
         default.setdefault('verifactu_state')
         default.setdefault('verifactu_communication_type')
-        default.setdefault('verifactu_operation_key')
         default.setdefault('verifactu_pending_sending')
         default.setdefault('verifactu_header')
         return super().copy(records, default=default)
@@ -198,7 +187,6 @@ class Invoice(metaclass=PoolMeta):
 
     @classmethod
     def reset_verifactu_keys(cls, invoices):
-        to_write = []
         for invoice in invoices:
             if invoice.state == 'cancelled':
                 continue
@@ -206,13 +194,10 @@ class Invoice(metaclass=PoolMeta):
             invoice._set_verifactu_keys()
             if not invoice.verifactu_operation_key:
                 invoice.verifactu_operation_key = invoice._get_verifactu_operation_key()
-            values = invoice._save_values
             if invoice.state in ('posted', 'paid'):
-                values['verifactu_pending_sending'] = True
-            to_write.extend(([invoice], values))
+                invoice.verifactu_pending_sending = True
 
-        if to_write:
-            cls.write(*to_write)
+        cls.save(invoices)
 
     @classmethod
     def process(cls, invoices):
@@ -602,20 +587,19 @@ class ResetVerifactuKeys(Wizard):
     __name__ = "aeat.verifactu.reset.keys"
 
     start = StateView('aeat.verifactu.reset.keys.start',
-        'aeat_verifactu.aeat_verifactu_reset_keys_start_view', [
+        'aeat_verifactu.reset_keys_start_view', [
             Button('Cancel', 'end', 'tryton-cancel'),
             Button('Reset', 'reset', 'tryton-ok', default=True),
             ])
     reset = StateTransition()
     done = StateView('aeat.verifactu.reset.keys.end',
-        'aeat_verifactu.aeat_verifactu_reset_keys_end_view', [
+        'aeat_verifactu.reset_keys_end_view', [
             Button('Ok', 'end', 'tryton-ok', default=True),
             ])
 
     def transition_reset(self):
         pool = Pool()
         Invoice = pool.get('account.invoice')
-        invoices = Invoice.browse(Transaction().context['active_ids'])
-        Invoice.reset_verifactu_keys(invoices)
-        Invoice.simplified_aeat_verifactu_invoices(invoices)
+        Invoice.reset_verifactu_keys(self.records)
+        Invoice.simplified_aeat_verifactu_invoices(self.records)
         return 'done'

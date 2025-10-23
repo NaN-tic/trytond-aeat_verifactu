@@ -3,24 +3,24 @@
      copyright notices and license terms. -->
 <tryton>
     <data>
-        <record model="ir.ui.view" id="aeat_verifactu_invoice_form_view">
+        <record model="ir.ui.view" id="invoice_view_form">
             <field name="model">account.invoice</field>
             <field name="inherit" ref="account_invoice.invoice_view_form"/>
-            <field name="name">account_invoice_form</field>
+            <field name="name">invoice_form</field>
         </record>
 
-        <record model="ir.ui.view" id="aeat_verifactu_invoice_list_view">
+        <record model="ir.ui.view" id="invoice_view_tree">
             <field name="model">account.invoice</field>
             <field name="inherit" ref="account_invoice.invoice_view_tree"/>
-            <field name="name">account_invoice_list</field>
+            <field name="name">invoice_list</field>
         </record>
 
-        <record model="ir.ui.view" id="aeat_verifactu_reset_keys_start_view">
+        <record model="ir.ui.view" id="reset_keys_start_view">
             <field name="model">aeat.verifactu.reset.keys.start</field>
             <field name="type">form</field>
             <field name="name">reset_keys_start</field>
         </record>
-        <record model="ir.ui.view" id="aeat_verifactu_reset_keys_end_view">
+        <record model="ir.ui.view" id="reset_keys_end_view">
             <field name="model">aeat.verifactu.reset.keys.end</field>
             <field name="type">form</field>
             <field name="name">reset_keys_end</field>

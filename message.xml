@@ -36,13 +36,13 @@ If you edit them take care if you need to update again to Verifactu</field>
             <field name="text">Invoice "%(invoice)s" is duplicated on Verifactu Report "%(report)s".</field>
         </record>
         <record model="ir.message" id="msg_set_simplified_party">
-            <field name="text">The parties of the invoices "%(invoices)s" has the Verifactu Identfier as 'Simplified Invoice'. The Verifactu operation key will be switched to 'Simplified Invoice (ticket)' or 'Invoice summary entry' as appropriate, and the invoices will be send to AEAT without destination identification.</field>
+            <field name="text">The parties of the invoices "%(invoices)s" has the Verifactu Identfier as 'Simplified Invoice'. The Verifactu operation key will be switched to 'Simplified Invoice (ticket)' or 'Invoice summary entry' as appropriate, and the invoices will be sent to AEAT without destination identification.</field>
         </record>
         <record model="ir.message" id="msg_set_simplified_invoice">
-            <field name="text">The parties of the invoices "%(invoices)s" has not set the Verifactu Identfier as 'Simplified Invoice', but the invoice Verifactu operation key is set as 'Simplified Invoice (ticket)' or 'Invoice summary entry'. The invoices will be send to AEAT without destination identification.</field>
+            <field name="text">The parties of the invoices "%(invoices)s" has not set the Verifactu Identfier as 'Simplified Invoice', but the invoice Verifactu operation key is set as 'Simplified Invoice (ticket)' or 'Invoice summary entry'. The invoices will be sent to AEAT without destination identification.</field>
         </record>
         <record model="ir.message" id="msg_missing_certificate">
-            <field name="text">There isn't a certificate deffined in the account configuration for the Verifactu.</field>
+            <field name="text">There isn't a certificate defined in the account configuration for the Verifactu.</field>
         </record>
         <record model="ir.message" id="msg_invoice_in_missing_ref">
             <field name="text">The invoices "%(invoices)s" haven't got reference.</field>
