@@ -116,4 +116,4 @@ AEAT_ERRORS = [
     ('2008', "The field PercentDeliveryREAGYP should not be reported if the field KeyRegimenSpecialTrading on invoices received has a value other than 02"),
     ('2009', "Do not enter the field PaymentCompensationREAGYP if the field KeyRegimenSpecialTrading on invoices received has a value other than 02"),
     ('2011', "Counterpart NIF is not in the Census"),
-]
+    ]

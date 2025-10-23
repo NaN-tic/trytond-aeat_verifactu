@@ -2,6 +2,7 @@
 # copyright notices and license terms.
 import hashlib
 from decimal import Decimal
+from trytond.config import config
 from trytond.model import ModelView, fields
 from trytond.pool import Pool, PoolMeta
 from trytond.pyson import Bool, Eval
@@ -15,6 +16,11 @@ from . import service
 from . import tools
 from datetime import datetime
 from urllib.parse import urlencode
+
+PRODUCTION_QR_URL = "https://www2.agenciatributaria.gob.es/wlpl/TIKE-CONT/ValidarQR"
+TEST_QR_URL = "https://prewww2.aeat.es/wlpl/TIKE-CONT/ValidarQR"
+
+PRODUCTION_ENV = config.getboolean('database', 'production', default=False)
 
 
 class Invoice(metaclass=PoolMeta):
@@ -154,8 +160,6 @@ class Invoice(metaclass=PoolMeta):
                 continue
             company_id = vals.get('company', -1)
             vals['is_verifactu'] = is_verifactu.get(company_id, False)
-        print(is_verifactu)
-        print(vlist)
         return super().create(vlist)
 
     @property
@@ -320,7 +324,7 @@ class Invoice(metaclass=PoolMeta):
         simplified_parties, _, _ = (
             cls.get_simplified_invoices(invoices))
         invoice_keys = {'F2': [], 'R5': []}
-        # If the user accept the warning about change the key in the invoice,
+        # If the user accept the warning about changing the key in the invoice,
         # because the party has the Simplified key, change the key.
         for invoice in simplified_parties:
             first_invoice = invoice.simplified_serial_number('first')
@@ -371,18 +375,23 @@ class Invoice(metaclass=PoolMeta):
                     invoice.verifactu_state = 'PendienteEnvioSubsanacion'
             to_save.append(invoice)
 
-
-        # Control the simplified operation Verifactu key is setted correctly
+        # Control the simplified operation Verifactu key is correctly set
         cls.simplified_aeat_verifactu_invoices(invoices)
         cls.save(invoices)
-        cls.__queue__.send_verifactu()
+
+        cls.send_verifactu()
+        # TODO::
+        #cls.__queue__.send_verifactu(invoices)
 
     @classmethod
-    def send_verifactu(cls):
+    def send_verifactu(cls, invoices=None):
         pool = Pool()
         Configuration = pool.get('account.configuration')
         VerifactuLine = pool.get('aeat.verifactu.report.line')
         VerifactuConfig = pool.get('account.configuration.default_verifactu')
+
+        # invoices parameter is not used, because all pending invoices are sent
+        # but we need it to be compatible with the queue system
 
         configs = VerifactuConfig.search([
                 ('company', '=', Transaction().context.get('company')),
@@ -411,8 +420,7 @@ class Invoice(metaclass=PoolMeta):
         certificate = invoice._get_certificate()
 
         with certificate.tmp_ssl_credentials() as (crt, key):
-            srv = service.bind_issued_invoices_service(
-                crt, key, test=True)
+            srv = service.bind_issued_invoices_service(crt, key)
             response, body = srv.submit(
                 headers,
                 invoices,
@@ -422,17 +430,20 @@ class Invoice(metaclass=PoolMeta):
             invoices_to_save = []
             for x in response.RespuestaLinea:
                 state = x['EstadoRegistro']
-                if state in ('Correcto', 'Correcta', 'AceptadaConErrores', 'AceptadoConErrores'):
+                if state in ('Correcto', 'Correcta', 'AceptadaConErrores',
+                        'AceptadoConErrores'):
                     continue
-                else:
-                    invoice = cls.search([('number', '=', x['IDFactura']['NumSerieFactura'])])[0]
-                    invoice.verifactu_state = state
-                    invoices_to_save.append(invoice)
-                    new_line = VerifactuLine()
-                    new_line.invoice = invoice
-                    new_line.state = state
-                    new_line.error_message = x['DescripcionErrorRegistro']
-                    lines_to_save.append(new_line)
+
+                invoice = cls.search([
+                        ('number', '=', x['IDFactura']['NumSerieFactura']),
+                        ])[0]
+                invoice.verifactu_state = state
+                invoices_to_save.append(invoice)
+                new_line = VerifactuLine()
+                new_line.invoice = invoice
+                new_line.state = state
+                new_line.error_message = x['DescripcionErrorRegistro']
+                lines_to_save.append(new_line)
             VerifactuLine.save(lines_to_save)
             cls.save(invoices_to_save)
         cls.syncro_query(invoices)
@@ -451,8 +462,7 @@ class Invoice(metaclass=PoolMeta):
         clave_paginacion = None
         while pagination == 'S':
             with certificate.tmp_ssl_credentials() as (crt, key):
-                srv = service.bind_issued_invoices_service(
-                    crt, key, test=True)
+                srv = service.bind_issued_invoices_service(crt, key)
                 res = srv.query(headers, year=year, period=period, clave_paginacion=clave_paginacion)
                 invoices = res.RegistroRespuestaConsultaFactuSistemaFacturacion
                 if invoices:
@@ -526,7 +536,9 @@ class Invoice(metaclass=PoolMeta):
             if not invoice.cancel_move:
                 to_write.append(invoice)
         if to_write:
-            cls.write(to_write, {'verifactu_pending_sending': False})
+            cls.write(to_write, {
+                'verifactu_pending_sending': False,
+                })
         return result
 
     @classmethod
@@ -545,8 +557,11 @@ class Invoice(metaclass=PoolMeta):
         return header
 
     def get_aeat_qr_url(self, name):
-        # prod url "https://www2.agenciatributaria.gob.es/wlpl/TIKE-CONT/ValidarQR"
-        url_base = "https://prewww2.aeat.es/wlpl/TIKE-CONT/ValidarQR"
+        if PRODUCTION_ENV:
+            url = PRODUCTION_QR_URL
+        else:
+            url = TEST_QR_URL
+
         nif = self.company.party.verifactu_vat_code
         numserie = self.number
         fecha = self.invoice_date.strftime("%d-%m-%Y") if self.invoice_date else None
@@ -560,9 +575,9 @@ class Invoice(metaclass=PoolMeta):
             "numserie": numserie,
             "fecha": fecha,
             "importe": importe,
-        }
+            }
         query = urlencode(params)
-        qr_url = f"{url_base}?{query}"
+        qr_url = f"{url}?{query}"
         return qr_url
 
 

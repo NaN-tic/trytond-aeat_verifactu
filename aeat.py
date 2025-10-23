@@ -143,6 +143,7 @@ EXEMPTION_CAUSE = [
     ('NotSubject', 'Not Subject'),
     ]
 
+
 class VerifactuReportLine(ModelSQL, ModelView):
     '''
     AEAT verifactu Issued
@@ -150,24 +151,18 @@ class VerifactuReportLine(ModelSQL, ModelView):
     __name__ = 'aeat.verifactu.report.line'
 
     invoice = fields.Many2One('account.invoice', 'Invoice', required=True,
-        domain=[
-            ('type', 'in', Eval('invoice_types')),
-            ],
-        states={
-            'required': Eval('_parent_invoice', {}).get(
-                'operation_type') != 'C0',
-        })
-    invoice_types = fields.Function(
-        fields.MultiSelection('get_invoice_types', "Invoice Types"),
-        'on_change_with_invoice_types')
+            domain=[
+                ('type', 'in', 'out'),
+                ],
+            states={
+                'required': Eval('_parent_invoice', {}).get(
+                    'operation_type') != 'C0',
+            })
     state = fields.Selection(AEAT_INVOICE_STATE, 'State')
     last_modify_date = fields.DateTime('Last Modification Date', readonly=True)
-    communication_code = fields.Integer(
-        'Communication Code', readonly=True)
-    communication_msg = fields.Char(
-        'Communication Message', readonly=True)
-    company = fields.Many2One(
-        'company.company', 'Company', required=True)
+    communication_code = fields.Integer('Communication Code', readonly=True)
+    communication_msg = fields.Char('Communication Message', readonly=True)
+    company = fields.Many2One('company.company', 'Company', required=True)
     issuer_vat_number = fields.Char('Issuer VAT Number', readonly=True)
     serial_number = fields.Char('Serial Number', readonly=True)
     final_serial_number = fields.Char('Final Serial Number', readonly=True)
@@ -177,20 +172,18 @@ class VerifactuReportLine(ModelSQL, ModelView):
     total_amount = fields.Numeric('Total Amount', readonly=True)
     counterpart_name = fields.Char('Counterpart Name', readonly=True)
     counterpart_id = fields.Char('Counterpart ID', readonly=True)
-    taxes = fields.One2Many(
-        'aeat.verifactu.report.line.tax', 'line', 'Tax Lines', readonly=True)
+    taxes = fields.One2Many('aeat.verifactu.report.line.tax', 'line',
+        'Tax Lines', readonly=True)
     presenter = fields.Char('Presenter', readonly=True)
     presentation_date = fields.DateTime('Presentation Date', readonly=True)
     csv = fields.Char('CSV', readonly=True)
     balance_state = fields.Char('Balance State', readonly=True)
     # TODO counterpart balance data
     vat_code = fields.Function(fields.Char('VAT Code'), 'get_vat_code')
-    identifier_type = fields.Function(
-        fields.Selection(PARTY_IDENTIFIER_TYPE,
-        'Identifier Type'), 'get_identifier_type')
-    invoice_operation_key = fields.Function(
-        fields.Selection(OPERATION_KEY, 'verifactu Operation Key'),
-        'get_invoice_operation_key')
+    identifier_type = fields.Function(fields.Selection(PARTY_IDENTIFIER_TYPE,
+            'Identifier Type'), 'get_identifier_type')
+    invoice_operation_key = fields.Function(fields.Selection(OPERATION_KEY,
+            'verifactu Operation Key'), 'get_invoice_operation_key')
     exemption_cause = fields.Char('Exemption Cause', readonly=True)
     aeat_register = fields.Text('Register from AEAT Webservice', readonly=True)
     verifactu_header = fields.Text('Header')
@@ -211,7 +204,8 @@ class VerifactuReportLine(ModelSQL, ModelView):
             return None
 
     def get_identifier_type(self, name):
-        return self.invoice.party.verifactu_identifier_type if self.invoice else None
+        return (self.invoice.party.verifactu_identifier_type if self.invoice
+            else None)
 
     @staticmethod
     def default_company():
@@ -247,19 +241,18 @@ class VerifactuReportLine(ModelSQL, ModelView):
         pool = Pool()
         Invoice = pool.get('account.invoice')
 
-        to_write = []
+        to_save = []
         vlist = [x.copy() for x in vlist]
         for vals in vlist:
-            invoice = (Invoice(id=vals['invoice'])
-                if vals.get('invoice') else None)
-            vals['verifactu_header'] = (str(invoice.get_verifactu_header(invoice, False))
-                if invoice else '')
-            if vals.get('state', None) == 'Correcto' and invoice:
-                to_write.extend(([invoice], {
-                        'verifactu_pending_sending': False,
-                        }))
-        if to_write:
-            Invoice.write(*to_write)
+            invoice_id = vals.get('invoice')
+            if invoice_id:
+                invoice = Invoice(invoice_id)
+                vals['verifactu_header'] = invoice.get_verifactu_header(
+                    invoice, delete=False)
+            if vals.get('state') == 'Correcto' and invoice:
+                invoice.verifactu_pending_sending = False
+                to_save.append(invoice)
+        Invoice.save(to_save)
         return super().create(vlist)
 
     @classmethod
@@ -269,43 +262,30 @@ class VerifactuReportLine(ModelSQL, ModelView):
 
         actions = iter(args)
 
-        to_write = []
+        to_save = []
         for lines, values in zip(actions, actions):
-            invoice_values = {
-                'verifactu_pending_sending': False,
-                }
             if values.get('state', None) == 'Correcto':
                 invoices = [x.invoice for x in lines]
             else:
-                invoices = [x.invoice for x in lines
-                    if x.state == 'Correcto']
+                invoices = [x.invoice for x in lines if x.state == 'Correcto']
             if invoices:
-                to_write.extend((invoices, invoice_values))
+                for invoice in invoices:
+                    invoice.verifactu_pending_sending = False
+                to_save += invoices
 
-            invoice_vals = {
-                'verifactu_pending_sending': False,
-                'verifactu_state': 'duplicated_unsubscribed',
-                }
             if values.get('communication_code', None) in (3000, 3001):
                 invoices = [x.invoice for x in lines]
             else:
                 invoices = [x.invoice for x in lines
                     if x.communication_code in (3000, 3001)]
             if invoices:
-                to_write.extend((invoices, invoice_vals))
+                for invoice in invoices:
+                    invoice.verifactu_pending_sending = False
+                    invoice.verifactu_state = 'duplicated_unsubscribed'
+                to_save += invoices
 
         super().write(*args)
-        if to_write:
-            Invoice.write(*to_write)
-
-    @classmethod
-    def get_invoice_types(cls):
-        pool = Pool()
-        Invoice = pool.get('account.invoice')
-        return Invoice.fields_get(['type'])['type']['selection']
-
-    def on_change_with_invoice_types(self, name=None):
-        return ['out']
+        Invoice.save(to_save)
 
 
 class VerifactuReportLineTax(ModelSQL, ModelView):

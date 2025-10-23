@@ -8,12 +8,19 @@ from sql.conditionals import Case
 from sql import Literal
 from . import aeat
 
+from trytond.modules.party.party import TAX_IDENTIFIER_TYPES
+
+
 class Party(metaclass=PoolMeta):
     __name__ = 'party.party'
     verifactu_identifier_type = fields.Selection(aeat.PARTY_IDENTIFIER_TYPE,
         'Verifactu Identifier Type', sort=False)
     verifactu_vat_code = fields.Function(fields.Char('Verifactu VAT Code', size=9),
         'get_verifactu_vat')
+
+    @staticmethod
+    def default_verifactu_identifier_type():
+        return 'SI'
 
     def get_verifactu_vat(self, name=None):
         identifier = self.tax_identifier or (
@@ -25,10 +32,6 @@ class Party(metaclass=PoolMeta):
                         self.verifactu_identifier_type == '02'):
                     return identifier.code
                 return identifier.code[2:]
-
-    @staticmethod
-    def default_verifactu_identifier_type():
-        return 'SI'
 
     @classmethod
     def __register__(cls, module_name):
@@ -73,28 +76,16 @@ class Party(metaclass=PoolMeta):
 class PartyIdentifier(metaclass=PoolMeta):
     __name__ = 'party.identifier'
 
-    @classmethod
-    def set_verifactu_identifier_type(cls, identifiers):
-        pool = Pool()
-        Party = pool.get('party.party')
-
-        to_write = []
-        for identifier in identifiers:
-            if ((identifier.type == 'eu_vat' and identifier.code[:2] == 'ES')
-                    or identifier.type in ('es_cif', 'es_dni', 'es_nie',
-                        'es_nif')):
-                verifactu_identifier_type = None
-            elif identifier.type == 'eu_vat':
-                verifactu_identifier_type = '02'
-            elif identifier.type == 'eu_at_02':
-                continue
-            else:
-                verifactu_identifier_type = '06'
-            to_write.extend(([identifier.party], {
-                'verifactu_identifier_type': verifactu_identifier_type}))
-
-        if to_write:
-            Party.write(*to_write)
+    def get_verifactu_identifier_type(self):
+        if self.type == 'eu_vat' and self.code.startswith('ES'):
+            return None
+        if self.type in ('es_cif', 'es_dni', 'es_nie', 'es_nif'):
+            return None
+        if self.type == 'eu_vat':
+            return '02'
+        if self.type in TAX_IDENTIFIER_TYPES:
+            return '06'
+        return 'SI'
 
     @classmethod
     def create(cls, vlist):

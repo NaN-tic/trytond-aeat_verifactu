@@ -147,7 +147,7 @@ class IssuedInvoiceMapper(Model):
         return {
             'Ejercicio': self.year(invoice),
             'Periodo': tools._format_period(self.period(invoice)),
-        }
+            }
 
     def _build_invoice_id(self, invoice):
         number = self.serial_number(invoice)
@@ -156,20 +156,20 @@ class IssuedInvoiceMapper(Model):
             'NumSerieFactura': number,
             'FechaExpedicionFactura':
                 self.issue_date(invoice).strftime(_DATE_FMT),
-        }
+            }
         return ret
 
     def _build_counterpart(self, invoice):
         ret = {
             'NombreRazon': self.counterpart_name(invoice),
-        }
+            }
         id_type = self.counterpart_id_type(invoice)
         if id_type and id_type in OTHER_ID_TYPES:
             ret['IDOtro'] = {
                 'IDType': id_type,
                 'CodigoPais': self.counterpart_country(invoice),
                 'ID': self.counterpart_id(invoice),
-            }
+                }
         else:
             ret['NIF'] = self.counterpart_nif(invoice)
         return ret
@@ -210,7 +210,7 @@ class IssuedInvoiceMapper(Model):
         return {
             'PeriodoLiquidacion': self._build_period(invoice),
             'IDFactura': self._build_invoice_id(invoice),
-        }
+            }
 
     def build_submit_request(self, invoice, last_huella=None, last_line=None):
         request = {}
@@ -282,7 +282,7 @@ class IssuedInvoiceMapper(Model):
             "DescripcionOperacion": self._description(invoice),
             "Desglose": {
                 "DetalleDesglose": self.build_desglose(invoice),
-            },
+                },
             "CuotaTotal": sum(self.tax_amount(tax) for tax in self.taxes(invoice)),
             "ImporteTotal": self.total_amount(invoice),
             "Encadenamiento": self._build_encadenamiento(last_line),
@@ -290,7 +290,7 @@ class IssuedInvoiceMapper(Model):
             "FechaHoraHusoGenRegistro":  formatted_now,
             "TipoHuella": "01",
             "Huella": self.build_huella(invoice, last_huella, formatted_now)
-        }
+            }
         self._update_subsanacion(ret, invoice)
         self._update_counterpart(ret, invoice)
         self._update_rectified_invoice(ret, invoice)
@@ -308,7 +308,7 @@ class IssuedInvoiceMapper(Model):
         if ret['TipoFactura'] not in {'F2', 'R5'}:
             ret['Destinatarios'] = {
                 "IDDestinatario": self._build_counterpart(invoice)
-            }
+                }
 
     def _update_rectified_invoice(self, ret, invoice):
         if ret['TipoFactura'] in RECTIFIED_KINDS:
@@ -318,5 +318,5 @@ class IssuedInvoiceMapper(Model):
                     'BaseRectificada': self.rectified_base(invoice),
                     'CuotaRectificada': self.rectified_amount(invoice),
                     # TODO: CuotaRecargoRectificado
-                }
+                    }
 

@@ -11,7 +11,7 @@ import trytond
 NOMBRE_RAZON = config.get('aeat_verifactu', 'nombre_razon')
 NIF = config.get('aeat_verifactu', 'nif')
 NOMBRE_SISTEMA_INFORMATICO = config.get('aeat_verifactu',
-    'nombre_sistema_informatico', default='Tryton')
+    'nombre_sistema_informatico')
 ID_SISTEMA_INFORMATICO = config.get('aeat_verifactu', 'id_sistema_informatico')
 NUMERO_INSTALACION = config.get('aeat_verifactu', 'numero_instalacion')
 TIPO_USO_POSIBLE_SOLO_VERIFACTU = 'N'
@@ -68,17 +68,16 @@ def get_headers(name=None, vat=None, comm_kind=None, version='1.0'):
 
 def get_sistema_informatico():
     sif =  {
-            'NombreRazon': NOMBRE_RAZON,
-            'NIF': NIF,
-            'NombreSistemaInformatico': NOMBRE_SISTEMA_INFORMATICO,
-            'IdSistemaInformatico': ID_SISTEMA_INFORMATICO,
-            'Version': trytond.__version__,
-            'NumeroInstalacion': NUMERO_INSTALACION,
-            'TipoUsoPosibleSoloVerifactu': TIPO_USO_POSIBLE_SOLO_VERIFACTU,
-            'TipoUsoPosibleMultiOT': TIPO_USO_POSIBLE_MULTIOT,
-            'IndicadorMultiplesOT': INDICADOR_MULTIPLES_OT
-            }
-    print('sif', sif)
+        'NombreRazon': NOMBRE_RAZON,
+        'NIF': NIF,
+        'NombreSistemaInformatico': NOMBRE_SISTEMA_INFORMATICO,
+        'IdSistemaInformatico': ID_SISTEMA_INFORMATICO,
+        'Version': trytond.__version__,
+        'NumeroInstalacion': NUMERO_INSTALACION,
+        'TipoUsoPosibleSoloVerifactu': TIPO_USO_POSIBLE_SOLO_VERIFACTU,
+        'TipoUsoPosibleMultiOT': TIPO_USO_POSIBLE_MULTIOT,
+        'IndicadorMultiplesOT': INDICADOR_MULTIPLES_OT
+        }
     return sif
 
 class _FixedValue(object):
@@ -110,5 +109,3 @@ class LoggingPlugin(Plugin):
             envelope, pretty_print=True))
         return envelope, http_headers
 
-
-# TODO: JSESSIONID Plugin

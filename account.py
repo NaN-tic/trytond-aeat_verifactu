@@ -12,12 +12,11 @@ class Configuration(metaclass=PoolMeta):
     __name__ = 'account.configuration'
 
     aeat_certificate_verifactu = fields.MultiValue(fields.Many2One('certificate',
-        'AEAT Certificate Verifactu'))
+        'AEAT Verifactu Certificate'))
     verifactu_start_date = fields.MultiValue(fields.Date('Verifactu Start Date',
-        states={
-            'readonly': Bool(Eval('verifactu_start_date', None)),
-        },
-        help='Start date for Verifactu'))
+            states={
+                'readonly': Bool(Eval('verifactu_start_date', None)),
+            }))
 
     @classmethod
     def multivalue_model(cls, field):
@@ -37,9 +36,8 @@ class ConfigurationDefaultVerifactu(ModelSQL, CompanyValueMixin):
     __name__ = 'account.configuration.default_verifactu'
 
     aeat_certificate_verifactu = fields.Many2One('certificate',
-        'AEAT Certificate Verifactu')
-    verifactu_start_date = fields.Date('Verifactu Start Date',
-        help='Start date for Verifactu')
+        'AEAT Verifactu Certificate')
+    verifactu_start_date = fields.Date('Verifactu Start Date')
 
 
 class TemplateTax(metaclass=PoolMeta):
