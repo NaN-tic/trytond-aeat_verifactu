@@ -2,17 +2,20 @@
 # the full copyright notices and license terms.
 from trytond.model import fields
 from trytond.pool import Pool, PoolMeta
+from trytond.transaction import Transaction
+from trytond import backend
+from sql.conditionals import Case
+from sql import Literal
 from . import aeat
-
 
 class Party(metaclass=PoolMeta):
     __name__ = 'party.party'
     verifactu_identifier_type = fields.Selection(aeat.PARTY_IDENTIFIER_TYPE,
         'Verifactu Identifier Type', sort=False)
     verifactu_vat_code = fields.Function(fields.Char('Verifactu VAT Code', size=9),
-        'get_verifactu_vat_data')
+        'get_verifactu_vat')
 
-    def get_verifactu_vat_data(self, name=None):
+    def get_verifactu_vat(self, name=None):
         identifier = self.tax_identifier or (
             self.identifiers and self.identifiers[0])
         if identifier:
@@ -23,8 +26,48 @@ class Party(metaclass=PoolMeta):
                     return identifier.code
                 return identifier.code[2:]
 
+    @staticmethod
     def default_verifactu_identifier_type():
         return 'SI'
+
+    @classmethod
+    def __register__(cls, module_name):
+        table = cls.__table_handler__(module_name)
+        update = (backend.TableHandler.table_exist('party_identifier') and
+            not table.column_exist('verifactu_identifier_type'))
+
+        super().__register__(module_name)
+
+        if update:
+            pool = Pool()
+            Identifier = pool.get('party.identifier')
+
+            party_table = cls.__table__()
+            identifier_table = Identifier.__table__()
+
+            cursor = Transaction().connection.cursor()
+
+            # Set default for parties without tax_identifier
+            cursor.execute(*party_table.update(
+                columns=[party_table.verifactu_identifier_type],
+                values=[Literal('SI')],
+                where=~(party_table.id.in_(
+                    identifier_table.select(identifier_table.party)))
+                ))
+
+            # Update for parties with tax_identifier based on type and code
+            update_query = party_table.update(
+                columns=[party_table.verifactu_identifier_type],
+                values=[Case(
+                    ((identifier_table.type == 'eu_vat') & (identifier_table.code.like('ES%')), Literal(None)),
+                    (identifier_table.type.in_(['es_cif', 'es_dni', 'es_nie', 'es_nif']), Literal(None)),
+                    (identifier_table.type == 'eu_vat', Literal('02')),
+                    else_=Literal('SI')
+                )],
+                from_=[identifier_table],
+                where=party_table.id == identifier_table.party
+            )
+            cursor.execute(*update_query)
 
 
 class PartyIdentifier(metaclass=PoolMeta):

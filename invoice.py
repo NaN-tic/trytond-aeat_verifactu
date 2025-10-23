@@ -406,7 +406,7 @@ class Invoice(metaclass=PoolMeta):
         invoice = invoices[0]
         headers = tools.get_headers(
             name=tools.unaccent(invoice.company.party.name),
-            vat=invoice.company.tax_identifier[2:],
+            vat=invoice.company.party.verifactu_vat_code,
             version='1.0')
         certificate = invoice._get_certificate()
 
@@ -444,7 +444,7 @@ class Invoice(metaclass=PoolMeta):
         invoice = invoices[0]
         headers = tools.get_headers(
             name=tools.unaccent(invoice.company.party.name),
-            vat=invoice.company.party.tax_identifier[2:],
+            vat=invoice.company.party.verifactu_vat_code,
             version='1.0')
         certificate = invoice._get_certificate()
         pagination = 'S'
