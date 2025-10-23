@@ -10,12 +10,12 @@ this repository contains the full copyright notices and license terms. -->
             <field name="text">Report "%(report)s" must be cancelled before deletion.</field>
         </record>
         <record model="ir.message" id="msg_invoices_verifactu">
-            <field name="text">The next invoices are related to Verifactu books:
+            <field name="text">The following invoices are related to Verifactu books:
 %(invoices)s.
 If you edit them be careful that you need to update to Verifactu again</field>
         </record>
         <record model="ir.message" id="msg_invoices_verifactu_pending">
-            <field name="text">The next invoices are related to Verifactu books in draft state.</field>
+            <field name="text">The following invoices are related to Verifactu books in draft state.</field>
         </record>
       <record model="ir.message" id="reports_exist">
           <field name="text">There are some reports in draft and/or confirmed. No report will be created until these reports will be processed.</field>
