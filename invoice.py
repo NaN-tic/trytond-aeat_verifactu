@@ -548,9 +548,9 @@ class Invoice(metaclass=PoolMeta):
 
         if delete:
             rline = [x for x in invoice.verifactu_records if x.state == 'Correcto'
-                and x.verifactu_header is not None]
+                and x.header is not None]
             if rline:
-                return rline[0].verifactu_header
+                return rline[0].header
         if invoice.type == 'out':
             mapper = IssuedMapper()
             header = mapper.build_delete_request(invoice)

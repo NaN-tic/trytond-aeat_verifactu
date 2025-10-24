@@ -1,12 +1,10 @@
 # -*- coding: utf-8 -*-
 # The COPYRIGHT file at the top level of this repository contains the full
 # copyright notices and license terms.
-from logging import getLogger
 from operator import attrgetter
 from datetime import datetime
 import pytz
 import hashlib
-
 
 from trytond.i18n import gettext
 from trytond.model import Model
@@ -14,15 +12,9 @@ from trytond.exceptions import UserError
 from . import tools
 
 
-_logger = getLogger(__name__)
-
-_DATE_FMT = '%d-%m-%Y'
-
+DATE_FMT = '%d-%m-%Y'
 RECTIFIED_KINDS = frozenset({'R1', 'R2', 'R3', 'R4', 'R5'})
 OTHER_ID_TYPES = frozenset({'02', '03', '04', '05', '06', '07'})
-
-SEMESTER1_ISSUED_SPECIALKEY = '16'
-SEMESTER1_RECIEVED_SPECIALKEY = '14'
 
 
 class IssuedInvoiceMapper(Model):
@@ -155,7 +147,7 @@ class IssuedInvoiceMapper(Model):
             'IDEmisorFactura': self.nif(invoice),
             'NumSerieFactura': number,
             'FechaExpedicionFactura':
-                self.issue_date(invoice).strftime(_DATE_FMT),
+                self.issue_date(invoice).strftime(DATE_FMT),
             }
         return ret
 
@@ -181,7 +173,7 @@ class IssuedInvoiceMapper(Model):
         return {"RegistroAnterior": {
                     "IDEmisorFactura": self.nif(invoice),
                     "NumSerieFactura": invoice.number,
-                    "FechaExpedicionFactura": invoice.invoice_date.strftime(_DATE_FMT),
+                    "FechaExpedicionFactura": invoice.invoice_date.strftime(DATE_FMT),
                     "Huella": last_line.huella
                 }}
 

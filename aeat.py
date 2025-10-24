@@ -146,13 +146,13 @@ EXEMPTION_CAUSE = [
 
 class VerifactuReportLine(ModelSQL, ModelView):
     '''
-    AEAT verifactu Issued
+    AEAT Verifactu Line
     '''
     __name__ = 'aeat.verifactu.report.line'
 
     invoice = fields.Many2One('account.invoice', 'Invoice', required=True,
             domain=[
-                ('type', 'in', 'out'),
+                ('type', '=', 'out'),
                 ],
             states={
                 'required': Eval('_parent_invoice', {}).get(
@@ -163,30 +163,22 @@ class VerifactuReportLine(ModelSQL, ModelView):
     communication_code = fields.Integer('Communication Code', readonly=True)
     communication_msg = fields.Char('Communication Message', readonly=True)
     company = fields.Many2One('company.company', 'Company', required=True)
-    issuer_vat_number = fields.Char('Issuer VAT Number', readonly=True)
     serial_number = fields.Char('Serial Number', readonly=True)
-    final_serial_number = fields.Char('Final Serial Number', readonly=True)
     issue_date = fields.Date('Issued Date', readonly=True)
     invoice_kind = fields.Char('Invoice Kind', readonly=True)
-    special_key = fields.Char('Special Key', readonly=True)
     total_amount = fields.Numeric('Total Amount', readonly=True)
     counterpart_name = fields.Char('Counterpart Name', readonly=True)
     counterpart_id = fields.Char('Counterpart ID', readonly=True)
     taxes = fields.One2Many('aeat.verifactu.report.line.tax', 'line',
         'Tax Lines', readonly=True)
-    presenter = fields.Char('Presenter', readonly=True)
-    presentation_date = fields.DateTime('Presentation Date', readonly=True)
-    csv = fields.Char('CSV', readonly=True)
-    balance_state = fields.Char('Balance State', readonly=True)
-    # TODO counterpart balance data
     vat_code = fields.Function(fields.Char('VAT Code'), 'get_vat_code')
     identifier_type = fields.Function(fields.Selection(PARTY_IDENTIFIER_TYPE,
             'Identifier Type'), 'get_identifier_type')
     invoice_operation_key = fields.Function(fields.Selection(OPERATION_KEY,
-            'verifactu Operation Key'), 'get_invoice_operation_key')
+            'Operation Key'), 'get_invoice_operation_key')
     exemption_cause = fields.Char('Exemption Cause', readonly=True)
     aeat_register = fields.Text('Register from AEAT Webservice', readonly=True)
-    verifactu_header = fields.Text('Header')
+    header = fields.Text('Header')
     huella = fields.Text('Huella', readonly=True)
     error_message = fields.Char('Error Message', readonly=True)
 
@@ -220,20 +212,13 @@ class VerifactuReportLine(ModelSQL, ModelView):
         default['state'] = None
         default['communication_code'] = None
         default['communication_msg'] = None
-        default['issuer_vat_number'] = None
         default['serial_number'] = None
-        default['final_serial_number'] = None
         default['issue_date'] = None
         default['invoice_kind'] = None
-        default['special_key'] = None
         default['total_amount'] = None
         default['taxes'] = None
         default['counterpart_name'] = None
         default['counterpart_id'] = None
-        default['presenter'] = None
-        default['presentation_date'] = None
-        default['csv'] = None
-        default['balance_state'] = None
         return super().copy(records, default=default)
 
     @classmethod
@@ -247,7 +232,7 @@ class VerifactuReportLine(ModelSQL, ModelView):
             invoice_id = vals.get('invoice')
             if invoice_id:
                 invoice = Invoice(invoice_id)
-                vals['verifactu_header'] = invoice.get_verifactu_header(
+                vals['header'] = invoice.get_verifactu_header(
                     invoice, delete=False)
             if vals.get('state') == 'Correcto' and invoice:
                 invoice.verifactu_pending_sending = False

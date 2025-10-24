@@ -143,13 +143,11 @@ class Test(unittest.TestCase):
 
         # Create invoice manually for the contract
         Invoice = Model.get('account.invoice')
-        InvoiceLine = Model.get('account.invoice.line')
         invoice = Invoice()
         invoice.party = customer
         invoice.reference = contract.reference
         invoice.type = 'out'
-        line = InvoiceLine()
-        invoice.lines.append(line)
+        line = invoice.lines.new()
         line.product = product
         line.account = accounts['revenue']
         line.quantity = 1

@@ -50,6 +50,7 @@ class TemplateTax(metaclass=PoolMeta):
     verifactu_subjected_key = fields.Selection(IVA_SUBJECTED, 'Subjected Key')
     verifactu_exemption_cause = fields.Selection(EXEMPTION_CAUSE,
         'Exemption Cause')
+    # TODO: These are the same names used in aeat_sii module
     tax_used = fields.Boolean('Used in Tax')
     invoice_used = fields.Boolean('Used in invoice Total')
 

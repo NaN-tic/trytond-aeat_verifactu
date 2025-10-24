@@ -4,23 +4,16 @@
 <tree>
     <field name="invoice"/>
     <field name="invoice_operation_key"/>
-    <field name="vat_code"/>
+    <field name="vat_code" optional="1"/>
     <field name="identifier_type"/>
     <field name="state"/>
-    <field name="last_modify_date" widget="date"/>
+    <field name="error_message" expand="2"/>
     <field name="communication_code"/>
     <field name="communication_msg"/>
-    <field name="issuer_vat_number"/>
-    <field name="serial_number"/>
-    <field name="final_serial_number"/>
-    <field name="issue_date"/>
-    <field name="invoice_kind"/>
-    <field name="special_key"/>
-    <field name="total_amount"/>
-    <field name="counterpart_name"/>
-    <field name="counterpart_id"/>
-    <field name="presenter"/>
-    <field name="presentation_date" widget="date"/>
-    <field name="csv"/>
-    <field name="balance_state"/>
+    <field name="serial_number" optional="1"/>
+    <field name="issue_date" optional="1"/>
+    <field name="invoice_kind" optional="1"/>
+    <field name="total_amount" optional="1"/>
+    <field name="counterpart_name" optional="1"/>
+    <field name="counterpart_id" optional="1"/>
 </tree>

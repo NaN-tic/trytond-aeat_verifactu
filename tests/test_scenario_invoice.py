@@ -98,15 +98,13 @@ class Test(unittest.TestCase):
 
         # Create invoice::
         Invoice = Model.get('account.invoice')
-        InvoiceLine = Model.get('account.invoice.line')
         invoice = Invoice()
         invoice.party = party
         invoice.payment_term = payment_term
         invoice.type = 'out'
 
         # Add line
-        line = InvoiceLine()
-        invoice.lines.append(line)
+        line = invoice.lines.new()
         line.product = product
         line.account = revenue
         line.description = 'Test'
