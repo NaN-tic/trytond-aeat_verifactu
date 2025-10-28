@@ -51,14 +51,14 @@ class TemplateTax(metaclass=PoolMeta):
     verifactu_exemption_cause = fields.Selection(EXEMPTION_CAUSE,
         'Exemption Cause')
     # TODO: These are the same names used in aeat_sii module
-    tax_used = fields.Boolean('Used in Tax')
-    invoice_used = fields.Boolean('Used in invoice Total')
+    verifactu_tax_used = fields.Boolean('Used in Tax')
+    verifactu_invoice_used = fields.Boolean('Used in invoice Total')
 
     def _get_tax_value(self, tax=None):
         res = super()._get_tax_value(tax)
         for field in ('verifactu_operation_key', 'verifactu_issued_key',
                 'verifactu_subjected_key', 'verifactu_exemption_cause',
-                'tax_used', 'invoice_used'):
+                'verifactu_tax_used', 'verifactu_invoice_used'):
 
             if not tax or getattr(tax, field) != getattr(self, field):
                 res[field] = getattr(self, field)
@@ -73,6 +73,6 @@ class Tax(metaclass=PoolMeta):
     verifactu_issued_key = fields.Selection(SEND_SPECIAL_REGIME_KEY, 'Issued Key')
     verifactu_subjected_key = fields.Selection(IVA_SUBJECTED, 'Subjected Key')
     verifactu_exemption_cause = fields.Selection(EXEMPTION_CAUSE, 'Exemption Cause')
-    tax_used = fields.Boolean('Used in Tax')
-    invoice_used = fields.Boolean('Used in invoice Total')
+    verifactu_tax_used = fields.Boolean('Used in Tax')
+    verifactu_invoice_used = fields.Boolean('Used in invoice Total')
 
