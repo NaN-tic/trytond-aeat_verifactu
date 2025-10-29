@@ -2,12 +2,16 @@ from trytond.modules.account_invoice.tests.tools import set_fiscalyear_invoice_s
 from trytond.modules.account.tests.tools import create_fiscalyear, create_chart, get_accounts, create_tax
 from trytond.modules.company.tests.tools import create_company, get_company
 from trytond.tests.tools import activate_modules
-from proteus import Model
+from proteus import Model, Wizard
 from decimal import Decimal
 import unittest
 from trytond.tests.test_tryton import drop_db
+from trytond.config import config
 from datetime import date
+import os
 
+config.add_section('cryptography')
+config.set('cryptography', 'fernet_key', '8BwFmKMykS2X2-gmwEwgfmA9hPN-pb4Ua5N2XyqAlh4=')
 
 class Test(unittest.TestCase):
 
@@ -48,9 +52,15 @@ class Test(unittest.TestCase):
         Certificate = Model.get('certificate')
         certificate = Certificate()
         certificate.name = 'Test Certificate'
-        certificate.pem_certificate = b'dummy'
-        certificate.private_key = b'dummy'
         certificate.save()
+
+        # Load certificate from PFX
+        with open(os.path.join(os.path.dirname(__file__), 'certificate.p12'), 'rb') as f:
+            pfx_data = f.read()
+        load_wizard = Wizard('certificate.load_pkcs12', models=[certificate])
+        load_wizard.form.pfx = pfx_data
+        load_wizard.form.password = '1234'
+        load_wizard.execute('load')
 
         # Set configuration
         Configuration = Model.get('account.configuration')
@@ -119,4 +129,4 @@ class Test(unittest.TestCase):
         self.assertEqual(invoice.verifactu_state, None)
         self.assertEqual(invoice.verifactu_pending_sending, False)
 
-        # Do not post the invoice as webservice is down
+        #invoice.click('post')
