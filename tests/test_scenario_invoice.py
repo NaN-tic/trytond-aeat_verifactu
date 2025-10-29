@@ -1,14 +1,10 @@
-from trytond.modules.account_invoice.tests.tools import set_fiscalyear_invoice_sequences
-from trytond.modules.account.tests.tools import create_fiscalyear, create_chart, get_accounts, create_tax
-from trytond.modules.company.tests.tools import create_company, get_company
-from trytond.tests.tools import activate_modules
-from proteus import Model, Wizard
+from proteus import Model
 from decimal import Decimal
 import unittest
 from trytond.tests.test_tryton import drop_db
+from trytond.tests.tools import activate_modules
 from trytond.config import config
-from datetime import date
-import os
+from tools import setup
 
 config.add_section('cryptography')
 config.set('cryptography', 'fernet_key', '8BwFmKMykS2X2-gmwEwgfmA9hPN-pb4Ua5N2XyqAlh4=')
@@ -27,64 +23,14 @@ class Test(unittest.TestCase):
         # Activate aeat_verifactu module
         activate_modules(['aeat_verifactu'])
 
-        # Create company::
-        _ = create_company()
-        company = get_company()
+        vars = setup(load_certificate=True)
 
-        # Create fiscal year::
-        fiscalyear = set_fiscalyear_invoice_sequences(
-            create_fiscalyear(company))
-        fiscalyear.click('create_period')
-
-        # Create chart of accounts::
-        _ = create_chart(company)
-        accounts = get_accounts(company)
-        revenue = accounts['revenue']
-        expense = accounts['expense']
-
-        # Create tax::
-        tax = create_tax(Decimal('.10'))
-        tax.verifactu_operation_key = 'F1'
-        tax.verifactu_tax_used = True
-        tax.save()
-
-        # Create certificate
-        Certificate = Model.get('certificate')
-        certificate = Certificate()
-        certificate.name = 'Test Certificate'
-        certificate.save()
-
-        # Load certificate from PFX
-        with open(os.path.join(os.path.dirname(__file__), 'certificate.p12'), 'rb') as f:
-            pfx_data = f.read()
-        load_wizard = Wizard('certificate.load_pkcs12', models=[certificate])
-        load_wizard.form.pfx = pfx_data
-        load_wizard.form.password = '1234'
-        load_wizard.execute('load')
-
-        # Set configuration
-        Configuration = Model.get('account.configuration')
-        config = Configuration(1)
-        config.aeat_certificate_verifactu = certificate
-        config.verifactu_start_date = date.today()
-        config.save()
-
-        # Create party::
-        Party = Model.get('party.party')
-        party = Party(name='Party')
-        party.verifactu_identifier_type = '02'  # EU VAT
+        # Create party
+        party = vars.party
+        party.name = 'Party'
         party.save()
 
-        # Create account category::
-        ProductCategory = Model.get('product.category')
-        account_category = ProductCategory(name="Account Category")
-        account_category.accounting = True
-        account_category.account_expense = expense
-        account_category.account_revenue = revenue
-        account_category.customer_taxes.append(tax)
-        account_category.save()
-
-        # Create product::
+        # Create product
         ProductUom = Model.get('product.uom')
         unit, = ProductUom.find([('name', '=', 'Unit')])
         ProductTemplate = Model.get('product.template')
@@ -93,11 +39,11 @@ class Test(unittest.TestCase):
         template.default_uom = unit
         template.type = 'service'
         template.list_price = Decimal('20')
-        template.account_category = account_category
+        template.account_category = vars.account_category
         template.save()
         product, = template.products
 
-        # Create payment term::
+        # Create payment term
         PaymentTerm = Model.get('account.invoice.payment_term')
         payment_term = PaymentTerm(name='Term')
         line = payment_term.lines.new(type='percent', ratio=Decimal('.5'))
@@ -106,7 +52,7 @@ class Test(unittest.TestCase):
         line.relativedeltas.new(days=40)
         payment_term.save()
 
-        # Create invoice::
+        # Create invoice
         Invoice = Model.get('account.invoice')
         invoice = Invoice()
         invoice.party = party
@@ -116,7 +62,7 @@ class Test(unittest.TestCase):
         # Add line
         line = invoice.lines.new()
         line.product = product
-        line.account = revenue
+        line.account = vars.accounts['revenue']
         line.description = 'Test'
         line.quantity = 1
         line.unit_price = Decimal('10.0000')

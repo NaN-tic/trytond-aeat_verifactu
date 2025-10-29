@@ -1,0 +1,78 @@
+from decimal import Decimal
+from proteus import Model
+from trytond.modules.account.tests.tools import create_chart, create_fiscalyear, create_tax, get_accounts
+from trytond.modules.account_invoice.tests.tools import set_fiscalyear_invoice_sequences
+from trytond.modules.company.tests.tools import create_company, get_company
+from datetime import date
+from types import SimpleNamespace
+from proteus import Wizard
+import os
+
+
+def setup(load_certificate=False, fiscalyear_date=None):
+    vars = SimpleNamespace()
+
+    # Create company
+    _ = create_company()
+    vars.company = get_company()
+
+    # Create fiscal year
+    fiscalyear = set_fiscalyear_invoice_sequences(create_fiscalyear(vars.company, fiscalyear_date))
+    fiscalyear.click('create_period')
+    vars.fiscalyear = fiscalyear
+
+    # Create chart of accounts
+    _ = create_chart(vars.company)
+    vars.accounts = get_accounts(vars.company)
+
+    # Create tax
+    tax = create_tax(Decimal('.10'))
+    tax.verifactu_operation_key = 'F1'
+    tax.verifactu_tax_used = True
+    tax.save()
+    vars.tax = tax
+
+    # Create certificate
+    Certificate = Model.get('certificate')
+    certificate = Certificate()
+    certificate.name = 'Test Certificate'
+    if load_certificate:
+        certificate.save()
+        with open(os.path.join(os.path.dirname(__file__), 'certificate.p12'), 'rb') as f:
+            pfx_data = f.read()
+        load_wizard = Wizard('certificate.load_pkcs12', models=[certificate])
+        load_wizard.form.pfx = pfx_data
+        load_wizard.form.password = '1234'
+        load_wizard.execute('load')
+    else:
+        certificate.pem_certificate = b'dummy'
+        certificate.private_key = b'dummy'
+        certificate.save()
+    vars.certificate = certificate
+
+    # Set configuration
+    Configuration = Model.get('account.configuration')
+    config = Configuration(1)
+    config.aeat_certificate_verifactu = certificate
+    config.verifactu_start_date = date.today()
+    config.save()
+    vars.config = config
+
+    # Create party
+    Party = Model.get('party.party')
+    party = Party(name='Customer')
+    party.verifactu_identifier_type = '02'
+    party.save()
+    vars.party = party
+
+    # Create product category
+    ProductCategory = Model.get('product.category')
+    account_category = ProductCategory(name="Account Category")
+    account_category.accounting = True
+    account_category.account_expense = vars.accounts['expense']
+    account_category.account_revenue = vars.accounts['revenue']
+    account_category.customer_taxes.append(vars.tax)
+    account_category.save()
+    vars.account_category = account_category
+
+    return vars
