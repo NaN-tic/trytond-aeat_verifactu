@@ -589,43 +589,44 @@ class VerifactuRequest:
                     }
 
 
-def get_client(wsdl, public_crt, private_key, test=True):
-    session = Session()
-    session.cert = (public_crt, private_key)
-    transport = Transport(session=session)
-    settings = Settings(forbid_entities=False)
-    plugins = [HistoryPlugin()]
-    # TODO: manually handle sessionId? Not mandatory yet recommended...
-    # http://www.agenciatributaria.es/AEAT.internet/Inicio/Ayuda/Modelos__Procedimientos_y_Servicios/Ayuda_P_G417____IVA__Llevanza_de_libros_registro__SII_/Ayuda_tecnica/Informacion_tecnica_SII/Preguntas_tecnicas_frecuentes/1__Cuestiones_Generales/16___Como_se_debe_utilizar_el_dato_sesionId__.shtml
-    if test:
-        plugins.append(LoggingPlugin())
+class VerifactuService(object):
 
-    try:
-        client = Client(wsdl=wsdl, transport=transport, plugins=plugins, settings=settings)
-    except ConnectionError as e:
-        raise UserError(str(e))
-
-    return client
-
-
-def bind_issued_invoices_service(crt, pkey, test=True):
-    if PRODUCTION_ENV:
-        wsdl = WSDL_PROD
-        port_name = 'SistemaVerifactu'
-    else:
-        wsdl = WSDL_TEST
-        port_name = 'SistemaVerifactuPruebas'
-
-    wsdl += 'SistemaFacturacion.wsdl'
-    cli = get_client(wsdl, crt, pkey, test)
-
-    return IssuedInvoiceService(
-        cli.bind('sfVerifactu', port_name))
-
-
-class IssuedInvoiceService(object):
     def __init__(self, service):
         self.service = service
+
+    @staticmethod
+    def get_client(wsdl, public_crt, private_key, test=True):
+        session = Session()
+        session.cert = (public_crt, private_key)
+        transport = Transport(session=session)
+        settings = Settings(forbid_entities=False)
+        plugins = [HistoryPlugin()]
+        # TODO: manually handle sessionId? Not mandatory yet recommended...
+        # http://www.agenciatributaria.es/AEAT.internet/Inicio/Ayuda/Modelos__Procedimientos_y_Servicios/Ayuda_P_G417____IVA__Llevanza_de_libros_registro__SII_/Ayuda_tecnica/Informacion_tecnica_SII/Preguntas_tecnicas_frecuentes/1__Cuestiones_Generales/16___Como_se_debe_utilizar_el_dato_sesionId__.shtml
+        if test:
+            plugins.append(LoggingPlugin())
+
+        try:
+            client = Client(wsdl=wsdl, transport=transport, plugins=plugins, settings=settings)
+        except ConnectionError as e:
+            raise UserError(str(e))
+
+        return client
+
+    @staticmethod
+    def bind(crt, pkey, test=True):
+        if PRODUCTION_ENV:
+            wsdl = WSDL_PROD
+            port_name = 'SistemaVerifactu'
+        else:
+            wsdl = WSDL_TEST
+            port_name = 'SistemaVerifactuPruebas'
+
+        wsdl += 'SistemaFacturacion.wsdl'
+        cli = VerifactuService.get_client(wsdl, crt, pkey, test)
+
+        return VerifactuService(
+            cli.bind('sfVerifactu', port_name))
 
     def submit(self, headers, invoices, last_huella=None, last_line=None):
         body = []
@@ -647,11 +648,10 @@ class IssuedInvoiceService(object):
         return res
 
     def query(self, headers, year=None, period=None, clave_paginacion=None):
-        filter_ = aeat.VerifactuRequest.build_query_filter(year=year, period=period,
-            clave_paginacion=clave_paginacion)
+        filter_ = aeat.VerifactuRequest.build_query_filter(year=year,
+            period=period, clave_paginacion=clave_paginacion)
         logger.debug(filter_)
         res = self.service.ConsultaFactuSistemaFacturacion(
             headers, filter_)
         logger.debug(res)
         return res
-

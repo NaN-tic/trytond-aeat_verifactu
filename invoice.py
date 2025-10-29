@@ -409,7 +409,7 @@ class Invoice(metaclass=PoolMeta):
                     ('verifactu_state', '=', 'Incorrecto'),
                     ('verifactu_state', '=', 'PendienteEnvio')],
                 ], order=[('invoice_date', 'ASC')])
-        huella, last_line = cls.syncro_query(invoices)
+        huella, last_line = cls.synchro_query(invoices)
         if not invoices:
             return
         invoice = invoices[0]
@@ -420,7 +420,7 @@ class Invoice(metaclass=PoolMeta):
         certificate = invoice._get_certificate()
 
         with certificate.tmp_ssl_credentials() as (crt, key):
-            srv = aeat.bind_issued_invoices_service(crt, key)
+            srv = aeat.VerifactuService.bind(crt, key)
             response, body = srv.submit(
                 headers,
                 invoices,
@@ -446,7 +446,7 @@ class Invoice(metaclass=PoolMeta):
                 lines_to_save.append(new_line)
             VerifactuLine.save(lines_to_save)
             cls.save(invoices_to_save)
-        cls.syncro_query(invoices)
+        cls.synchro_query(invoices)
 
     def get_period(year, period, invoices):
         records = []
@@ -462,7 +462,7 @@ class Invoice(metaclass=PoolMeta):
         clave_paginacion = None
         while pagination == 'S':
             with certificate.tmp_ssl_credentials() as (crt, key):
-                srv = aeat.bind_issued_invoices_service(crt, key)
+                srv = aeat.VerifactuService.bind(crt, key)
                 res = srv.query(headers, year=year, period=period, clave_paginacion=clave_paginacion)
                 invoices = res.RegistroRespuestaConsultaFactuSistemaFacturacion
                 if invoices:
@@ -473,7 +473,7 @@ class Invoice(metaclass=PoolMeta):
         return records
 
     @classmethod
-    def syncro_query(cls, invoices):
+    def synchro_query(cls, invoices):
         pool = Pool()
         VerifactuLine = pool.get('aeat.verifactu.report.line')
 
