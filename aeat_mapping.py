@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 # The COPYRIGHT file at the top level of this repository contains the full
 # copyright notices and license terms.
-from operator import attrgetter
 from datetime import datetime
 import pytz
 import hashlib
@@ -22,18 +21,12 @@ class IssuedInvoiceMapper(Model):
     Tryton Issued Invoice to AEAT mapper
     """
     __name__ = 'aeat.verifactu.issued.invoice.mapper'
-    year = attrgetter('move.period.start_date.year')
-    period = attrgetter('move.period.start_date.month')
-    nif = attrgetter('company.party.verifactu_vat_code')
-    issue_date = attrgetter('invoice_date')
-    invoice_kind = attrgetter('verifactu_operation_key')
-    rectified_invoice_kind = tools.fixed_value('I')
 
     def not_exempt_kind(self, tax):
-        return attrgetter('verifactu_subjected_key')(tax)
+        return tax.verifactu_subjected_key
 
     def exempt_kind(self, tax):
-        return attrgetter('verifactu_exemption_cause')(tax)
+        return tax.verifactu_exemption_cause
 
     def not_subject(self, invoice):
         base = 0
@@ -41,7 +34,7 @@ class IssuedInvoiceMapper(Model):
         for tax in taxes:
             if (tax.tax.verifactu_exemption_cause == 'NotSubject' and
                     not tax.tax.service):
-                base += self.get_tax_base(tax)
+                base += tax.company_base
         return base
 
     def counterpart_nif(self, invoice):
@@ -54,14 +47,6 @@ class IssuedInvoiceMapper(Model):
             nif = nif[2:]
         return nif
 
-    def get_tax_amount(self, tax):
-        val = attrgetter('company_amount')(tax)
-        return val
-
-    def get_tax_base(self, tax):
-        val = attrgetter('company_base')(tax)
-        return val
-
     def get_invoice_total(self, invoice):
         taxes = self.total_invoice_taxes(invoice)
         taxes_base = 0
@@ -69,8 +54,8 @@ class IssuedInvoiceMapper(Model):
         taxes_surcharge = 0
         taxes_used = {}
         for tax in taxes:
-            base = self.get_tax_base(tax)
-            taxes_amount += self.get_tax_amount(tax)
+            base = tax.company_base
+            taxes_amount += tax.company_amount
             taxes_surcharge += self.tax_equivalence_surcharge_amount(tax) or 0
             parent = tax.tax.parent if tax.tax.parent else tax.tax
             if (parent.id in list(taxes_used.keys()) and
@@ -89,12 +74,6 @@ class IssuedInvoiceMapper(Model):
                         invoice=invoice.number,
                         party=invoice.party.rec_name))
         return invoice.party.verifactu_identifier_type
-
-    counterpart_id = counterpart_nif
-    total_amount = get_invoice_total
-    tax_rate = attrgetter('tax.rate')
-    tax_base = get_tax_base
-    tax_amount = get_tax_amount
 
     def counterpart_name(self, invoice):
         if invoice.verifactu_operation_key == 'F5':
@@ -132,21 +111,21 @@ class IssuedInvoiceMapper(Model):
     def tax_equivalence_surcharge_amount(self, invoice_tax):
         surcharge_tax = self._tax_equivalence_surcharge(invoice_tax)
         if surcharge_tax:
-            return self.tax_amount(surcharge_tax)
+            return surcharge_tax.company_amount
 
     def _build_period(self, invoice):
         return {
-            'Ejercicio': self.year(invoice),
-            'Periodo': tools._format_period(self.period(invoice)),
+            'Ejercicio': invoice.move.period.start_date.year,
+            'Periodo': tools.format_period(
+                invoice.move.period.start_date.month),
             }
 
     def _build_invoice_id(self, invoice):
         number = self.serial_number(invoice)
         ret = {
-            'IDEmisorFactura': self.nif(invoice),
+            'IDEmisorFactura': invoice.company.party.verifactu_vat_code,
             'NumSerieFactura': number,
-            'FechaExpedicionFactura':
-                self.issue_date(invoice).strftime(DATE_FMT),
+            'FechaExpedicionFactura': invoice.invoice_date.strftime(DATE_FMT),
             }
         return ret
 
@@ -159,7 +138,7 @@ class IssuedInvoiceMapper(Model):
             ret['IDOtro'] = {
                 'IDType': id_type,
                 'CodigoPais': self.counterpart_country(invoice),
-                'ID': self.counterpart_id(invoice),
+                'ID': self.counterpart_nif(invoice),
                 }
         else:
             ret['NIF'] = self.counterpart_nif(invoice)
@@ -170,7 +149,7 @@ class IssuedInvoiceMapper(Model):
             return {"PrimerRegistro": "S"}
         invoice = last_line.invoice
         return {"RegistroAnterior": {
-                    "IDEmisorFactura": self.nif(invoice),
+                    "IDEmisorFactura": invoice.company.party.verifactu_vat_code,
                     "NumSerieFactura": invoice.number,
                     "FechaExpedicionFactura": invoice.invoice_date.strftime(DATE_FMT),
                     "Huella": last_line.huella
@@ -189,7 +168,7 @@ class IssuedInvoiceMapper(Model):
         result = {
             'PeriodoImputacion': {
                 'Ejercicio': year,
-                'Periodo': tools._format_period(period),
+                'Periodo': tools.format_period(period),
                 },
             'SistemaInformatico':tools.get_sistema_informatico(),
             }
@@ -208,7 +187,6 @@ class IssuedInvoiceMapper(Model):
         request['RegistroAlta'] = self.build_issued_invoice(invoice, last_huella, last_line=last_line)
         return request
 
-
     def location_rules(self, invoice):
         base = 0
         taxes = self.total_invoice_taxes(invoice)
@@ -216,16 +194,16 @@ class IssuedInvoiceMapper(Model):
             if (tax.tax.verifactu_issued_key == '08' or
                     (tax.tax.verifactu_exemption_cause == 'NotSubject' and
                         tax.tax.service)):
-                base += self.get_tax_base(tax)
+                base += tax.company_base
         return base
 
     def build_huella(self, invoice, previous_hash=None, time=None):
-        data_string = f"IDEmisorFactura={self.nif(invoice)}&" \
+        data_string = f"IDEmisorFactura={invoice.company.party.verifactu_vat_code}&" \
               f"NumSerieFactura={invoice.number}&" \
               f"FechaExpedicionFactura={invoice.invoice_date.strftime('%d-%m-%Y')}&" \
-              f"TipoFactura={self.invoice_kind(invoice)}&" \
-              f"CuotaTotal={sum(self.tax_amount(tax) for tax in self.taxes(invoice))}&" \
-              f"ImporteTotal={self.total_amount(invoice)}&" \
+              f"TipoFactura={invoice.verifactu_operation_key}&" \
+              f"CuotaTotal={sum(tax.company_amount for tax in self.taxes(invoice))}&" \
+              f"ImporteTotal={self.get_invoice_total(invoice)}&" \
               f"Huella={previous_hash or ''}&" \
               f"FechaHoraHusoGenRegistro={time}"
         hash_object = hashlib.sha256(data_string.encode('utf-8'))
@@ -241,9 +219,9 @@ class IssuedInvoiceMapper(Model):
                 desglose["CalificacionOperacion"]= tax.tax.verifactu_subjected_key
             else:
                 desglose["OperacionExenta"] = tax.tax.verifactu_exemption_cause
-            desglose["TipoImpositivo"] = tools._rate_to_percent(self.tax_rate(tax))
-            desglose["BaseImponibleOimporteNoSujeto"] = self.tax_base(tax)
-            desglose["CuotaRepercutida"] = self.tax_amount(tax)
+            desglose["TipoImpositivo"] = tools._rate_to_percent(tax.tax.rate)
+            desglose["BaseImponibleOimporteNoSujeto"] = tax.company_base
+            desglose["CuotaRepercutida"] = tax.company_amount
             if tax.tax.recargo_equivalencia_related_tax:
                 for tax2 in invoice.taxes:
                     if (tax2.tax.recargo_equivalencia and
@@ -251,8 +229,8 @@ class IssuedInvoiceMapper(Model):
                             tax2.tax and tax2.base ==
                             tax2.base.copy_sign(tax.base)):
                         desglose["TipoRecargoEquivalencia"] = tools._rate_to_percent(
-                            self.tax_rate(tax2))
-                        desglose["CuotaRecargoEquivalencia"] = self.tax_amount(tax2)
+                            tax2.tax.rate)
+                        desglose["CuotaRecargoEquivalencia"] = tax2.company_amount
                         desglose["ClaveRegimen"] = 18 # Recargo de equivalencia
                         break
             desgloses.append(desglose)
@@ -269,13 +247,13 @@ class IssuedInvoiceMapper(Model):
             "IDVersion": "1.0",
             "IDFactura": self._build_invoice_id(invoice),
             "NombreRazonEmisor": tools.unaccent(invoice.company.party.name),
-            "TipoFactura": self.invoice_kind(invoice),
+            "TipoFactura": invoice.verifactu_operation_key,
             "DescripcionOperacion": self._description(invoice),
             "Desglose": {
                 "DetalleDesglose": self.build_desglose(invoice),
                 },
-            "CuotaTotal": sum(self.tax_amount(tax) for tax in self.taxes(invoice)),
-            "ImporteTotal": self.total_amount(invoice),
+            "CuotaTotal": sum(tax.company_amount for tax in self.taxes(invoice)),
+            "ImporteTotal": self.get_invoice_total(invoice),
             "Encadenamiento": self._build_encadenamiento(last_line),
             "SistemaInformatico": tools.get_sistema_informatico(),
             "FechaHoraHusoGenRegistro":  formatted_now,
@@ -303,7 +281,7 @@ class IssuedInvoiceMapper(Model):
 
     def _update_rectified_invoice(self, ret, invoice):
         if ret['TipoFactura'] in RECTIFIED_KINDS:
-            ret['TipoRectificativa'] = self.rectified_invoice_kind(invoice)
+            ret['TipoRectificativa'] = 'I'
             if ret['TipoRectificativa'] == 'S':
                 ret['ImporteRectificacion'] = {
                     'BaseRectificada': self.rectified_base(invoice),

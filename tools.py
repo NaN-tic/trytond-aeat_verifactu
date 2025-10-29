@@ -48,7 +48,7 @@ def unaccent(text):
     return output.replace(b"_", b"").decode('ASCII')
 
 
-def _format_period(period):
+def format_period(period):
     return str(period).zfill(2)
 
 
@@ -79,18 +79,6 @@ def get_sistema_informatico():
         'IndicadorMultiplesOT': INDICADOR_MULTIPLES_OT
         }
     return sif
-
-class _FixedValue(object):
-
-    def __init__(self, value):
-        self._value = value
-
-    def __call__(self, *args, **kwargs):
-        return self._value
-
-
-def fixed_value(value):
-    return _FixedValue(value)
 
 
 class LoggingPlugin(Plugin):
