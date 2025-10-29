@@ -12,8 +12,8 @@ from trytond.exceptions import UserError, UserWarning
 from trytond.wizard import Wizard, StateView, StateTransition, Button
 from .aeat import (
     OPERATION_KEY, COMMUNICATION_TYPE, AEAT_INVOICE_STATE)
-from . import service
 from . import tools
+from . import aeat
 from datetime import datetime
 from urllib.parse import urlencode
 
@@ -420,7 +420,7 @@ class Invoice(metaclass=PoolMeta):
         certificate = invoice._get_certificate()
 
         with certificate.tmp_ssl_credentials() as (crt, key):
-            srv = service.bind_issued_invoices_service(crt, key)
+            srv = aeat.bind_issued_invoices_service(crt, key)
             response, body = srv.submit(
                 headers,
                 invoices,
@@ -462,7 +462,7 @@ class Invoice(metaclass=PoolMeta):
         clave_paginacion = None
         while pagination == 'S':
             with certificate.tmp_ssl_credentials() as (crt, key):
-                srv = service.bind_issued_invoices_service(crt, key)
+                srv = aeat.bind_issued_invoices_service(crt, key)
                 res = srv.query(headers, year=year, period=period, clave_paginacion=clave_paginacion)
                 invoices = res.RegistroRespuestaConsultaFactuSistemaFacturacion
                 if invoices:
@@ -543,17 +543,14 @@ class Invoice(metaclass=PoolMeta):
 
     @classmethod
     def get_verifactu_header(cls, invoice, delete):
-        pool = Pool()
-        IssuedMapper = pool.get('aeat.verifactu.issued.invoice.mapper')
-
         if delete:
             rline = [x for x in invoice.verifactu_records if x.state == 'Correcto'
                 and x.header is not None]
             if rline:
                 return rline[0].header
         if invoice.type == 'out':
-            mapper = IssuedMapper()
-            header = mapper.build_delete_request(invoice)
+            request = aeat.VerifactuRequest(invoice)
+            header = request.build_delete_request()
         return header
 
     def get_aeat_qr_url(self, name):

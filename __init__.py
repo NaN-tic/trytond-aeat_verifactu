@@ -6,7 +6,6 @@ from . import invoice
 from . import aeat
 from . import party
 from . import account
-from . import aeat_mapping
 from . import sale
 
 
@@ -24,7 +23,6 @@ def register():
         invoice.ResetVerifactuKeysEnd,
         aeat.VerifactuReportLine,
         aeat.VerifactuReportLineTax,
-        aeat_mapping.IssuedInvoiceMapper,
         module='aeat_verifactu', type_='model')
     Pool.register(
         sale.Sale,
