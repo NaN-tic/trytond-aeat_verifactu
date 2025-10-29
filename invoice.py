@@ -136,7 +136,7 @@ class Invoice(metaclass=PoolMeta):
     def _set_verifactu_keys(self):
         tax = None
         for t in self.taxes:
-            if t.tax and t.tax.tax_used:
+            if t.tax and t.tax.verifactu_tax_used:
                 tax = t.tax
                 break
         if not tax:

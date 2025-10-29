@@ -47,7 +47,7 @@ class Test(unittest.TestCase):
         # Create tax
         tax = create_tax(Decimal('.10'))
         tax.verifactu_operation_key = 'F1'
-        tax.tax_used = True
+        tax.verifactu_tax_used = True
         tax.save()
 
         # Create payment term
