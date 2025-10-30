@@ -75,4 +75,4 @@ class Test(unittest.TestCase):
         self.assertEqual(invoice.verifactu_state, None)
         self.assertEqual(invoice.verifactu_pending_sending, False)
 
-        #invoice.click('post')
+        invoice.click('post')

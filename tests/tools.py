@@ -65,6 +65,20 @@ def setup(load_certificate=False, fiscalyear_date=None):
     party.save()
     vars.party = party
 
+    # Add VAT identifier
+    PartyIdentifier = Model.get('party.identifier')
+    identifier = PartyIdentifier()
+    identifier.party = party
+    identifier.type = 'eu_vat'
+    identifier.code = 'ESB65247983'
+    identifier.save()
+
+    identifier = PartyIdentifier()
+    identifier.party = vars.company.party
+    identifier.type = 'eu_vat'
+    identifier.code = 'ESB65247983'
+    identifier.save()
+
     # Create product category
     ProductCategory = Model.get('product.category')
     account_category = ProductCategory(name="Account Category")
