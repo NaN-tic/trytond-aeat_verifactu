@@ -5,6 +5,7 @@ from datetime import datetime
 import pytz
 import hashlib
 
+import trytond
 from trytond.model import ModelSQL, ModelView, fields
 from trytond.pyson import Eval
 from trytond.pool import Pool
@@ -331,20 +332,34 @@ class VerifactuReportLineTax(ModelSQL, ModelView):
         cls.__access__.add('line')
 
 
+def get_sistema_informatico():
+    pool = Pool()
+    Company = pool.get('company.company')
+
+    # TODO: We should check if the other companies are Spanish
+    # and/or should be counted
+    companies = Company.search([], count=True)
+
+    return {
+        'NombreRazon': config.get('aeat_verifactu', 'nombre_razon'),
+        'NIF': config.get('aeat_verifactu', 'nif'),
+        'NombreSistemaInformatico': config.get('aeat_verifactu',
+            'nombre_sistema_informatico'),
+        'IdSistemaInformatico': config.get('aeat_verifactu',
+            'id_sistema_informatico'),
+        'Version': trytond.__version__,
+        'NumeroInstalacion': config.get('aeat_verifactu',
+            'numero_instalacion'),
+        'TipoUsoPosibleSoloVerifactu': 'N',
+        'TipoUsoPosibleMultiOT': 'S',
+        'IndicadorMultiplesOT': 'S' if companies > 1 else 'N',
+        }
+
+
 class VerifactuRequest:
 
     def __init__(self, invoice):
         self.invoice = invoice
-
-    def counterpart_nif(self):
-        nif = ''
-        if self.invoice.party.tax_identifier:
-            nif = self.invoice.party.tax_identifier.code
-        elif self.invoice.party.identifiers:
-            nif = self.invoice.party.identifiers[0].code
-        if nif.startswith('ES'):
-            nif = nif[2:]
-        return nif
 
     def get_invoice_total(self):
         taxes = self.total_invoice_taxes()
@@ -373,16 +388,6 @@ class VerifactuRequest:
                         invoice=self.invoice.number,
                         party=self.invoice.party.rec_name))
         return self.invoice.party.verifactu_identifier_type
-
-    def counterpart_name(self):
-        if self.invoice.verifactu_operation_key == 'F5':
-            return tools.unaccent(self.invoice.company.party.name)
-        else:
-            return tools.unaccent(self.invoice.party.name)
-
-    def counterpart_country(self):
-        return (self.invoice.invoice_address.country.code
-            if self.invoice.invoice_address.country else '')
 
     def serial_number(self):
         return self.invoice.number if self.invoice.type == 'out' else (self.invoice.reference or '')
@@ -420,7 +425,7 @@ class VerifactuRequest:
             }
 
     def _build_invoice_id(self):
-        number = self.serial_number(self.invoice)
+        number = self.serial_number()
         ret = {
             'IDEmisorFactura': self.invoice.company.party.verifactu_vat_code,
             'NumSerieFactura': number,
@@ -430,28 +435,37 @@ class VerifactuRequest:
 
     def _build_counterpart(self):
         ret = {
-            'NombreRazon': self.counterpart_name(),
+            'NombreRazon': tools.unaccent(self.invoice.party.name),
             }
         id_type = self.counterpart_id_type()
+
+        nif = ''
+        if not self.invoice.simplified:
+            nif = self.invoice.party.tax_identifier.es_code()
         if id_type and id_type in OTHER_ID_TYPES:
             ret['IDOtro'] = {
                 'IDType': id_type,
-                'CodigoPais': self.counterpart_country(),
-                'ID': self.counterpart_nif(),
+                'CodigoPais': (self.invoice.invoice_address.country.code if
+                    self.invoice.invoice_address.country else ''),
+                'ID': nif,
                 }
         else:
-            ret['NIF'] = self.counterpart_nif()
+            ret['NIF'] = nif
         return ret
 
     def _build_encadenamiento(self, last_line=None):
         if not last_line:
-            return {"PrimerRegistro": "S"}
+            return {
+                "PrimerRegistro": "S",
+                }
         invoice = last_line.invoice
-        return {"RegistroAnterior": {
-                    "IDEmisorFactura": invoice.company.party.verifactu_vat_code,
-                    "NumSerieFactura": invoice.number,
-                    "FechaExpedicionFactura": invoice.invoice_date.strftime(DATE_FMT),
-                    "Huella": last_line.huella
+        return {
+            "RegistroAnterior": {
+                "IDEmisorFactura": invoice.company.party.verifactu_vat_code,
+                "NumSerieFactura": invoice.number,
+                "FechaExpedicionFactura": invoice.invoice_date.strftime(
+                    DATE_FMT),
+                "Huella": last_line.huella,
                 }}
 
     def _description(self):
@@ -470,7 +484,7 @@ class VerifactuRequest:
                 'Ejercicio': year,
                 'Periodo': tools.format_period(period),
                 },
-            'SistemaInformatico':tools.get_sistema_informatico(),
+            'SistemaInformatico': get_sistema_informatico(),
             }
         if clave_paginacion:
             result['ClavePaginacion'] = clave_paginacion
@@ -484,7 +498,7 @@ class VerifactuRequest:
 
     def build_submit_request(self, last_huella=None, last_line=None):
         request = {}
-        request['RegistroAlta'] = self.build_issued_invoice(last_huella, last_line=last_line)
+        request['RegistroAlta'] = self.build_invoice(last_huella, last_line=last_line)
         return request
 
     def location_rules(self):
@@ -554,7 +568,7 @@ class VerifactuRequest:
             "CuotaTotal": sum(tax.company_amount for tax in self.taxes()),
             "ImporteTotal": self.get_invoice_total(),
             "Encadenamiento": self._build_encadenamiento(last_line),
-            "SistemaInformatico": tools.get_sistema_informatico(),
+            "SistemaInformatico": get_sistema_informatico(),
             "FechaHoraHusoGenRegistro":  formatted_now,
             "TipoHuella": "01",
             "Huella": self.build_huella(last_huella, formatted_now)

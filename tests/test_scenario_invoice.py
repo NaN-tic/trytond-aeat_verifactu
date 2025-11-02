@@ -3,11 +3,7 @@ from decimal import Decimal
 import unittest
 from trytond.tests.test_tryton import drop_db
 from trytond.tests.tools import activate_modules
-from trytond.config import config
 from tools import setup
-
-config.add_section('cryptography')
-config.set('cryptography', 'fernet_key', '8BwFmKMykS2X2-gmwEwgfmA9hPN-pb4Ua5N2XyqAlh4=')
 
 class Test(unittest.TestCase):
 

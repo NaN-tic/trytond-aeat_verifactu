@@ -3,10 +3,20 @@ from proteus import Model
 from trytond.modules.account.tests.tools import create_chart, create_fiscalyear, create_tax, get_accounts
 from trytond.modules.account_invoice.tests.tools import set_fiscalyear_invoice_sequences
 from trytond.modules.company.tests.tools import create_company, get_company
+from trytond.config import config as tconfig
 from datetime import date
 from types import SimpleNamespace
 from proteus import Wizard
 import os
+
+tconfig.add_section('cryptography')
+tconfig.set('cryptography', 'fernet_key', '8BwFmKMykS2X2-gmwEwgfmA9hPN-pb4Ua5N2XyqAlh4=')
+tconfig.add_section('aeat_verifactu')
+tconfig.set('aeat_verifactu', 'nombre_razon', 'NaN Projectes de Programari Lliure, S.L.')
+tconfig.set('aeat_verifactu', 'nif', 'B65247983')
+tconfig.set('aeat_verifactu', 'nombre_sistema_informatico', 'Tryton')
+tconfig.set('aeat_verifactu', 'id_sistema_informatico', '00')
+tconfig.set('aeat_verifactu', 'numero_instalacion', '00')
 
 
 def setup(load_certificate=False, fiscalyear_date=None):

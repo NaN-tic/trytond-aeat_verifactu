@@ -5,24 +5,6 @@ import unicodedata
 from logging import getLogger
 from lxml import etree
 from zeep import Plugin
-from trytond.config import config
-import trytond
-
-NOMBRE_RAZON = config.get('aeat_verifactu', 'nombre_razon')
-NIF = config.get('aeat_verifactu', 'nif')
-NOMBRE_SISTEMA_INFORMATICO = config.get('aeat_verifactu',
-    'nombre_sistema_informatico')
-ID_SISTEMA_INFORMATICO = config.get('aeat_verifactu', 'id_sistema_informatico')
-NUMERO_INSTALACION = config.get('aeat_verifactu', 'numero_instalacion')
-TIPO_USO_POSIBLE_SOLO_VERIFACTU = 'N'
-TIPO_USO_POSIBLE_MULTIOT = 'S'
-INDICADOR_MULTIPLES_OT = 'S'
-
-# Company = Pool().get('company.company')
-# if len(Company.search([])) > 1:
-#     INDICADOR_MULTIPLES_OT = 'S'
-# else:
-#     INDICADOR_MULTIPLES_OT = 'N'
 
 
 src_chars = "/*+?Â¿!$[]{}@#`^:;<>=~%\\"
@@ -65,21 +47,6 @@ def get_headers(name=None, vat=None, comm_kind=None, version='1.0'):
             # TODO: NIFRepresentante
         },
     }
-
-def get_sistema_informatico():
-    sif =  {
-        'NombreRazon': NOMBRE_RAZON,
-        'NIF': NIF,
-        'NombreSistemaInformatico': NOMBRE_SISTEMA_INFORMATICO,
-        'IdSistemaInformatico': ID_SISTEMA_INFORMATICO,
-        'Version': trytond.__version__,
-        'NumeroInstalacion': NUMERO_INSTALACION,
-        'TipoUsoPosibleSoloVerifactu': TIPO_USO_POSIBLE_SOLO_VERIFACTU,
-        'TipoUsoPosibleMultiOT': TIPO_USO_POSIBLE_MULTIOT,
-        'IndicadorMultiplesOT': INDICADOR_MULTIPLES_OT
-        }
-    return sif
-
 
 class LoggingPlugin(Plugin):
 
