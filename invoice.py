@@ -274,16 +274,40 @@ class Invoice(metaclass=PoolMeta):
 
     @classmethod
     def post(cls, invoices):
-        invoices2checkverifactu = []
+        to_check = []
         for invoice in invoices:
             if not invoice.is_verifactu:
                 continue
             if not invoice.move or invoice.move.state == 'draft':
-                invoices2checkverifactu.append(invoice)
+                to_check.append(invoice)
+
+        # Set verifactu_operation_key for all cases in which we can
+        # know it automatically which basically only does not include
+        # credit notes for non-simplified invoices
+        for invoice in invoices:
+            if not invoice.is_verifactu:
+                continue
+            if invoice.simplified:
+                first_invoice = invoice.simplified_serial_number('first')
+                last_invoice = invoice.simplified_serial_number('last')
+                if invoice.total_amount < 0:
+                    invoice.verifactu_operation_key = 'R5'
+                elif ((not first_invoice and not last_invoice)
+                        or first_invoice == last_invoice):
+                    invoice.verifactu_operation_key = 'F2'
+                else:
+                    invoice.verifactu_operation_key = 'F3'
+            else:
+                if invoice.total_amount >= 0:
+                    invoice.verifactu_operation_key = 'F1'
+
+            if not invoice.move or invoice.move.state == 'draft':
+                to_check.append(invoice)
+
 
         super().post(invoices)
 
-        for invoice in invoices2checkverifactu:
+        for invoice in to_check:
             for tax in invoice.taxes:
                 if (tax.tax.verifactu_subjected_key in ('S2', 'S3')
                         and invoice.verifactu_operation_key not in (
@@ -301,20 +325,6 @@ class Invoice(metaclass=PoolMeta):
                         break
                 else:
                     invoice.verifactu_state = 'PendienteEnvioSubsanacion'
-
-        # Force verifactu_operation_key for Simplified invoices
-        for invoice in invoices:
-            if not invoice.simplified:
-                continue
-            first_invoice = invoice.simplified_serial_number('first')
-            last_invoice = invoice.simplified_serial_number('last')
-            if invoice.total_amount < 0:
-                invoice.verifactu_operation_key = 'R5'
-            elif ((not first_invoice and not last_invoice)
-                    or first_invoice == last_invoice):
-                invoice.verifactu_operation_key = 'F2'
-            else:
-                invoice.verifactu_operation_key = 'F3'
 
         cls.save(invoices)
 
