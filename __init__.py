@@ -16,7 +16,6 @@ def register():
         account.Tax,
         cron.Cron,
         party.Party,
-        party.PartyIdentifier,
         invoice.Invoice,
         invoice.ResetVerifactuKeysStart,
         invoice.ResetVerifactuKeysEnd,

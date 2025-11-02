@@ -271,76 +271,6 @@ class Invoice(metaclass=PoolMeta):
             else:
                 return ''
 
-    @classmethod
-    def get_simplified_invoices(cls, invoices):
-        simplified_parties = []  # Simplified party but not invoice
-        simplified_invoices = []  # Simplified invoice but not party
-        simplifieds = []  # Simplified party and invoice
-        for invoice in invoices:
-            if not invoice.is_verifactu:
-                continue
-            if (invoice.party.verifactu_identifier_type == 'SI'
-                    and (not invoice.verifactu_operation_key
-                        or (invoice.verifactu_operation_key not in (
-                            'F2', 'R5')))):
-                simplified_parties.append(invoice)
-            elif (invoice.party.verifactu_identifier_type != 'SI'
-                    and invoice.verifactu_operation_key
-                    and invoice.verifactu_operation_key in ('F2', 'R5')):
-                simplified_invoices.append(invoice)
-            elif (invoice.party.verifactu_identifier_type == 'SI'
-                    and invoice.verifactu_operation_key in ('F2', 'R5')):
-                simplifieds.append(invoice)
-        return simplified_parties, simplified_invoices, simplifieds
-
-    @classmethod
-    def check_aeat_verifactu_invoices(cls, invoices):
-        pool = Pool()
-        Warning = pool.get('res.user.warning')
-
-        simplified_parties, simplified_invoices, _ = (
-            cls.get_simplified_invoices(invoices))
-        if simplified_parties:
-            names = ', '.join(m.rec_name for m in simplified_parties[:5])
-            if len(simplified_parties) > 5:
-                names += '...'
-            warning_name = ('%s.aeat_verifactu_simplified_party' % hashlib.md5(
-                    str(simplified_parties).encode('utf-8')).hexdigest())
-            if Warning.check(warning_name):
-                raise UserWarning(warning_name, gettext(
-                    'aeat_verifactu.msg_set_simplified_party', invoices=names))
-        if simplified_invoices:
-            names = ', '.join(m.rec_name for m in simplified_invoices[:5])
-            if len(simplified_invoices) > 5:
-                names += '...'
-            warning_name = ('%s.aeat_verifactu_simplified_invoice' % hashlib.md5(
-                    str(simplified_invoices).encode('utf-8')).hexdigest())
-            if Warning.check(warning_name):
-                raise UserWarning(warning_name, gettext(
-                    'aeat_verifactu.msg_set_simplified_invoice', invoices=names))
-
-    @classmethod
-    def simplified_aeat_verifactu_invoices(cls, invoices):
-        simplified_parties, _, _ = (
-            cls.get_simplified_invoices(invoices))
-        invoice_keys = {'F2': [], 'R5': []}
-        # If the user accept the warning about changing the key in the invoice,
-        # because the party has the Simplified key, change the key.
-        for invoice in simplified_parties:
-            first_invoice = invoice.simplified_serial_number('first')
-            last_invoice = invoice.simplified_serial_number('last')
-            if invoice.total_amount < 0:
-                invoice_keys['R5'].append(invoice)
-            elif ((not first_invoice and not last_invoice)
-                    or first_invoice == last_invoice):
-                invoice_keys['F2'].append(invoice)
-
-        to_write = []
-        for key, invoices in invoice_keys.items():
-            if invoices:
-                to_write.extend((invoices, {'verifactu_operation_key': key}))
-        if to_write:
-            cls.write(*to_write)
 
     @classmethod
     def post(cls, invoices):
@@ -351,10 +281,8 @@ class Invoice(metaclass=PoolMeta):
             if not invoice.move or invoice.move.state == 'draft':
                 invoices2checkverifactu.append(invoice)
 
-        cls.check_aeat_verifactu_invoices(invoices)
         super().post(invoices)
 
-        to_save = []
         for invoice in invoices2checkverifactu:
             for tax in invoice.taxes:
                 if (tax.tax.verifactu_subjected_key in ('S2', 'S3')
@@ -373,14 +301,25 @@ class Invoice(metaclass=PoolMeta):
                         break
                 else:
                     invoice.verifactu_state = 'PendienteEnvioSubsanacion'
-            to_save.append(invoice)
 
-        # Control the simplified operation Verifactu key is correctly set
-        cls.simplified_aeat_verifactu_invoices(invoices)
+        # Force verifactu_operation_key for Simplified invoices
+        for invoice in invoices:
+            if not invoice.simplified:
+                continue
+            first_invoice = invoice.simplified_serial_number('first')
+            last_invoice = invoice.simplified_serial_number('last')
+            if invoice.total_amount < 0:
+                invoice.verifactu_operation_key = 'R5'
+            elif ((not first_invoice and not last_invoice)
+                    or first_invoice == last_invoice):
+                invoice.verifactu_operation_key = 'F2'
+            else:
+                invoice.verifactu_operation_key = 'F3'
+
         cls.save(invoices)
 
         cls.send_verifactu()
-        # TODO::
+        # TODO:
         #cls.__queue__.send_verifactu(invoices)
 
     @classmethod
