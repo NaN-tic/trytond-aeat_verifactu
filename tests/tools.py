@@ -19,7 +19,7 @@ tconfig.set('aeat_verifactu', 'id_sistema_informatico', '00')
 tconfig.set('aeat_verifactu', 'numero_instalacion', '00')
 
 
-def setup(load_certificate=False, fiscalyear_date=None):
+def setup():
     vars = SimpleNamespace()
 
     # Create company
@@ -27,7 +27,7 @@ def setup(load_certificate=False, fiscalyear_date=None):
     vars.company = get_company()
 
     # Create fiscal year
-    fiscalyear = set_fiscalyear_invoice_sequences(create_fiscalyear(vars.company, fiscalyear_date))
+    fiscalyear = set_fiscalyear_invoice_sequences(create_fiscalyear(vars.company))
     fiscalyear.click('create_period')
     vars.fiscalyear = fiscalyear
 
@@ -46,18 +46,13 @@ def setup(load_certificate=False, fiscalyear_date=None):
     Certificate = Model.get('certificate')
     certificate = Certificate()
     certificate.name = 'Test Certificate'
-    if load_certificate:
-        certificate.save()
-        with open(os.path.join(os.path.dirname(__file__), 'certificate.p12'), 'rb') as f:
-            pfx_data = f.read()
-        load_wizard = Wizard('certificate.load_pkcs12', models=[certificate])
-        load_wizard.form.pfx = pfx_data
-        load_wizard.form.password = '1234'
-        load_wizard.execute('load')
-    else:
-        certificate.pem_certificate = b'dummy'
-        certificate.private_key = b'dummy'
-        certificate.save()
+    certificate.save()
+    with open(os.path.join(os.path.dirname(__file__), 'certificate.p12'), 'rb') as f:
+        pfx_data = f.read()
+    load_wizard = Wizard('certificate.load_pkcs12', models=[certificate])
+    load_wizard.form.pfx = pfx_data
+    load_wizard.form.password = '1234'
+    load_wizard.execute('load')
     vars.certificate = certificate
 
     # Set configuration

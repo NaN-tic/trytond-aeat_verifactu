@@ -19,8 +19,6 @@ class Test(unittest.TestCase):
         super().tearDown()
 
     def test(self):
-
-        # Activate modules
         activate_modules(['sale', 'aeat_verifactu'])
 
         vars = setup()
@@ -65,6 +63,8 @@ class Test(unittest.TestCase):
 
         # Check verifactu fields on invoice
         self.assertTrue(invoice.is_verifactu)
-        self.assertEqual(invoice.verifactu_operation_key, 'F1')
 
         # Do not post the invoice
+        invoice.click('post')
+        self.assertEqual(invoice.state, 'posted')
+        self.assertEqual(invoice.verifactu_operation_key, 'F1')

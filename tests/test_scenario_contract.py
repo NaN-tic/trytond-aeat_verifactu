@@ -3,7 +3,6 @@ import unittest
 from decimal import Decimal
 
 from proteus import Model, Wizard
-from trytond.modules.account_invoice.tests.tools import create_payment_term
 from trytond.tests.test_tryton import drop_db
 from trytond.tests.tools import activate_modules
 from tools import setup
@@ -20,21 +19,14 @@ class Test(unittest.TestCase):
         super().tearDown()
 
     def test(self):
-
-        d2015 = datetime.date(2015, 1, 1)
-
-        # Install contract
         activate_modules(['contract', 'aeat_verifactu'])
 
-        vars = setup(fiscalyear_date=d2015)
+        vars = setup()
 
-        # Create payment term
-        payment_term = create_payment_term()
-        payment_term.save()
+        today = datetime.date.today().replace(day=28)
 
         # Create party
         customer = vars.party
-        customer.customer_payment_term = payment_term
         customer.account_receivable = vars.accounts['receivable']
         customer.save()
 
@@ -72,15 +64,16 @@ class Test(unittest.TestCase):
         contract = Contract()
         contract.party = customer
         contract.reference = 'TEST'
-        self.assertEqual(contract.payment_term, payment_term)
         contract.freq = 'monthly'
         contract.interval = 1
-        contract.start_period_date = datetime.date(2015, 1, 1)
-        contract.first_invoice_date = datetime.date(2015, 1, 1)
-        contract.lines.new(service=service1,
-                                   unit_price=Decimal(100),
-                                   start_date=datetime.date(2015, 1, 1),
-                                   end_date=datetime.date(2015, 3, 1))
+        # Start = first day of the current year
+        contract.start_period_date = today.replace(day=1)
+        contract.first_invoice_date = today.replace(day=1)
+        contract.lines.new(
+            service=service1,
+            unit_price=Decimal(100),
+            start_date=today.replace(day=1),
+            )
         contract.save()
         contract.click('confirm')
         self.assertEqual(contract.state, 'confirmed')
@@ -88,26 +81,23 @@ class Test(unittest.TestCase):
         # Create consumptions for 2015-01-31
         Consumption = Model.get('contract.consumption')
         create_consumptions = Wizard('contract.create_consumptions')
-        create_consumptions.form.date = datetime.date(2015, 1, 31)
+        create_consumptions.form.date = today
         create_consumptions.execute('create_consumptions')
         consumptions = Consumption.find([])
         self.assertEqual(len(consumptions), 1)
 
-        # Create invoice manually for the contract
+        create_invoices = Wizard('contract.create_invoices')
+        create_invoices.form.date = today
+        create_invoices.execute('create_invoices')
+
         Invoice = Model.get('account.invoice')
-        invoice = Invoice()
-        invoice.party = customer
-        invoice.reference = contract.reference
-        invoice.type = 'out'
-        line = invoice.lines.new()
-        line.product = product
-        line.account = vars.accounts['revenue']
-        line.quantity = 1
-        line.unit_price = Decimal('100')
-        invoice.save()
+        invoices = Invoice.find([])
+        invoice = invoices[0]
 
         # Check invoice verifactu
         self.assertTrue(invoice.is_verifactu)
-        self.assertEqual(invoice.verifactu_operation_key, 'F1')
 
         # Do not post the invoice
+        invoice.click('post')
+        self.assertEqual(invoice.state, 'posted')
+        self.assertEqual(invoice.verifactu_operation_key, 'F1')

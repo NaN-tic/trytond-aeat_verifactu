@@ -19,7 +19,7 @@ class Test(unittest.TestCase):
         # Activate aeat_verifactu module
         activate_modules(['aeat_verifactu'])
 
-        vars = setup(load_certificate=True)
+        vars = setup()
 
         # Create party
         party = vars.party
