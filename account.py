@@ -50,7 +50,7 @@ class TemplateTax(metaclass=PoolMeta):
     verifactu_subjected_key = fields.Selection(IVA_SUBJECTED, 'Subjected Key')
     verifactu_exemption_cause = fields.Selection(EXEMPTION_CAUSE,
         'Exemption Cause')
-    verifactu_tax_used = fields.Boolean('Used in Tax')
+    verifactu_tax_used = fields.Boolean('Used in Verifactu Taxes')
 
     @staticmethod
     def default_verifactu_tax_used():
@@ -75,5 +75,5 @@ class Tax(metaclass=PoolMeta):
     verifactu_issued_key = fields.Selection(SEND_SPECIAL_REGIME_KEY, 'Issued Key')
     verifactu_subjected_key = fields.Selection(IVA_SUBJECTED, 'Subjected Key')
     verifactu_exemption_cause = fields.Selection(EXEMPTION_CAUSE, 'Exemption Cause')
-    verifactu_tax_used = fields.Boolean('Used in Tax')
+    verifactu_tax_used = fields.Boolean('Used in Verifactu Taxes')
 

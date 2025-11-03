@@ -2,378 +2,303 @@
 msgid ""
 msgstr "Content-Type: text/plain; charset=utf-8\n"
 
-#, fuzzy
 msgctxt "field:account.configuration,aeat_certificate_verifactu:"
 msgid "AEAT Verifactu Certificate"
 msgstr "Certificat Verifactu de l'AEAT"
 
-#, fuzzy
 msgctxt "field:account.configuration,verifactu_start_date:"
 msgid "Verifactu Start Date"
 msgstr "Data d'inici de la verificació"
 
-#, fuzzy
 msgctxt ""
 "field:account.configuration.default_verifactu,aeat_certificate_verifactu:"
 msgid "AEAT Verifactu Certificate"
 msgstr "Certificat de verificació de l'AEAT"
 
-#, fuzzy
 msgctxt "field:account.configuration.default_verifactu,company:"
 msgid "Company"
 msgstr "Empresa"
 
-#, fuzzy
 msgctxt "field:account.configuration.default_verifactu,verifactu_start_date:"
 msgid "Verifactu Start Date"
 msgstr "Data d'inici de la verificació"
 
-#, fuzzy
 msgctxt "field:account.invoice,is_verifactu:"
 msgid "Is Verifactu"
 msgstr "És verificable"
 
-#, fuzzy
 msgctxt "field:account.invoice,post_date:"
 msgid "Post Date"
 msgstr "Data de publicació"
 
-#, fuzzy
 msgctxt "field:account.invoice,verifactu_communication_type:"
 msgid "Verifactu Communication Type"
 msgstr "Tipus de comunicació Verifactu"
 
-#, fuzzy
 msgctxt "field:account.invoice,verifactu_errors:"
 msgid "Verifactu Errors"
 msgstr "Errors de verificació"
 
-#, fuzzy
 msgctxt "field:account.invoice,verifactu_header:"
 msgid "Header"
 msgstr "Capçalera"
 
-#, fuzzy
 msgctxt "field:account.invoice,verifactu_operation_key:"
 msgid "Verifactu Operation Key"
 msgstr "Clau d'operació Verifactu"
 
-#, fuzzy
 msgctxt "field:account.invoice,verifactu_pending_sending:"
 msgid "Verifactu Pending Sending Pending"
 msgstr "Verificació pendent Enviament pendent"
 
-#, fuzzy
 msgctxt "field:account.invoice,verifactu_records:"
 msgid "Verifactu Report Lines"
 msgstr "Línies d'informe Verifactu"
 
-#, fuzzy
 msgctxt "field:account.invoice,verifactu_sent:"
 msgid "Verifactu Sent"
 msgstr "Verificació enviada"
 
-#, fuzzy
 msgctxt "field:account.invoice,verifactu_state:"
 msgid "Verifactu State"
 msgstr "Estat verificat"
 
-#, fuzzy
 msgctxt "field:account.tax,isp:"
 msgid "Inversion del Sujeto Pasivo"
 msgstr "Inversió del subjecte passiu"
 
-#, fuzzy
 msgctxt "field:account.tax,service:"
 msgid "Service Rate"
 msgstr "Tarifa de servei"
 
-#, fuzzy
 msgctxt "field:account.tax,verifactu_exemption_cause:"
 msgid "Exemption Cause"
 msgstr "Causa d'exempció"
 
-#, fuzzy
 msgctxt "field:account.tax,verifactu_issued_key:"
 msgid "Issued Key"
 msgstr "Clau emesa"
 
-#, fuzzy
 msgctxt "field:account.tax,verifactu_operation_key:"
 msgid "Verifactu Operation Key"
 msgstr "Clau d'operació Verifactu"
 
-#, fuzzy
 msgctxt "field:account.tax,verifactu_subjected_key:"
 msgid "Subjected Key"
 msgstr "Clau subjecta"
 
-#, fuzzy
 msgctxt "field:account.tax,verifactu_tax_used:"
 msgid "Used in Tax"
 msgstr "Utilitzat en impostos"
 
-#, fuzzy
 msgctxt "field:account.tax.template,isp:"
 msgid "Inversion del Sujeto Pasivo"
 msgstr "Inversió del subjecte passiu"
 
-#, fuzzy
 msgctxt "field:account.tax.template,service:"
 msgid "Service Rate"
 msgstr "Tarifa de servei"
 
-#, fuzzy
 msgctxt "field:account.tax.template,verifactu_exemption_cause:"
 msgid "Exemption Cause"
 msgstr "Causa d'exempció"
 
-#, fuzzy
 msgctxt "field:account.tax.template,verifactu_issued_key:"
 msgid "Issued Key"
 msgstr "Clau emesa"
 
-#, fuzzy
 msgctxt "field:account.tax.template,verifactu_operation_key:"
 msgid "Verifactu Operation Key"
 msgstr "Clau d'operació Verifactu"
 
-#, fuzzy
 msgctxt "field:account.tax.template,verifactu_subjected_key:"
 msgid "Subjected Key"
 msgstr "Clau subjecta"
 
-#, fuzzy
 msgctxt "field:account.tax.template,verifactu_tax_used:"
 msgid "Used in Tax"
 msgstr "Utilitzat en impostos"
 
-#, fuzzy
 msgctxt "field:aeat.verifactu.report.line,aeat_register:"
 msgid "Register from AEAT Webservice"
 msgstr "Registra't des del servei web de l'AEAT"
 
-#, fuzzy
 msgctxt "field:aeat.verifactu.report.line,communication_code:"
 msgid "Communication Code"
 msgstr "Codi de comunicació"
 
-#, fuzzy
 msgctxt "field:aeat.verifactu.report.line,communication_msg:"
 msgid "Communication Message"
 msgstr "Missatge de comunicació"
 
-#, fuzzy
 msgctxt "field:aeat.verifactu.report.line,company:"
 msgid "Company"
 msgstr "Empresa"
 
-#, fuzzy
 msgctxt "field:aeat.verifactu.report.line,counterpart_id:"
 msgid "Counterpart ID"
 msgstr "ID de contrapart"
 
-#, fuzzy
 msgctxt "field:aeat.verifactu.report.line,counterpart_name:"
 msgid "Counterpart Name"
 msgstr "Nom de la contrapart"
 
-#, fuzzy
 msgctxt "field:aeat.verifactu.report.line,error_message:"
 msgid "Error Message"
 msgstr "Missatge d'error"
 
-#, fuzzy
 msgctxt "field:aeat.verifactu.report.line,exemption_cause:"
 msgid "Exemption Cause"
 msgstr "Causa d'exempció"
 
-#, fuzzy
 msgctxt "field:aeat.verifactu.report.line,header:"
 msgid "Header"
 msgstr "Capçalera"
 
-#, fuzzy
 msgctxt "field:aeat.verifactu.report.line,huella:"
 msgid "Huella"
 msgstr "Huella"
 
-#, fuzzy
 msgctxt "field:aeat.verifactu.report.line,identifier_type:"
 msgid "Identifier Type"
 msgstr "Tipus d'identificador"
 
-#, fuzzy
 msgctxt "field:aeat.verifactu.report.line,invoice:"
 msgid "Invoice"
 msgstr "Factura"
 
-#, fuzzy
 msgctxt "field:aeat.verifactu.report.line,invoice_kind:"
 msgid "Invoice Kind"
 msgstr "Tipus de factura"
 
-#, fuzzy
 msgctxt "field:aeat.verifactu.report.line,invoice_operation_key:"
 msgid "Operation Key"
 msgstr "Tecla d'operació"
 
-#, fuzzy
 msgctxt "field:aeat.verifactu.report.line,issue_date:"
 msgid "Issued Date"
 msgstr "Data d'emissió"
 
-#, fuzzy
 msgctxt "field:aeat.verifactu.report.line,last_modify_date:"
 msgid "Last Modification Date"
 msgstr "Data de l'última modificació"
 
-#, fuzzy
 msgctxt "field:aeat.verifactu.report.line,serial_number:"
 msgid "Serial Number"
 msgstr "Número de sèrie"
 
-#, fuzzy
 msgctxt "field:aeat.verifactu.report.line,state:"
 msgid "State"
 msgstr "Estat"
 
-#, fuzzy
 msgctxt "field:aeat.verifactu.report.line,taxes:"
 msgid "Tax Lines"
 msgstr "Línies d'impostos"
 
-#, fuzzy
 msgctxt "field:aeat.verifactu.report.line,total_amount:"
 msgid "Total Amount"
 msgstr "Import total"
 
-#, fuzzy
 msgctxt "field:aeat.verifactu.report.line,vat_code:"
 msgid "VAT Code"
 msgstr "Codi d'IVA"
 
-#, fuzzy
 msgctxt "field:aeat.verifactu.report.line.tax,amount:"
 msgid "Amount"
 msgstr "Import"
 
-#, fuzzy
 msgctxt "field:aeat.verifactu.report.line.tax,base:"
 msgid "Base"
 msgstr "Base"
 
-#, fuzzy
 msgctxt "field:aeat.verifactu.report.line.tax,line:"
 msgid "Report Line"
 msgstr "Línia d'informe"
 
-#, fuzzy
 msgctxt "field:aeat.verifactu.report.line.tax,rate:"
 msgid "Rate"
 msgstr "Tarifa"
 
-#, fuzzy
 msgctxt "field:aeat.verifactu.report.line.tax,reagyp_amount:"
 msgid "REAGYP Amount"
 msgstr "Quantitat de REAGYP"
 
-#, fuzzy
 msgctxt "field:aeat.verifactu.report.line.tax,reagyp_rate:"
 msgid "REAGYP Rate"
 msgstr "Tarifa REAGYP"
 
-#, fuzzy
 msgctxt "field:aeat.verifactu.report.line.tax,surcharge_amount:"
 msgid "Surcharge Amount"
 msgstr "Import del recàrrec"
 
-#, fuzzy
 msgctxt "field:aeat.verifactu.report.line.tax,surcharge_rate:"
 msgid "Surcharge Rate"
 msgstr "Recàrrec"
 
-#, fuzzy
 msgctxt "field:party.party,verifactu_identifier_type:"
 msgid "Verifactu Identifier Type"
 msgstr "Tipus d'identificador Verifactu"
 
-#, fuzzy
 msgctxt "field:party.party,verifactu_vat_code:"
 msgid "Verifactu VAT Code"
 msgstr "Codi IVA verificat"
 
-#, fuzzy
 msgctxt "help:account.tax,isp:"
 msgid "Indicates if the tax is Inversion del sujeto Pasivo"
 msgstr "Indica si l'impost és Inversion del subjecte Pasivo"
 
-#, fuzzy
 msgctxt "help:account.tax,service:"
 msgid "Indicates if the tax is used for services"
 msgstr "Indica si l'impost s'utilitza per a serveis"
 
-#, fuzzy
 msgctxt "help:account.tax.template,isp:"
 msgid "Indicates if the tax is Inversion del sujeto Pasivo"
 msgstr "Indica si l'impost és Inversion del subjecte Pasivo"
 
-#, fuzzy
 msgctxt "help:account.tax.template,service:"
 msgid "Indicates if the tax is used for services"
 msgstr "Indica si l'impost s'utilitza per a serveis"
 
-#, fuzzy
 msgctxt "model:account.configuration.default_verifactu,name:"
 msgid "Account Configuration Default Verifactu Values"
 msgstr "Valors de verificació predeterminats de la configuració del compte"
 
-#, fuzzy
 msgctxt "model:aeat.verifactu.report.line,name:"
 msgid "AEAT Verifactu Line"
 msgstr "Línia de verificació de l'AEAT"
 
-#, fuzzy
 msgctxt "model:aeat.verifactu.report.line.tax,name:"
 msgid "Verifactu Report Line Tax"
 msgstr "Impost de línia d'informe Verifactu"
 
-#, fuzzy
 msgctxt "model:aeat.verifactu.reset.keys.end,name:"
 msgid "Reset to default Verifactu Keys End"
 msgstr "Restableix les claus de verificació per defecte Final"
 
-#, fuzzy
 msgctxt "model:aeat.verifactu.reset.keys.start,name:"
 msgid "Reset to default Verifactu Keys Start"
 msgstr "Restableix les claus de verificació per defecte Inici"
 
-#, fuzzy
 msgctxt "model:ir.action,name:act_aeat_verifactu_report_line"
 msgid "AEAT Verifactu Report Lines"
 msgstr "Línies d'informe de verificació de l'AEAT"
 
-#, fuzzy
 msgctxt "model:ir.action,name:act_aeat_verifactu_report_lines"
 msgid "Verifactu Report Lines"
 msgstr "Línies d'informe Verifactu"
 
-#, fuzzy
 msgctxt "model:ir.action,name:act_aeat_verifactu_reset_keys"
 msgid "Reset AEAT Verifactu Keys"
 msgstr "Restablir les claus de verificació de l'AEAT"
 
-#, fuzzy
 msgctxt "model:ir.message,text:msg_delete_cancel"
 msgid "Report \"%(report)s\" must be cancelled before deletion."
 msgstr "L'informe \"%(report)s\" s'ha de cancel·lar abans de ser eliminat."
 
-#, fuzzy
 msgctxt "model:ir.message,text:msg_invoice_in_missing_ref"
 msgid "The invoices \"%(invoices)s\" do not have reference."
 msgstr "Les factures \"%(invoices)s\" no tenen referència."
 
-#, fuzzy
 msgctxt "model:ir.message,text:msg_invoices_verifactu"
 msgid ""
 "The following invoices are related to Verifactu books:\n"
@@ -384,14 +309,12 @@ msgstr ""
 "%(invoices)s. Si les editeu, tingueu en compte que cal actualitzar a "
 "Verifactu de nou."
 
-#, fuzzy
 msgctxt "model:ir.message,text:msg_invoices_verifactu_pending"
 msgid "The following invoices are related to Verifactu books in draft state."
 msgstr ""
 "Les factures següents estan relacionades amb llibres de Verifactu en estat "
 "d'esborrany."
 
-#, fuzzy
 msgctxt "model:ir.message,text:msg_missing_certificate"
 msgid ""
 "There isn't a certificate defined in the account configuration for the "
@@ -400,18 +323,15 @@ msgstr ""
 "No hi ha cap certificat definit a la configuració del compte per al "
 "Verifactu."
 
-#, fuzzy
 msgctxt "model:ir.message,text:msg_missing_fernet_key"
 msgid "Missing Fernet key configuration"
 msgstr "Falta la configuració de la clau Fernet"
 
-#, fuzzy
 msgctxt "model:ir.message,text:msg_missing_nif"
 msgid "The party of the invoice %(invoice)s must have a valid Tax Identifier."
 msgstr ""
 "La part de la factura %(invoice)s ha de tenir un identificador fiscal vàlid."
 
-#, fuzzy
 msgctxt "model:ir.message,text:msg_missing_verifactu_keys"
 msgid ""
 "The invoice \"%(invoice)s\" does not have the necessary Verifactu keys "
@@ -419,19 +339,16 @@ msgid ""
 msgstr ""
 "La factura \"%(invoice)s\" no té les claus Verifactu necessàries emplenades."
 
-#, fuzzy
 msgctxt "model:ir.message,text:msg_report_duplicated_invoice"
 msgid "Invoice \"%(invoice)s\" is duplicated in Verifactu Report \"%(report)s\"."
 msgstr ""
 "La factura \"%(invoice)s\" està duplicada a l'informe Verifactu "
 "\"%(report)s\"."
 
-#, fuzzy
 msgctxt "model:ir.message,text:msg_report_wrong_invoice_state"
 msgid "Invoice \"%(invoice)s\" must be posted, paid or refunded."
 msgstr "La factura \"%(invoice)s\" s'ha de publicar, pagar o reemborsar."
 
-#, fuzzy
 msgctxt "model:ir.message,text:msg_set_simplified_invoice"
 msgid ""
 "The parties of the invoices \"%(invoices)s\" have not set the Verifactu "
@@ -445,7 +362,6 @@ msgstr ""
 "\"Entrada resum de factura\". Les factures s'enviaran a l'AEAT sense "
 "identificació de destinació."
 
-#, fuzzy
 msgctxt "model:ir.message,text:msg_set_simplified_party"
 msgid ""
 "The parties of the invoices \"%(invoices)s\" have the Verifactu Identifier "
@@ -459,7 +375,6 @@ msgstr ""
 "correspongui, i les factures s'enviaran a l'AEAT sense identificació de "
 "destinació."
 
-#, fuzzy
 msgctxt "model:ir.message,text:msg_verifactu_operation_key_wrong"
 msgid ""
 "The invoice %(invoice)s has a wrong subject and operation Verifactu "
@@ -468,7 +383,6 @@ msgstr ""
 "La factura %(invoice)s té una combinació incorrecta d'assumpte i operació "
 "Verifactu."
 
-#, fuzzy
 msgctxt "model:ir.message,text:msg_wrong_identifier_type"
 msgid ""
 "The party [%(party)s] of the invoice %(invoice)s must have a valid Verifactu"
@@ -477,7 +391,6 @@ msgstr ""
 "La part [%(party)s] de la factura %(invoice)s ha de tenir un identificador "
 "Verifactu vàlid [IVA (només per a operadors intracomunitaris)]."
 
-#, fuzzy
 msgctxt "model:ir.message,text:reports_exist"
 msgid ""
 "There are some reports in draft and/or confirmed. No report will be created "
@@ -486,78 +399,63 @@ msgstr ""
 "Hi ha alguns informes en esborrany i/o confirmats. No es crearà cap informe "
 "fins que aquests informes no siguin processats."
 
-#, fuzzy
 msgctxt "model:ir.rule.group,name:rule_group_verifactu_report_line"
 msgid "User in company"
 msgstr "Usuari a l'empresa"
 
-#, fuzzy
 msgctxt "model:ir.ui.menu,name:menu_aeat_verifactu_line_report"
 msgid "AEAT Verifactu Report Lines"
 msgstr "Línies d'informe de verificació de l'AEAT"
 
-#, fuzzy
 msgctxt "model:ir.ui.menu,name:menu_aeat_verifactu_report_menu"
 msgid "AEAT Verifactu"
 msgstr "AEAT Verificat"
 
-#, fuzzy
 msgctxt "selection:account.invoice,verifactu_communication_type:"
 msgid "Amendment of invoices/records (registration errors)"
 msgstr "Modificació de factures/registres (errors de registre)"
 
-#, fuzzy
 msgctxt "selection:account.invoice,verifactu_communication_type:"
 msgid "Delete Invoices"
 msgstr "Suprimeix factures"
 
-#, fuzzy
 msgctxt "selection:account.invoice,verifactu_communication_type:"
 msgid "Query Invoices"
 msgstr "Consulta de factures"
 
-#, fuzzy
 msgctxt "selection:account.invoice,verifactu_communication_type:"
 msgid "Registration of invoices/records"
 msgstr "Registre de factures/comprovants"
 
-#, fuzzy
 msgctxt "selection:account.invoice,verifactu_operation_key:"
 msgid "Corrected Invoice (Art 80.1, 80.2 and 80.6 and error grounded in law)"
 msgstr "Factura corregida (Art. 80.1, 80.2 i 80.6 i error fonamentat en dret)"
 
-#, fuzzy
 msgctxt "selection:account.invoice,verifactu_operation_key:"
 msgid "Corrected Invoice (Art. 80.3)"
 msgstr "Factura corregida (Art. 80.3)"
 
-#, fuzzy
 msgctxt "selection:account.invoice,verifactu_operation_key:"
 msgid "Corrected Invoice (Other)"
 msgstr "Factura corregida (Altres)"
 
-#, fuzzy
 msgctxt "selection:account.invoice,verifactu_operation_key:"
 msgid "Corrected Invoice in simplified invoices"
 msgstr "Factura corregida en factures simplificades"
 
-#, fuzzy
 msgctxt "selection:account.invoice,verifactu_operation_key:"
 msgid "Credit Note (Art 80.4)"
 msgstr "Nota de crèdit (Art. 80.4)"
 
-#, fuzzy
 msgctxt "selection:account.invoice,verifactu_operation_key:"
 msgid "Invoice (Art 6.7.3 y 7.3 of RD1619/2012)"
 msgstr "Factura (Art. 6.7.3 i 7.3 del RD1619/2012)"
 
-#, fuzzy
 msgctxt "selection:account.invoice,verifactu_operation_key:"
 msgid "Invoice issued to replace simplified invoices issued and filed"
 msgstr ""
 "Factura emesa per substituir les factures simplificades emeses i presentades"
 
-#, fuzzy
 msgctxt "selection:account.invoice,verifactu_operation_key:"
 msgid ""
 "Simplified Invoice (ticket) and Invoices without destination identidication "
@@ -566,87 +464,70 @@ msgstr ""
 "Factura simplificada (tiquet) i factures sense identificació de destinació "
 "(Art. 6.1.d del RD1619/2012)"
 
-#, fuzzy
 msgctxt "selection:account.invoice,verifactu_state:"
 msgid "Accepted"
 msgstr "Acceptat"
 
-#, fuzzy
 msgctxt "selection:account.invoice,verifactu_state:"
 msgid "Accepted "
 msgstr "Acceptat "
 
-#, fuzzy
 msgctxt "selection:account.invoice,verifactu_state:"
 msgid "Accepted with Errors"
 msgstr "Acceptat amb errors"
 
-#, fuzzy
 msgctxt "selection:account.invoice,verifactu_state:"
 msgid "Accepted with Errors "
 msgstr "Acceptat amb errors "
 
-#, fuzzy
 msgctxt "selection:account.invoice,verifactu_state:"
 msgid "Deleted"
 msgstr "Suprimit"
 
-#, fuzzy
 msgctxt "selection:account.invoice,verifactu_state:"
 msgid "Duplicated / Unsubscribed"
 msgstr "Duplicat / Subscrit sense subscripció"
 
-#, fuzzy
 msgctxt "selection:account.invoice,verifactu_state:"
 msgid "Pending Sending"
 msgstr "Enviament pendent"
 
-#, fuzzy
 msgctxt "selection:account.invoice,verifactu_state:"
 msgid "Pending Sending Fix"
 msgstr "Correcció d'enviament pendent"
 
-#, fuzzy
 msgctxt "selection:account.invoice,verifactu_state:"
 msgid "Rejected"
 msgstr "Rebutjat"
 
-#, fuzzy
 msgctxt "selection:account.tax,verifactu_exemption_cause:"
 msgid "Exempt on account of Article 20"
 msgstr "Exempt per l'article 20"
 
-#, fuzzy
 msgctxt "selection:account.tax,verifactu_exemption_cause:"
 msgid "Exempt on account of Article 21"
 msgstr "Exempt en virtut de l'article 21"
 
-#, fuzzy
 msgctxt "selection:account.tax,verifactu_exemption_cause:"
 msgid "Exempt on account of Article 22"
 msgstr "Exempt en virtut de l'article 22"
 
-#, fuzzy
 msgctxt "selection:account.tax,verifactu_exemption_cause:"
 msgid "Exempt on account of Article 23 and Article 24"
 msgstr "Exempt en virtut de l'article 23 i l'article 24"
 
-#, fuzzy
 msgctxt "selection:account.tax,verifactu_exemption_cause:"
 msgid "Exempt on account of Article 25"
 msgstr "Exempt per l'article 25"
 
-#, fuzzy
 msgctxt "selection:account.tax,verifactu_exemption_cause:"
 msgid "Exempt on other grounds"
 msgstr "Exempt per altres motius"
 
-#, fuzzy
 msgctxt "selection:account.tax,verifactu_exemption_cause:"
 msgid "Not Subject"
 msgstr "No subjecte"
 
-#, fuzzy
 msgctxt "selection:account.tax,verifactu_issued_key:"
 msgid ""
 "Activities subject to Canary Islands General Indirect Tax/Tax on Production,"
@@ -655,7 +536,6 @@ msgstr ""
 "Activitats subjectes a l'Impost General Indirecte de les Illes "
 "Canàries/Impost sobre la Producció, els Serveis i les Importacions"
 
-#, fuzzy
 msgctxt "selection:account.tax,verifactu_issued_key:"
 msgid ""
 "Activities to which the special scheme of used goods, works of art, "
@@ -664,12 +544,10 @@ msgstr ""
 "Activitats a les quals s'aplica el règim especial de béns usats, obres "
 "d'art, antiguitats i objectes de col·lecció (135-139 de la Llei de l'IVA)"
 
-#, fuzzy
 msgctxt "selection:account.tax,verifactu_issued_key:"
 msgid "Business premises lease activities subject to withholding"
 msgstr "Activitats d'arrendament de locals comercials subjectes a retenció"
 
-#, fuzzy
 msgctxt "selection:account.tax,verifactu_issued_key:"
 msgid ""
 "Collections on behalf of third parties of professional fees or industrial "
@@ -683,22 +561,18 @@ msgstr ""
 "professionals o altres entitats que, entre les seves funcions, realitzin "
 "cobraments."
 
-#, fuzzy
 msgctxt "selection:account.tax,verifactu_issued_key:"
 msgid "Equivalence surcharge"
 msgstr "Recàrrec d'equivalència"
 
-#, fuzzy
 msgctxt "selection:account.tax,verifactu_issued_key:"
 msgid "Export"
 msgstr "Exporta"
 
-#, fuzzy
 msgctxt "selection:account.tax,verifactu_issued_key:"
 msgid "General tax regime activity"
 msgstr "Activitat del règim fiscal general"
 
-#, fuzzy
 msgctxt "selection:account.tax,verifactu_issued_key:"
 msgid ""
 "Invoice with VAT pending accrual (work certifications with Public "
@@ -707,12 +581,10 @@ msgstr ""
 "Factura amb IVA pendent de meritació (certificacions d'obra amb destinataris"
 " de l'Administració Pública)"
 
-#, fuzzy
 msgctxt "selection:account.tax,verifactu_issued_key:"
 msgid "Invoice with VAT pending accrual - operations of successive tract"
 msgstr "Factura amb IVA pendent de meritació - operacions de tracte successiu"
 
-#, fuzzy
 msgctxt "selection:account.tax,verifactu_issued_key:"
 msgid ""
 "Invoicing of the provision of travel agency services acting as "
@@ -723,7 +595,6 @@ msgstr ""
 "intermediaris en nom i per compte d'altres persones (Disposició addicional "
 "4a, Reial Decret 1619/2012)"
 
-#, fuzzy
 msgctxt "selection:account.tax,verifactu_issued_key:"
 msgid ""
 "Operation covered by one of the regimes provided for in Chapter XI of Title "
@@ -732,7 +603,6 @@ msgstr ""
 "Operació coberta per un dels règims previstos al capítol XI del títol IX "
 "(OSS i IOSS)"
 
-#, fuzzy
 msgctxt "selection:account.tax,verifactu_issued_key:"
 msgid ""
 "Operations of activities included in the Special Regime for Agriculture, "
@@ -741,68 +611,55 @@ msgstr ""
 "Operacions d'activitats incloses en el Règim Especial d'Agricultura, "
 "Ramaderia i Pesca (REAGYP)"
 
-#, fuzzy
 msgctxt "selection:account.tax,verifactu_issued_key:"
 msgid "Simplified regime"
 msgstr "Règim simplificat"
 
-#, fuzzy
 msgctxt "selection:account.tax,verifactu_issued_key:"
 msgid "Special cash basis scheme"
 msgstr "Règim especial de caixa"
 
-#, fuzzy
 msgctxt "selection:account.tax,verifactu_issued_key:"
 msgid "Special scheme applicable to groups of entities, VAT (Advanced)"
 msgstr "Règim especial aplicable a grups d'entitats, IVA (Avançat)"
 
-#, fuzzy
 msgctxt "selection:account.tax,verifactu_issued_key:"
 msgid "Special scheme for investment gold"
 msgstr "Règim especial per a l'or d'inversió"
 
-#, fuzzy
 msgctxt "selection:account.tax,verifactu_issued_key:"
 msgid "Special scheme for travel agencies"
 msgstr "Règim especial per a agències de viatges"
 
-#, fuzzy
 msgctxt "selection:account.tax,verifactu_operation_key:"
 msgid "Corrected Invoice (Art 80.1, 80.2 and 80.6 and error grounded in law)"
 msgstr "Factura corregida (Art. 80.1, 80.2 i 80.6 i error fonamentat en dret)"
 
-#, fuzzy
 msgctxt "selection:account.tax,verifactu_operation_key:"
 msgid "Corrected Invoice (Art. 80.3)"
 msgstr "Factura corregida (Art. 80.3)"
 
-#, fuzzy
 msgctxt "selection:account.tax,verifactu_operation_key:"
 msgid "Corrected Invoice (Other)"
 msgstr "Factura corregida (Altres)"
 
-#, fuzzy
 msgctxt "selection:account.tax,verifactu_operation_key:"
 msgid "Corrected Invoice in simplified invoices"
 msgstr "Factura corregida en factures simplificades"
 
-#, fuzzy
 msgctxt "selection:account.tax,verifactu_operation_key:"
 msgid "Credit Note (Art 80.4)"
 msgstr "Nota de crèdit (Art. 80.4)"
 
-#, fuzzy
 msgctxt "selection:account.tax,verifactu_operation_key:"
 msgid "Invoice (Art 6.7.3 y 7.3 of RD1619/2012)"
 msgstr "Factura (Art. 6.7.3 i 7.3 del RD1619/2012)"
 
-#, fuzzy
 msgctxt "selection:account.tax,verifactu_operation_key:"
 msgid "Invoice issued to replace simplified invoices issued and filed"
 msgstr ""
 "Factura emesa per substituir les factures simplificades emeses i presentades"
 
-#, fuzzy
 msgctxt "selection:account.tax,verifactu_operation_key:"
 msgid ""
 "Simplified Invoice (ticket) and Invoices without destination identidication "
@@ -811,62 +668,50 @@ msgstr ""
 "Factura simplificada (tiquet) i factures sense identificació de destinació "
 "(Art. 6.1.d del RD1619/2012)"
 
-#, fuzzy
 msgctxt "selection:account.tax,verifactu_subjected_key:"
 msgid "Exempt by location rules"
 msgstr "Exempt per les normes d'ubicació"
 
-#, fuzzy
 msgctxt "selection:account.tax,verifactu_subjected_key:"
 msgid "Exempt on acconunt of Articles 7, 14, others"
 msgstr "Exempt en virtut dels articles 7, 14 i altres"
 
-#, fuzzy
 msgctxt "selection:account.tax,verifactu_subjected_key:"
 msgid "Subject - Not exempt. Non VAT reverse charge"
 msgstr "Subjecte - No exempt. Impost invers no IVA"
 
-#, fuzzy
 msgctxt "selection:account.tax,verifactu_subjected_key:"
 msgid "Subject - Not exempt. VAT reverse charge"
 msgstr "Subjecte - No exempt. Impost invers de l'IVA"
 
-#, fuzzy
 msgctxt "selection:account.tax.template,verifactu_exemption_cause:"
 msgid "Exempt on account of Article 20"
 msgstr "Exempt per l'article 20"
 
-#, fuzzy
 msgctxt "selection:account.tax.template,verifactu_exemption_cause:"
 msgid "Exempt on account of Article 21"
 msgstr "Exempt en virtut de l'article 21"
 
-#, fuzzy
 msgctxt "selection:account.tax.template,verifactu_exemption_cause:"
 msgid "Exempt on account of Article 22"
 msgstr "Exempt en virtut de l'article 22"
 
-#, fuzzy
 msgctxt "selection:account.tax.template,verifactu_exemption_cause:"
 msgid "Exempt on account of Article 23 and Article 24"
 msgstr "Exempt en virtut de l'article 23 i l'article 24"
 
-#, fuzzy
 msgctxt "selection:account.tax.template,verifactu_exemption_cause:"
 msgid "Exempt on account of Article 25"
 msgstr "Exempt per l'article 25"
 
-#, fuzzy
 msgctxt "selection:account.tax.template,verifactu_exemption_cause:"
 msgid "Exempt on other grounds"
 msgstr "Exempt per altres motius"
 
-#, fuzzy
 msgctxt "selection:account.tax.template,verifactu_exemption_cause:"
 msgid "Not Subject"
 msgstr "No subjecte"
 
-#, fuzzy
 msgctxt "selection:account.tax.template,verifactu_issued_key:"
 msgid ""
 "Activities subject to Canary Islands General Indirect Tax/Tax on Production,"
@@ -875,7 +720,6 @@ msgstr ""
 "Activitats subjectes a l'Impost General Indirecte de les Illes "
 "Canàries/Impost sobre la Producció, els Serveis i les Importacions"
 
-#, fuzzy
 msgctxt "selection:account.tax.template,verifactu_issued_key:"
 msgid ""
 "Activities to which the special scheme of used goods, works of art, "
@@ -884,12 +728,10 @@ msgstr ""
 "Activitats a les quals s'aplica el règim especial de béns usats, obres "
 "d'art, antiguitats i objectes de col·lecció (135-139 de la Llei de l'IVA)"
 
-#, fuzzy
 msgctxt "selection:account.tax.template,verifactu_issued_key:"
 msgid "Business premises lease activities subject to withholding"
 msgstr "Activitats d'arrendament de locals comercials subjectes a retenció"
 
-#, fuzzy
 msgctxt "selection:account.tax.template,verifactu_issued_key:"
 msgid ""
 "Collections on behalf of third parties of professional fees or industrial "
@@ -903,22 +745,18 @@ msgstr ""
 "professionals o altres entitats que, entre les seves funcions, realitzin "
 "cobraments."
 
-#, fuzzy
 msgctxt "selection:account.tax.template,verifactu_issued_key:"
 msgid "Equivalence surcharge"
 msgstr "Recàrrec d'equivalència"
 
-#, fuzzy
 msgctxt "selection:account.tax.template,verifactu_issued_key:"
 msgid "Export"
 msgstr "Exporta"
 
-#, fuzzy
 msgctxt "selection:account.tax.template,verifactu_issued_key:"
 msgid "General tax regime activity"
 msgstr "Activitat del règim fiscal general"
 
-#, fuzzy
 msgctxt "selection:account.tax.template,verifactu_issued_key:"
 msgid ""
 "Invoice with VAT pending accrual (work certifications with Public "
@@ -927,12 +765,10 @@ msgstr ""
 "Factura amb IVA pendent de meritació (certificacions d'obra amb destinataris"
 " de l'Administració Pública)"
 
-#, fuzzy
 msgctxt "selection:account.tax.template,verifactu_issued_key:"
 msgid "Invoice with VAT pending accrual - operations of successive tract"
 msgstr "Factura amb IVA pendent de meritació - operacions de tracte successiu"
 
-#, fuzzy
 msgctxt "selection:account.tax.template,verifactu_issued_key:"
 msgid ""
 "Invoicing of the provision of travel agency services acting as "
@@ -943,7 +779,6 @@ msgstr ""
 "intermediaris en nom i per compte d'altres persones (Disposició addicional "
 "4a, Reial Decret 1619/2012)"
 
-#, fuzzy
 msgctxt "selection:account.tax.template,verifactu_issued_key:"
 msgid ""
 "Operation covered by one of the regimes provided for in Chapter XI of Title "
@@ -952,7 +787,6 @@ msgstr ""
 "Operació coberta per un dels règims previstos al capítol XI del títol IX "
 "(OSS i IOSS)"
 
-#, fuzzy
 msgctxt "selection:account.tax.template,verifactu_issued_key:"
 msgid ""
 "Operations of activities included in the Special Regime for Agriculture, "
@@ -961,68 +795,55 @@ msgstr ""
 "Operacions d'activitats incloses en el Règim Especial d'Agricultura, "
 "Ramaderia i Pesca (REAGYP)"
 
-#, fuzzy
 msgctxt "selection:account.tax.template,verifactu_issued_key:"
 msgid "Simplified regime"
 msgstr "Règim simplificat"
 
-#, fuzzy
 msgctxt "selection:account.tax.template,verifactu_issued_key:"
 msgid "Special cash basis scheme"
 msgstr "Règim especial de caixa"
 
-#, fuzzy
 msgctxt "selection:account.tax.template,verifactu_issued_key:"
 msgid "Special scheme applicable to groups of entities, VAT (Advanced)"
 msgstr "Règim especial aplicable a grups d'entitats, IVA (Avançat)"
 
-#, fuzzy
 msgctxt "selection:account.tax.template,verifactu_issued_key:"
 msgid "Special scheme for investment gold"
 msgstr "Règim especial per a l'or d'inversió"
 
-#, fuzzy
 msgctxt "selection:account.tax.template,verifactu_issued_key:"
 msgid "Special scheme for travel agencies"
 msgstr "Règim especial per a agències de viatges"
 
-#, fuzzy
 msgctxt "selection:account.tax.template,verifactu_operation_key:"
 msgid "Corrected Invoice (Art 80.1, 80.2 and 80.6 and error grounded in law)"
 msgstr "Factura corregida (Art. 80.1, 80.2 i 80.6 i error fonamentat en dret)"
 
-#, fuzzy
 msgctxt "selection:account.tax.template,verifactu_operation_key:"
 msgid "Corrected Invoice (Art. 80.3)"
 msgstr "Factura corregida (Art. 80.3)"
 
-#, fuzzy
 msgctxt "selection:account.tax.template,verifactu_operation_key:"
 msgid "Corrected Invoice (Other)"
 msgstr "Factura corregida (Altres)"
 
-#, fuzzy
 msgctxt "selection:account.tax.template,verifactu_operation_key:"
 msgid "Corrected Invoice in simplified invoices"
 msgstr "Factura corregida en factures simplificades"
 
-#, fuzzy
 msgctxt "selection:account.tax.template,verifactu_operation_key:"
 msgid "Credit Note (Art 80.4)"
 msgstr "Nota de crèdit (Art. 80.4)"
 
-#, fuzzy
 msgctxt "selection:account.tax.template,verifactu_operation_key:"
 msgid "Invoice (Art 6.7.3 y 7.3 of RD1619/2012)"
 msgstr "Factura (Art. 6.7.3 i 7.3 del RD1619/2012)"
 
-#, fuzzy
 msgctxt "selection:account.tax.template,verifactu_operation_key:"
 msgid "Invoice issued to replace simplified invoices issued and filed"
 msgstr ""
 "Factura emesa per substituir les factures simplificades emeses i presentades"
 
-#, fuzzy
 msgctxt "selection:account.tax.template,verifactu_operation_key:"
 msgid ""
 "Simplified Invoice (ticket) and Invoices without destination identidication "
@@ -1031,32 +852,26 @@ msgstr ""
 "Factura simplificada (tiquet) i factures sense identificació de destinació "
 "(Art. 6.1.d del RD1619/2012)"
 
-#, fuzzy
 msgctxt "selection:account.tax.template,verifactu_subjected_key:"
 msgid "Exempt by location rules"
 msgstr "Exempt per les normes d'ubicació"
 
-#, fuzzy
 msgctxt "selection:account.tax.template,verifactu_subjected_key:"
 msgid "Exempt on acconunt of Articles 7, 14, others"
 msgstr "Exempt en virtut dels articles 7, 14 i altres"
 
-#, fuzzy
 msgctxt "selection:account.tax.template,verifactu_subjected_key:"
 msgid "Subject - Not exempt. Non VAT reverse charge"
 msgstr "Subjecte - No exempt. Impost invers no IVA"
 
-#, fuzzy
 msgctxt "selection:account.tax.template,verifactu_subjected_key:"
 msgid "Subject - Not exempt. VAT reverse charge"
 msgstr "Subjecte - No exempt. Impost invers de l'IVA"
 
-#, fuzzy
 msgctxt "selection:aeat.verifactu.report.line,identifier_type:"
 msgid "Not registered (only for Spanish VAT not registered)"
 msgstr "No registrat (només per a l'IVA espanyol no registrat)"
 
-#, fuzzy
 msgctxt "selection:aeat.verifactu.report.line,identifier_type:"
 msgid ""
 "Official identification document issued by the country or region of "
@@ -1064,73 +879,59 @@ msgid ""
 msgstr ""
 "Document d'identificació oficial expedit pel país o regió de residència"
 
-#, fuzzy
 msgctxt "selection:aeat.verifactu.report.line,identifier_type:"
 msgid "Other supporting document"
 msgstr "Altre document justificatiu"
 
-#, fuzzy
 msgctxt "selection:aeat.verifactu.report.line,identifier_type:"
 msgid "Passport"
 msgstr "Passaport"
 
-#, fuzzy
 msgctxt "selection:aeat.verifactu.report.line,identifier_type:"
 msgid "Residence certificate"
 msgstr "Certificat de residència"
 
-#, fuzzy
 msgctxt "selection:aeat.verifactu.report.line,identifier_type:"
 msgid "Simplified Invoice"
 msgstr "Factura simplificada"
 
-#, fuzzy
 msgctxt "selection:aeat.verifactu.report.line,identifier_type:"
 msgid "VAT (for National operators)"
 msgstr "IVA (per a operadors nacionals)"
 
-#, fuzzy
 msgctxt "selection:aeat.verifactu.report.line,identifier_type:"
 msgid "VAT (only for intracommunity operators)"
 msgstr "IVA (només per a operadors intracomunitaris)"
 
-#, fuzzy
 msgctxt "selection:aeat.verifactu.report.line,invoice_operation_key:"
 msgid "Corrected Invoice (Art 80.1, 80.2 and 80.6 and error grounded in law)"
 msgstr "Factura corregida (Art. 80.1, 80.2 i 80.6 i error fonamentat en dret)"
 
-#, fuzzy
 msgctxt "selection:aeat.verifactu.report.line,invoice_operation_key:"
 msgid "Corrected Invoice (Art. 80.3)"
 msgstr "Factura corregida (Art. 80.3)"
 
-#, fuzzy
 msgctxt "selection:aeat.verifactu.report.line,invoice_operation_key:"
 msgid "Corrected Invoice (Other)"
 msgstr "Factura corregida (Altres)"
 
-#, fuzzy
 msgctxt "selection:aeat.verifactu.report.line,invoice_operation_key:"
 msgid "Corrected Invoice in simplified invoices"
 msgstr "Factura corregida en factures simplificades"
 
-#, fuzzy
 msgctxt "selection:aeat.verifactu.report.line,invoice_operation_key:"
 msgid "Credit Note (Art 80.4)"
 msgstr "Nota de crèdit (Art. 80.4)"
 
-#, fuzzy
 msgctxt "selection:aeat.verifactu.report.line,invoice_operation_key:"
 msgid "Invoice (Art 6.7.3 y 7.3 of RD1619/2012)"
 msgstr "Factura (Art. 6.7.3 i 7.3 del RD1619/2012)"
 
-#, fuzzy
 msgctxt "selection:aeat.verifactu.report.line,invoice_operation_key:"
 msgid "Invoice issued to replace simplified invoices issued and filed"
 msgstr ""
 "Factura emesa per substituir les factures simplificades emeses i presentades"
 
-#, fuzzy
 msgctxt "selection:aeat.verifactu.report.line,invoice_operation_key:"
 msgid ""
 "Simplified Invoice (ticket) and Invoices without destination identidication "
@@ -1139,62 +940,50 @@ msgstr ""
 "Factura simplificada (tiquet) i factures sense identificació de destinació "
 "(Art. 6.1.d del RD1619/2012)"
 
-#, fuzzy
 msgctxt "selection:aeat.verifactu.report.line,state:"
 msgid "Accepted"
 msgstr "Acceptat"
 
-#, fuzzy
 msgctxt "selection:aeat.verifactu.report.line,state:"
 msgid "Accepted "
 msgstr "Acceptat "
 
-#, fuzzy
 msgctxt "selection:aeat.verifactu.report.line,state:"
 msgid "Accepted with Errors"
 msgstr "Acceptat amb errors"
 
-#, fuzzy
 msgctxt "selection:aeat.verifactu.report.line,state:"
 msgid "Accepted with Errors "
 msgstr "Acceptat amb errors "
 
-#, fuzzy
 msgctxt "selection:aeat.verifactu.report.line,state:"
 msgid "Deleted"
 msgstr "Suprimit"
 
-#, fuzzy
 msgctxt "selection:aeat.verifactu.report.line,state:"
 msgid "Duplicated / Unsubscribed"
 msgstr "Duplicat / Subscrit sense subscripció"
 
-#, fuzzy
 msgctxt "selection:aeat.verifactu.report.line,state:"
 msgid "Pending Sending"
 msgstr "Enviament pendent"
 
-#, fuzzy
 msgctxt "selection:aeat.verifactu.report.line,state:"
 msgid "Pending Sending Fix"
 msgstr "Correcció d'enviament pendent"
 
-#, fuzzy
 msgctxt "selection:aeat.verifactu.report.line,state:"
 msgid "Rejected"
 msgstr "Rebutjat"
 
-#, fuzzy
 msgctxt "selection:ir.cron,method:"
 msgid "AEAT Verifactu"
 msgstr "AEAT Verificat"
 
-#, fuzzy
 msgctxt "selection:party.party,verifactu_identifier_type:"
 msgid "Not registered (only for Spanish VAT not registered)"
 msgstr "No registrat (només per a l'IVA espanyol no registrat)"
 
-#, fuzzy
 msgctxt "selection:party.party,verifactu_identifier_type:"
 msgid ""
 "Official identification document issued by the country or region of "
@@ -1202,77 +991,62 @@ msgid ""
 msgstr ""
 "Document d'identificació oficial expedit pel país o regió de residència"
 
-#, fuzzy
 msgctxt "selection:party.party,verifactu_identifier_type:"
 msgid "Other supporting document"
 msgstr "Altre document justificatiu"
 
-#, fuzzy
 msgctxt "selection:party.party,verifactu_identifier_type:"
 msgid "Passport"
 msgstr "Passaport"
 
-#, fuzzy
 msgctxt "selection:party.party,verifactu_identifier_type:"
 msgid "Residence certificate"
 msgstr "Certificat de residència"
 
-#, fuzzy
 msgctxt "selection:party.party,verifactu_identifier_type:"
 msgid "Simplified Invoice"
 msgstr "Factura simplificada"
 
-#, fuzzy
 msgctxt "selection:party.party,verifactu_identifier_type:"
 msgid "VAT (for National operators)"
 msgstr "IVA (per a operadors nacionals)"
 
-#, fuzzy
 msgctxt "selection:party.party,verifactu_identifier_type:"
 msgid "VAT (only for intracommunity operators)"
 msgstr "IVA (només per a operadors intracomunitaris)"
 
-#, fuzzy
 msgctxt "view:account.configuration:"
 msgid "AEAT Verifactu"
 msgstr "AEAT Verificat"
 
-#, fuzzy
 msgctxt "view:account.invoice:"
 msgid "AEAT Verifactu"
 msgstr "AEAT Verificat"
 
-#, fuzzy
 msgctxt "view:account.tax.template:"
 msgid "AEAT Verifactu"
 msgstr "AEAT Verificat"
 
-#, fuzzy
 msgctxt "view:account.tax:"
 msgid "AEAT Verifactu"
 msgstr "AEAT Verificat"
 
-#, fuzzy
 msgctxt "view:aeat.verifactu.report.line:"
 msgid "Main Information"
 msgstr "Informació principal"
 
-#, fuzzy
 msgctxt "view:aeat.verifactu.reset.keys.end:"
 msgid "The AEAT Verifactu Keys have been reset."
 msgstr "Les claus verificades de l'AEAT s'han restablert."
 
-#, fuzzy
 msgctxt "view:aeat.verifactu.reset.keys.start:"
 msgid "Note that this operation may take a few minutes."
 msgstr "Tingueu en compte que aquesta operació pot trigar uns minuts."
 
-#, fuzzy
 msgctxt "view:aeat.verifactu.reset.keys.start:"
 msgid "Only will be reset the draft invoices."
 msgstr "Només es restabliran els esborranys de factures."
 
-#, fuzzy
 msgctxt "view:aeat.verifactu.reset.keys.start:"
 msgid ""
 "The AEAT Verifactu Keys for selected invoices will be reset to default."
@@ -1280,17 +1054,14 @@ msgstr ""
 "Les claus de verificació de l'AEAT per a les factures seleccionades es "
 "restabliran als valors predeterminats."
 
-#, fuzzy
 msgctxt "wizard_button:aeat.verifactu.reset.keys,done,end:"
 msgid "Ok"
 msgstr "D'acord"
 
-#, fuzzy
 msgctxt "wizard_button:aeat.verifactu.reset.keys,start,end:"
 msgid "Cancel"
 msgstr "Cancel·la"
 
-#, fuzzy
 msgctxt "wizard_button:aeat.verifactu.reset.keys,start,reset:"
 msgid "Reset"
 msgstr "Restablir"
