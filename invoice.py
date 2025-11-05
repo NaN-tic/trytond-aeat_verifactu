@@ -503,6 +503,9 @@ class Invoice(metaclass=PoolMeta):
         return header
 
     def get_aeat_qr_url(self, name):
+        if not self.is_verifactu:
+            return
+
         if PRODUCTION_ENV:
             url = PRODUCTION_QR_URL
         else:
@@ -513,7 +516,7 @@ class Invoice(metaclass=PoolMeta):
         fecha = self.invoice_date.strftime("%d-%m-%Y") if self.invoice_date else None
         importe = self.total_amount
 
-        if not all([nif, numserie, fecha, importe]) or not self.is_verifactu:
+        if not all([nif, numserie, fecha, importe]):
             return
 
         params = {
