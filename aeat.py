@@ -456,16 +456,16 @@ class VerifactuRequest:
     def _build_encadenamiento(self, last_line=None):
         if not last_line:
             return {
-                "PrimerRegistro": "S",
+                'PrimerRegistro': 'S',
                 }
         invoice = last_line.invoice
         return {
-            "RegistroAnterior": {
-                "IDEmisorFactura": invoice.company.party.verifactu_vat_code,
-                "NumSerieFactura": invoice.number,
-                "FechaExpedicionFactura": invoice.invoice_date.strftime(
+            'RegistroAnterior': {
+                'IDEmisorFactura': invoice.company.party.verifactu_vat_code,
+                'NumSerieFactura': invoice.number,
+                'FechaExpedicionFactura': invoice.invoice_date.strftime(
                     DATE_FMT),
-                "Huella": last_line.huella,
+                'Huella': last_line.huella,
                 }}
 
     def _description(self):
@@ -512,14 +512,15 @@ class VerifactuRequest:
         return base
 
     def build_huella(self, previous_hash=None, time=None):
-        data_string = f"IDEmisorFactura={self.invoice.company.party.verifactu_vat_code}&" \
-              f"NumSerieFactura={self.invoice.number}&" \
-              f"FechaExpedicionFactura={self.invoice.invoice_date.strftime('%d-%m-%Y')}&" \
-              f"TipoFactura={self.invoice.verifactu_operation_key}&" \
-              f"CuotaTotal={sum(tax.company_amount for tax in self.taxes())}&" \
-              f"ImporteTotal={self.get_invoice_total()}&" \
-              f"Huella={previous_hash or ''}&" \
-              f"FechaHoraHusoGenRegistro={time}"
+        data_string = (
+            f'IDEmisorFactura={self.invoice.company.party.verifactu_vat_code}&'
+            f'NumSerieFactura={self.invoice.number}&'
+            f'FechaExpedicionFactura={self.invoice.invoice_date.strftime('%d-%m-%Y')}&'
+            f'TipoFactura={self.invoice.verifactu_operation_key}&'
+            f'CuotaTotal={sum(tax.company_amount for tax in self.taxes())}&'
+            f'ImporteTotal={self.get_invoice_total()}&'
+            f'Huella={previous_hash or ''}&'
+            f'FechaHoraHusoGenRegistro={time}')
         hash_object = hashlib.sha256(data_string.encode('utf-8'))
         return hash_object.hexdigest().upper()
 
@@ -527,72 +528,62 @@ class VerifactuRequest:
         desgloses = []
         for tax in self.taxes():
             desglose = {}
-            desglose["ClaveRegimen"] = tax.tax.verifactu_issued_key
+            desglose['ClaveRegimen'] = tax.tax.verifactu_issued_key
             if tax.tax.verifactu_subjected_key is not None:
-                desglose["CalificacionOperacion"]= tax.tax.verifactu_subjected_key
+                desglose['CalificacionOperacion']= tax.tax.verifactu_subjected_key
             else:
-                desglose["OperacionExenta"] = tax.tax.verifactu_exemption_cause
-            desglose["TipoImpositivo"] = tools._rate_to_percent(tax.tax.rate)
-            desglose["BaseImponibleOimporteNoSujeto"] = tax.company_base
-            desglose["CuotaRepercutida"] = tax.company_amount
+                desglose['OperacionExenta'] = tax.tax.verifactu_exemption_cause
+            desglose['TipoImpositivo'] = tools._rate_to_percent(tax.tax.rate)
+            desglose['BaseImponibleOimporteNoSujeto'] = tax.company_base
+            desglose['CuotaRepercutida'] = tax.company_amount
             if tax.tax.recargo_equivalencia_related_tax:
                 for tax2 in self.invoice.taxes:
                     if (tax2.tax.recargo_equivalencia and
                             tax.tax.recargo_equivalencia_related_tax ==
                             tax2.tax and tax2.base ==
                             tax2.base.copy_sign(tax.base)):
-                        desglose["TipoRecargoEquivalencia"] = tools._rate_to_percent(
+                        desglose['TipoRecargoEquivalencia'] = tools._rate_to_percent(
                             tax2.tax.rate)
-                        desglose["CuotaRecargoEquivalencia"] = tax2.company_amount
-                        desglose["ClaveRegimen"] = 18 # Recargo de equivalencia
+                        desglose['CuotaRecargoEquivalencia'] = tax2.company_amount
+                        desglose['ClaveRegimen'] = 18 # Recargo de equivalencia
                         break
             desgloses.append(desglose)
         return desgloses
 
     def build_invoice(self, last_huella=None, last_line=None):
-        tz = pytz.timezone("Europe/Madrid")
+        tz = pytz.timezone('Europe/Madrid')
         dt_now = datetime.now(tz).replace(microsecond=0)
         formatted_now = dt_now.isoformat()
-        # yesterday = dt_now - timedelta(days=1)
-        # formatted_yesterday = yesterday.isoformat()
 
         ret = {
-            "IDVersion": "1.0",
-            "IDFactura": self._build_invoice_id(),
-            "NombreRazonEmisor": tools.unaccent(self.invoice.company.party.name),
-            "TipoFactura": self.invoice.verifactu_operation_key,
-            "DescripcionOperacion": self._description(),
-            "Desglose": {
-                "DetalleDesglose": self.build_desglose(),
+            'IDVersion': '1.0',
+            'IDFactura': self._build_invoice_id(),
+            'NombreRazonEmisor': tools.unaccent(self.invoice.company.party.name),
+            'TipoFactura': self.invoice.verifactu_operation_key,
+            'DescripcionOperacion': self._description(),
+            'Desglose': {
+                'DetalleDesglose': self.build_desglose(),
                 },
-            "CuotaTotal": sum(tax.company_amount for tax in self.taxes()),
-            "ImporteTotal": self.get_invoice_total(),
-            "Encadenamiento": self._build_encadenamiento(last_line),
-            "SistemaInformatico": get_sistema_informatico(),
-            "FechaHoraHusoGenRegistro":  formatted_now,
-            "TipoHuella": "01",
-            "Huella": self.build_huella(last_huella, formatted_now)
+            'CuotaTotal': sum(tax.company_amount for tax in self.taxes()),
+            'ImporteTotal': self.get_invoice_total(),
+            'Encadenamiento': self._build_encadenamiento(last_line),
+            'SistemaInformatico': get_sistema_informatico(),
+            'FechaHoraHusoGenRegistro':  formatted_now,
+            'TipoHuella': '01',
+            'Huella': self.build_huella(last_huella, formatted_now)
             }
-        self._update_subsanacion(ret)
-        self._update_counterpart(ret)
-        self._update_rectified_invoice(ret)
-        print('=======', ret)
-        return ret
 
-    def _update_subsanacion(self, ret):
-        if not self.invoice.verifactu_records:
-            return
-        if self.invoice.verifactu_state == 'PendienteEnvioSubsanacion':
+        if (self.invoice.verifactu_records
+                and self.invoice.verifactu_state == 'PendienteEnvioSubsanacion'):
+
             ret['Subsanacion'] = 'S'
             ret['RechazoPrevio'] = 'S'
 
-    def _update_counterpart(self, ret):
         if ret['TipoFactura'] not in {'F2', 'R5'}:
             ret['Destinatarios'] = {
-                "IDDestinatario": self._build_counterpart()
+                'IDDestinatario': self._build_counterpart()
                 }
 
-    def _update_rectified_invoice(self, ret):
         if ret['TipoFactura'] in RECTIFIED_KINDS:
             ret['TipoRectificativa'] = 'I'
             if ret['TipoRectificativa'] == 'S':
@@ -601,6 +592,9 @@ class VerifactuRequest:
                     'CuotaRectificada': self.rectified_amount(),
                     # TODO: CuotaRecargoRectificado
                     }
+
+        print('=======', ret)
+        return ret
 
 
 class VerifactuService(object):
