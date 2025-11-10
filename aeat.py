@@ -361,6 +361,18 @@ class VerifactuRequest:
     def __init__(self, invoice):
         self.invoice = invoice
 
+    def build_delete_request(self):
+        return {
+            'PeriodoLiquidacion': self._build_period(),
+            'IDFactura': self._build_invoice_id(),
+            }
+
+    def build_submit_request(self, last_huella=None, last_line=None):
+        request = {}
+        request['RegistroAlta'] = self.build_invoice(last_huella, last_line=last_line)
+        return request
+
+
     def get_invoice_total(self):
         taxes = self.total_invoice_taxes()
         taxes_base = 0
@@ -468,39 +480,6 @@ class VerifactuRequest:
                 'Huella': last_line.huella,
                 }}
 
-    def _description(self):
-        description = ''
-        if self.invoice.description:
-            description = tools.unaccent(self.invoice.description)
-        if self.invoice.lines and self.invoice.lines[0].description:
-            description = tools.unaccent(self.invoice.lines[0].description)
-        description = self.serial_number()
-        return description
-
-    @staticmethod
-    def build_query_filter(year=None, period=None, clave_paginacion=None):
-        result = {
-            'PeriodoImputacion': {
-                'Ejercicio': year,
-                'Periodo': tools.format_period(period),
-                },
-            'SistemaInformatico': get_sistema_informatico(),
-            }
-        if clave_paginacion:
-            result['ClavePaginacion'] = clave_paginacion
-        return result
-
-    def build_delete_request(self):
-        return {
-            'PeriodoLiquidacion': self._build_period(),
-            'IDFactura': self._build_invoice_id(),
-            }
-
-    def build_submit_request(self, last_huella=None, last_line=None):
-        request = {}
-        request['RegistroAlta'] = self.build_invoice(last_huella, last_line=last_line)
-        return request
-
     def location_rules(self):
         base = 0
         taxes = self.total_invoice_taxes()
@@ -555,12 +534,19 @@ class VerifactuRequest:
         dt_now = datetime.now(tz).replace(microsecond=0)
         formatted_now = dt_now.isoformat()
 
+        description = ''
+        if self.invoice.description:
+            description = tools.unaccent(self.invoice.description)
+        if self.invoice.lines and self.invoice.lines[0].description:
+            description = tools.unaccent(self.invoice.lines[0].description)
+        description = self.serial_number()
+
         ret = {
             'IDVersion': '1.0',
             'IDFactura': self._build_invoice_id(),
             'NombreRazonEmisor': tools.unaccent(self.invoice.company.party.name),
             'TipoFactura': self.invoice.verifactu_operation_key,
-            'DescripcionOperacion': self._description(),
+            'DescripcionOperacion': description,
             'Desglose': {
                 'DetalleDesglose': self.build_desglose(),
                 },
@@ -632,9 +618,7 @@ class VerifactuService(object):
 
         wsdl += 'SistemaFacturacion.wsdl'
         cli = VerifactuService.get_client(wsdl, crt, pkey, test)
-
-        return VerifactuService(
-            cli.bind('sfVerifactu', port_name))
+        return VerifactuService(cli.bind('sfVerifactu', port_name))
 
     def submit(self, headers, invoices, last_huella=None, last_line=None):
         body = []
@@ -644,8 +628,7 @@ class VerifactuService(object):
                 last_huella, last_line))
 
         logger.debug(body)
-        res = self.service.RegFactuSistemaFacturacion(
-            headers, body)
+        res = self.service.RegFactuSistemaFacturacion(headers, body)
         logger.debug(res)
         return res, str(body)
 
@@ -656,10 +639,16 @@ class VerifactuService(object):
         return res
 
     def query(self, headers, year=None, period=None, clave_paginacion=None):
-        filter_ = aeat.VerifactuRequest.build_query_filter(year=year,
-            period=period, clave_paginacion=clave_paginacion)
+        filter_ = {
+            'PeriodoImputacion': {
+                'Ejercicio': year,
+                'Periodo': tools.format_period(period),
+                },
+            'SistemaInformatico': get_sistema_informatico(),
+            }
+        if clave_paginacion:
+            filter_['ClavePaginacion'] = clave_paginacion
         logger.debug(filter_)
-        res = self.service.ConsultaFactuSistemaFacturacion(
-            headers, filter_)
+        res = self.service.ConsultaFactuSistemaFacturacion(headers, filter_)
         logger.debug(res)
         return res
