@@ -359,20 +359,6 @@ class VerifactuRequest:
             taxes_used[parent.id] = base
         return (taxes_amount + taxes_base + taxes_surcharge)
 
-    def counterpart_id_type(self):
-        if self.invoice.party_tax_identifier:
-            vat_type = self.invoice.party_tax_identifier.es_vat_type()
-        else:
-            vat_type = self.invoice.party.verifactu_identifier_type
-        for tax in self.invoice.taxes:
-            if (tax.tax.verifactu_exemption_cause == 'E5' and
-                    vat_type != '02'):
-                raise UserError(gettext(
-                        'aeat_verifactu.msg_wrong_identifier_type',
-                        invoice=self.invoice.number,
-                        party=self.invoice.party.rec_name))
-        return vat_type
-
     def serial_number(self):
         return self.invoice.number if self.invoice.type == 'out' else (self.invoice.reference or '')
 
@@ -420,20 +406,29 @@ class VerifactuRequest:
         ret = {
             'NombreRazon': tools.unaccent(self.invoice.party.name),
             }
-        id_type = self.counterpart_id_type()
 
-        nif = ''
+
+        vat = ''
         if not self.invoice.simplified:
-            nif = self.invoice.party.tax_identifier.es_code()
-        if id_type and id_type in OTHER_ID_TYPES:
+            identifier = self.invoice.party_tax_identifier
+            if identifier:
+                vat = identifier.es_code()
+                vat_type = identifier.es_vat_type()
+                for tax in self.invoice.taxes:
+                    if (tax.tax.verifactu_exemption_cause == 'E5' and
+                            vat_type != '02'):
+                        raise UserError(gettext(
+                                'aeat_verifactu.msg_wrong_identifier_type',
+                                invoice=self.invoice.number,
+                                party=self.invoice.party.rec_name))
+        if vat_type and vat_type in OTHER_ID_TYPES:
             ret['IDOtro'] = {
-                'IDType': id_type,
-                'CodigoPais': (self.invoice.invoice_address.country.code if
-                    self.invoice.invoice_address.country else ''),
-                'ID': nif,
+                'IDType': vat_type,
+                'CodigoPais': identifier.es_country(),
+                'ID': vat,
                 }
         else:
-            ret['NIF'] = nif
+            ret['NIF'] = vat
         return ret
 
     def _build_encadenamiento(self, last_line=None):
