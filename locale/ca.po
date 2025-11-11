@@ -409,7 +409,7 @@ msgstr "Línies d'informe de verificació de l'AEAT"
 
 msgctxt "model:ir.ui.menu,name:menu_aeat_verifactu_report_menu"
 msgid "AEAT Verifactu"
-msgstr "AEAT Verificat"
+msgstr "AEAT Verifactu"
 
 msgctxt "selection:account.invoice,verifactu_communication_type:"
 msgid "Amendment of invoices/records (registration errors)"
@@ -978,7 +978,7 @@ msgstr "Rebutjat"
 
 msgctxt "selection:ir.cron,method:"
 msgid "AEAT Verifactu"
-msgstr "AEAT Verificat"
+msgstr "AEAT Verifactu"
 
 msgctxt "selection:party.party,verifactu_identifier_type:"
 msgid "Not registered (only for Spanish VAT not registered)"
@@ -1017,19 +1017,19 @@ msgstr "IVA (només per a operadors intracomunitaris)"
 
 msgctxt "view:account.configuration:"
 msgid "AEAT Verifactu"
-msgstr "AEAT Verificat"
+msgstr "AEAT Verifactu"
 
 msgctxt "view:account.invoice:"
 msgid "AEAT Verifactu"
-msgstr "AEAT Verificat"
+msgstr "AEAT Verifactu"
 
 msgctxt "view:account.tax.template:"
 msgid "AEAT Verifactu"
-msgstr "AEAT Verificat"
+msgstr "AEAT Verifactu"
 
 msgctxt "view:account.tax:"
 msgid "AEAT Verifactu"
-msgstr "AEAT Verificat"
+msgstr "AEAT Verifactu"
 
 msgctxt "view:aeat.verifactu.report.line:"
 msgid "Main Information"
