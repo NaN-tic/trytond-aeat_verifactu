@@ -133,16 +133,6 @@ class Invoice(metaclass=PoolMeta):
             config = Configuration(1)
             return config.aeat_certificate_verifactu
 
-    def _set_verifactu_keys(self):
-        tax = None
-        for t in self.taxes:
-            if t.tax and t.tax.verifactu_tax_used:
-                tax = t.tax
-                break
-        if not tax:
-            return
-        self.verifactu_operation_key = tax.verifactu_operation_key
-
     @classmethod
     def create(cls, vlist):
         pool = Pool()
@@ -167,12 +157,6 @@ class Invoice(metaclass=PoolMeta):
         if self.verifactu_operation_key and self.type == 'out':
             return True
         return False
-
-    @fields.depends('verifactu_operation_key', methods=['_set_verifactu_keys'])
-    def _on_change_lines_taxes(self):
-        super()._on_change_lines_taxes()
-        if not self.verifactu_operation_key:
-            self._set_verifactu_keys()
 
     @classmethod
     def copy(cls, records, default=None):

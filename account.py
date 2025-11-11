@@ -4,8 +4,7 @@ from trytond.model import fields, ModelSQL
 from trytond.pool import Pool, PoolMeta
 from trytond.pyson import Eval, Bool
 from trytond.modules.company.model import CompanyValueMixin
-from .aeat import (OPERATION_KEY, SEND_SPECIAL_REGIME_KEY,
-    IVA_SUBJECTED, EXEMPTION_CAUSE)
+from .aeat import SEND_SPECIAL_REGIME_KEY, IVA_SUBJECTED, EXEMPTION_CAUSE
 
 
 class Configuration(metaclass=PoolMeta):
@@ -43,8 +42,6 @@ class ConfigurationDefaultVerifactu(ModelSQL, CompanyValueMixin):
 class TemplateTax(metaclass=PoolMeta):
     __name__ = 'account.tax.template'
 
-    verifactu_operation_key = fields.Selection(OPERATION_KEY,
-        'Verifactu Operation Key')
     verifactu_issued_key = fields.Selection(SEND_SPECIAL_REGIME_KEY,
         'Issued Key')
     verifactu_subjected_key = fields.Selection(IVA_SUBJECTED, 'Subjected Key')
@@ -58,20 +55,16 @@ class TemplateTax(metaclass=PoolMeta):
 
     def _get_tax_value(self, tax=None):
         res = super()._get_tax_value(tax)
-        for field in ('verifactu_operation_key', 'verifactu_issued_key',
-                'verifactu_subjected_key', 'verifactu_exemption_cause',
-                'verifactu_tax_used'):
-
+        for field in ('verifactu_issued_key', 'verifactu_subjected_key',
+                'verifactu_exemption_cause', 'verifactu_tax_used'):
             if not tax or getattr(tax, field) != getattr(self, field):
                 res[field] = getattr(self, field)
-
         return res
 
 
 class Tax(metaclass=PoolMeta):
     __name__ = 'account.tax'
 
-    verifactu_operation_key = fields.Selection(OPERATION_KEY, 'Verifactu Operation Key')
     verifactu_issued_key = fields.Selection(SEND_SPECIAL_REGIME_KEY, 'Issued Key')
     verifactu_subjected_key = fields.Selection(IVA_SUBJECTED, 'Subjected Key')
     verifactu_exemption_cause = fields.Selection(EXEMPTION_CAUSE, 'Exemption Cause')

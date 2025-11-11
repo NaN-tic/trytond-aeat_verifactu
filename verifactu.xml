@@ -12,22 +12,18 @@ this repository contains the full copyright notices and license terms. -->
             <field name="verifactu_exemption_cause">E2</field>
         </record>
         <record model="account.tax.template" id="account_es.iva_ISP_compras_16">
-            <field name="verifactu_operation_key">F1</field>
             <field name="verifactu_issued_key">01</field>
             <field name="verifactu_subjected_key">S2</field>
         </record>
         <record model="account.tax.template" id="account_es.iva_isp">
-            <field name="verifactu_operation_key">F1</field>
             <field name="verifactu_issued_key">01</field>
             <field name="verifactu_subjected_key">S2</field>
         </record>
         <record model="account.tax.template" id="account_es.iva_ISP_reciclaje_0">
-            <field name="verifactu_operation_key">F1</field>
             <field name="verifactu_issued_key">01</field>
             <field name="verifactu_subjected_key">S2</field>
         </record>
         <record model="account.tax.template" id="account_es.iva_ISP_obra_0">
-            <field name="verifactu_operation_key">F1</field>
             <field name="verifactu_issued_key">01</field>
             <field name="verifactu_subjected_key">S2</field>
         </record>

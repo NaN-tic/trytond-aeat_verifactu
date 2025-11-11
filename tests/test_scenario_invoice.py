@@ -67,8 +67,9 @@ class Test(unittest.TestCase):
 
         # Check verifactu fields
         self.assertTrue(invoice.is_verifactu)
-        self.assertEqual(invoice.verifactu_operation_key, 'F1')
+        self.assertEqual(invoice.verifactu_operation_key, None)
         self.assertEqual(invoice.verifactu_state, None)
         self.assertEqual(invoice.verifactu_pending_sending, False)
 
         invoice.click('post')
+        self.assertEqual(invoice.verifactu_operation_key, 'F1')
