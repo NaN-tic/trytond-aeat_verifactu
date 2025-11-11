@@ -320,6 +320,16 @@ def get_sistema_informatico():
         'IndicadorMultiplesOT': 'S' if companies > 1 else 'N',
         }
 
+def get_headers(company):
+    return {
+        'IDVersion': '1.0',
+        'ObligadoEmision': {
+            'NombreRazon': tools.unaccent(company.party.name),
+            'NIF': company.party.verifactu_vat_code,
+            # TODO: NIFRepresentante
+        },
+    }
+
 
 class VerifactuRequest:
 
@@ -553,17 +563,14 @@ class VerifactuService(object):
         self.service = service
 
     @staticmethod
-    def get_client(wsdl, public_crt, private_key, test=True):
+    def get_client(wsdl, crt, pkey):
         session = Session()
-        session.cert = (public_crt, private_key)
+        session.cert = (crt, pkey)
         transport = Transport(session=session)
         settings = Settings(forbid_entities=False)
         plugins = [HistoryPlugin()]
-        # TODO: manually handle sessionId? Not mandatory yet recommended...
-        # http://www.agenciatributaria.es/AEAT.internet/Inicio/Ayuda/Modelos__Procedimientos_y_Servicios/Ayuda_P_G417____IVA__Llevanza_de_libros_registro__SII_/Ayuda_tecnica/Informacion_tecnica_SII/Preguntas_tecnicas_frecuentes/1__Cuestiones_Generales/16___Como_se_debe_utilizar_el_dato_sesionId__.shtml
-        if test:
+        if not PRODUCTION_ENV:
             plugins.append(LoggingPlugin())
-
         try:
             client = Client(wsdl=wsdl, transport=transport, plugins=plugins, settings=settings)
         except ConnectionError as e:
@@ -572,7 +579,7 @@ class VerifactuService(object):
         return client
 
     @staticmethod
-    def bind(crt, pkey, test=True):
+    def bind(crt, pkey):
         if PRODUCTION_ENV:
             wsdl = WSDL_PROD
             port_name = 'SistemaVerifactu'
@@ -581,28 +588,24 @@ class VerifactuService(object):
             port_name = 'SistemaVerifactuPruebas'
 
         wsdl += 'SistemaFacturacion.wsdl'
-        cli = VerifactuService.get_client(wsdl, crt, pkey, test)
+        cli = VerifactuService.get_client(wsdl, crt, pkey)
         return VerifactuService(cli.bind('sfVerifactu', port_name))
 
-    def submit(self, headers, invoices, last_huella=None, last_line=None):
+    def submit(self, company, invoices, last_huella=None, last_line=None):
+        headers = get_headers(company)
         body = []
         for invoice in invoices:
             request = aeat.VerifactuRequest(invoice)
             body.append(request.build_submit_request(
                 last_huella, last_line))
+        return self.service.RegFactuSistemaFacturacion(headers, body)
 
-        logger.debug(body)
-        res = self.service.RegFactuSistemaFacturacion(headers, body)
-        logger.debug(res)
-        return res, str(body)
+    def cancel(self, company, body):
+        headers = get_headers(company)
+        return self.service.AnulacionLRFacturasEmitidas(headers, body)
 
-    def cancel(self, headers, body):
-        logger.debug(body)
-        res = self.service.AnulacionLRFacturasEmitidas(headers, body)
-        logger.debug(res)
-        return res
-
-    def query(self, headers, year=None, period=None, clave_paginacion=None):
+    def query(self, company, year=None, period=None, clave_paginacion=None):
+        headers = get_headers(company)
         filter_ = {
             'PeriodoImputacion': {
                 'Ejercicio': year,
@@ -612,7 +615,4 @@ class VerifactuService(object):
             }
         if clave_paginacion:
             filter_['ClavePaginacion'] = clave_paginacion
-        logger.debug(filter_)
-        res = self.service.ConsultaFactuSistemaFacturacion(headers, filter_)
-        logger.debug(res)
-        return res
+        return self.service.ConsultaFactuSistemaFacturacion(headers, filter_)

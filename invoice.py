@@ -11,7 +11,6 @@ from trytond.i18n import gettext
 from trytond.exceptions import UserError, UserWarning
 from trytond.wizard import Wizard, StateView, StateTransition, Button
 from .aeat import OPERATION_KEY, AEAT_INVOICE_STATE
-from . import tools
 from . import aeat
 from datetime import datetime
 from urllib.parse import urlencode
@@ -66,10 +65,21 @@ class Invoice(metaclass=PoolMeta):
             ]
 
     def get_is_verifactu(self, name):
-        if not self.move:
-            return False
+        pool = Pool()
+        Period = pool.get('account.period')
+        Date = pool.get('ir.date')
+
+        if self.move:
+            period = self.move.period
+        else:
+            with Transaction().set_context(company=self.company.id):
+                today = Date.today()
+                accounting_date = (
+                    self.accounting_date or self.invoice_date or today)
+                period = Period.find(self.company, date=accounting_date,
+                    test_state=False)
         return (self.type == 'out'
-            and self.move.period.es_verifactu_send_invoices)
+            and period.es_verifactu_send_invoices)
 
     @classmethod
     def search_is_verifactu(cls, name, clause):
@@ -246,6 +256,7 @@ class Invoice(metaclass=PoolMeta):
                 continue
 
             invoice.verifactu_pending_sending = True
+            invoice.verifactu_state = 'PendienteEnvio'
             if not invoice.move or invoice.move.state == 'draft':
                 to_check.append(invoice)
 
@@ -305,35 +316,30 @@ class Invoice(metaclass=PoolMeta):
         pool = Pool()
         Verifactu = pool.get('aeat.verifactu')
         VerifactuConfig = pool.get('account.configuration.default_verifactu')
+        Company = pool.get('company.company')
 
+        company = Company(Transaction().context.get('company'))
         configs = VerifactuConfig.search([
-                ('company', '=', Transaction().context.get('company')),
+                ('company', '=', company),
                 ], limit=1)
         VerifactuConfig.lock(configs)
 
         invoices = cls.search([
+                ('company', '=', company),
                 ('move.period.es_verifactu_send_invoices', '=', True),
                 ('type', '=', 'out'),
                 ['OR',
                     ('verifactu_state', '=', 'Incorrecto'),
                     ('verifactu_state', '=', 'PendienteEnvio')],
                 ], order=[('invoice_date', 'ASC')])
-        huella, last_line = cls.synchro_query(invoices)
+        # TODO: Synchronize invoices missing since last_line
+        huella, last_line = cls.synchro_query(company)
         if not invoices:
             return
-        invoice = invoices[0]
-        headers = tools.get_headers(
-            name=tools.unaccent(invoice.company.party.name),
-            vat=invoice.company.party.verifactu_vat_code,
-            version='1.0')
-        certificate = invoice._get_certificate()
-
+        certificate = cls._get_verifactu_certificate()
         with certificate.tmp_ssl_credentials() as (crt, key):
-            srv = aeat.VerifactuService.bind(crt, key)
-            response, body = srv.submit(
-                headers,
-                invoices,
-                last_huella=huella,
+            service = aeat.VerifactuService.bind(crt, key)
+            response = service.submit(company, invoices, last_huella=huella,
                 last_line=last_line)
             lines_to_save = []
             invoices_to_save = []
@@ -355,34 +361,28 @@ class Invoice(metaclass=PoolMeta):
                 lines_to_save.append(new_line)
             Verifactu.save(lines_to_save)
             cls.save(invoices_to_save)
-        cls.synchro_query(invoices)
+        cls.synchro_query(company)
 
-    def get_period(year, period, invoices):
-        records = []
-        if not invoices:
-            return
-        invoice = invoices[0]
-        headers = tools.get_headers(
-            name=tools.unaccent(invoice.company.party.name),
-            vat=invoice.company.party.verifactu_vat_code,
-            version='1.0')
-        certificate = invoice._get_certificate()
+    @classmethod
+    def get_verifactu_invoices(cls, company, year, period):
+        certificate = cls._get_verifactu_certificate()
         pagination = 'S'
         clave_paginacion = None
+        records = []
         while pagination == 'S':
             with certificate.tmp_ssl_credentials() as (crt, key):
-                srv = aeat.VerifactuService.bind(crt, key)
-                res = srv.query(headers, year=year, period=period, clave_paginacion=clave_paginacion)
-                invoices = res.RegistroRespuestaConsultaFactuSistemaFacturacion
+                service = aeat.VerifactuService.bind(crt, key)
+                response = service.query(company, year=year, period=period, clave_paginacion=clave_paginacion)
+                invoices = response.RegistroRespuestaConsultaFactuSistemaFacturacion
                 if invoices:
                     records.extend(invoices)
-            pagination = res.IndicadorPaginacion
+            pagination = response.IndicadorPaginacion
             if pagination == 'S':
-                clave_paginacion = res.ClavePaginacion
+                clave_paginacion = response.ClavePaginacion
         return records
 
     @classmethod
-    def synchro_query(cls, invoices):
+    def synchro_query(cls, company):
         pool = Pool()
         Verifactu = pool.get('aeat.verifactu')
 
@@ -393,7 +393,7 @@ class Invoice(metaclass=PoolMeta):
         attempts = 24
         last_line = None
         while attempts > 0:
-            records = cls.get_period(year, period, invoices)
+            records = cls.get_verifactu_invoices(company, year, period)
             if not records:
                 return None, None
             huella = None
@@ -426,7 +426,8 @@ class Invoice(metaclass=PoolMeta):
             attempts -= 1
         return huella, last_line
 
-    def _get_certificate(self):
+    @classmethod
+    def _get_verifactu_certificate(self):
         Configuration = Pool().get('account.configuration')
         config = Configuration(1)
 

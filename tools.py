@@ -38,16 +38,6 @@ def _rate_to_percent(rate):
     return None if rate is None else abs(round(100 * rate, 2))
 
 
-def get_headers(name=None, vat=None, comm_kind=None, version='1.0'):
-    return {
-        'IDVersion': '1.0',
-        'ObligadoEmision': {
-            'NombreRazon': name,
-            'NIF': vat,
-            # TODO: NIFRepresentante
-        },
-    }
-
 class LoggingPlugin(Plugin):
 
     def ingress(self, envelope, http_headers, operation):
