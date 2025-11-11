@@ -476,11 +476,11 @@ class VerifactuRequest:
             desglose['ClaveRegimen'] = tax.tax.verifactu_issued_key
             if tax.tax.verifactu_subjected_key is not None:
                 desglose['CalificacionOperacion']= tax.tax.verifactu_subjected_key
+                desglose['TipoImpositivo'] = tools._rate_to_percent(tax.tax.rate)
+                desglose['CuotaRepercutida'] = tax.company_amount
             else:
                 desglose['OperacionExenta'] = tax.tax.verifactu_exemption_cause
-            desglose['TipoImpositivo'] = tools._rate_to_percent(tax.tax.rate)
             desglose['BaseImponibleOimporteNoSujeto'] = tax.company_base
-            desglose['CuotaRepercutida'] = tax.company_amount
             if tax.tax.recargo_equivalencia_related_tax:
                 for tax2 in self.invoice.taxes:
                     if (tax2.tax.recargo_equivalencia and
