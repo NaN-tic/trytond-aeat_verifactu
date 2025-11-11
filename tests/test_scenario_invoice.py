@@ -3,6 +3,7 @@ from decimal import Decimal
 import unittest
 from trytond.tests.test_tryton import drop_db
 from trytond.tests.tools import activate_modules
+from trytond.exceptions import UserError
 from tools import setup
 
 class Test(unittest.TestCase):
@@ -74,3 +75,7 @@ class Test(unittest.TestCase):
         self.assertEqual(invoice.state, 'posted')
         self.assertTrue(invoice.is_verifactu)
         self.assertEqual(invoice.verifactu_operation_key, 'F1')
+
+        vars.fiscalyear.es_verifactu_send_invoices = False
+        with self.assertRaises(UserError):
+            vars.fiscalyear.save()
