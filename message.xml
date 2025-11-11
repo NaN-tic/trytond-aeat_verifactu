@@ -21,13 +21,13 @@ If you edit them be careful that you need to update to Verifactu again</field>
           <field name="text">There are some reports in draft and/or confirmed. No report will be created until these reports will be processed.</field>
       </record>
         <record model="ir.message" id="msg_missing_nif">
-            <field name="text">The party of the invoice %(invoice)s must have a valid Tax Identifier.</field>
+            <field name="text">The party of invoice "%(invoice)s" must have a valid Tax Identifier.</field>
         </record>
         <record model="ir.message" id="msg_verifactu_operation_key_wrong">
-            <field name="text">The invoice %(invoice)s has a wrong subject and operation Verifactu combination.</field>
+            <field name="text">Invoice "%(invoice)s" has a wrong subject and operation Verifactu combination.</field>
         </record>
         <record model="ir.message" id="msg_wrong_identifier_type">
-            <field name="text">The party [%(party)s] of the invoice %(invoice)s must have a valid Verifactu Identifier [VAT (only for intracommunity operators)].</field>
+            <field name="text">Party "%(party)s" of invoice "%(invoice)s" must have a valid Verifactu Identifier "VAT (only for intracommunity operators)".</field>
         </record>
         <record model="ir.message" id="msg_report_wrong_invoice_state">
             <field name="text">Invoice "%(invoice)s" must be posted, paid or refunded.</field>

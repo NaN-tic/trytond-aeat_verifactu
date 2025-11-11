@@ -130,8 +130,8 @@ msgctxt "field:aeat.verifactu,exemption_cause:"
 msgid "Exemption Cause"
 msgstr "Causa d'exempció"
 
-msgctxt "field:aeat.verifactu,huella:"
-msgid "Huella"
+msgctxt "field:aeat.verifactu,fingerprint:"
+msgid "Fingerprint"
 msgstr "Empremta"
 
 msgctxt "field:aeat.verifactu,identifier_type:"

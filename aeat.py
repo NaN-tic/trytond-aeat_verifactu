@@ -7,7 +7,6 @@ import hashlib
 
 import trytond
 from trytond.model import ModelSQL, ModelView, fields
-from trytond.pyson import Eval
 from trytond.pool import Pool
 from trytond.transaction import Transaction
 from trytond.config import config
@@ -177,13 +176,7 @@ class Verifactu(ModelSQL, ModelView):
     __name__ = 'aeat.verifactu'
 
     invoice = fields.Many2One('account.invoice', 'Invoice', required=True,
-            domain=[
-                ('type', '=', 'out'),
-                ],
-            states={
-                'required': Eval('_parent_invoice', {}).get(
-                    'operation_type') != 'C0',
-            })
+        domain=[('type', '=', 'out')])
     state = fields.Selection(AEAT_INVOICE_STATE, 'State')
     last_modify_date = fields.DateTime('Last Modification Date', readonly=True)
     communication_code = fields.Integer('Communication Code', readonly=True)
@@ -201,7 +194,7 @@ class Verifactu(ModelSQL, ModelView):
     invoice_operation_key = fields.Function(fields.Selection(OPERATION_KEY,
             'Operation Key'), 'get_invoice_operation_key')
     exemption_cause = fields.Char('Exemption Cause', readonly=True)
-    huella = fields.Text('Huella', readonly=True)
+    fingerprint = fields.Text('Fingerprint', readonly=True)
     error_message = fields.Char('Error Message', readonly=True)
 
     def get_invoice_operation_key(self, name):
@@ -342,9 +335,9 @@ class VerifactuRequest:
             'IDFactura': self._build_invoice_id(),
             }
 
-    def build_submit_request(self, last_huella=None, last_line=None):
+    def build_submit_request(self, last_fingerprint=None, last_line=None):
         request = {}
-        request['RegistroAlta'] = self.build_invoice(last_huella, last_line=last_line)
+        request['RegistroAlta'] = self.build_invoice(last_fingerprint, last_line=last_line)
         return request
 
 
@@ -367,14 +360,18 @@ class VerifactuRequest:
         return (taxes_amount + taxes_base + taxes_surcharge)
 
     def counterpart_id_type(self):
+        if self.invoice.party_tax_identifier:
+            vat_type = self.invoice.party_tax_identifier.es_vat_type()
+        else:
+            vat_type = self.invoice.party.verifactu_identifier_type
         for tax in self.invoice.taxes:
             if (tax.tax.verifactu_exemption_cause == 'E5' and
-                    self.invoice.party.verifactu_identifier_type != '02'):
+                    vat_type != '02'):
                 raise UserError(gettext(
                         'aeat_verifactu.msg_wrong_identifier_type',
                         invoice=self.invoice.number,
                         party=self.invoice.party.rec_name))
-        return self.invoice.party.verifactu_identifier_type
+        return vat_type
 
     def serial_number(self):
         return self.invoice.number if self.invoice.type == 'out' else (self.invoice.reference or '')
@@ -451,7 +448,7 @@ class VerifactuRequest:
                 'NumSerieFactura': invoice.number,
                 'FechaExpedicionFactura': invoice.invoice_date.strftime(
                     DATE_FMT),
-                'Huella': last_line.huella,
+                'Huella': last_line.fingerprint,
                 }}
 
     def location_rules(self):
@@ -464,7 +461,7 @@ class VerifactuRequest:
                 base += tax.company_base
         return base
 
-    def build_huella(self, previous_hash=None, time=None):
+    def build_fingerprint(self, previous_hash=None, time=None):
         data_string = (
             f'IDEmisorFactura={self.invoice.company.party.verifactu_vat_code}&'
             f'NumSerieFactura={self.invoice.number}&'
@@ -503,7 +500,7 @@ class VerifactuRequest:
             desgloses.append(desglose)
         return desgloses
 
-    def build_invoice(self, last_huella=None, last_line=None):
+    def build_invoice(self, last_fingerprint=None, last_line=None):
         tz = pytz.timezone('Europe/Madrid')
         dt_now = datetime.now(tz).replace(microsecond=0)
         formatted_now = dt_now.isoformat()
@@ -530,7 +527,7 @@ class VerifactuRequest:
             'SistemaInformatico': get_sistema_informatico(),
             'FechaHoraHusoGenRegistro':  formatted_now,
             'TipoHuella': '01',
-            'Huella': self.build_huella(last_huella, formatted_now)
+            'Huella': self.build_fingerprint(last_fingerprint, formatted_now)
             }
 
         if (self.invoice.verifactu_records
@@ -591,13 +588,13 @@ class VerifactuService(object):
         cli = VerifactuService.get_client(wsdl, crt, pkey)
         return VerifactuService(cli.bind('sfVerifactu', port_name))
 
-    def submit(self, company, invoices, last_huella=None, last_line=None):
+    def submit(self, company, invoices, last_fingerprint=None, last_line=None):
         headers = get_headers(company)
         body = []
         for invoice in invoices:
             request = aeat.VerifactuRequest(invoice)
             body.append(request.build_submit_request(
-                last_huella, last_line))
+                last_fingerprint, last_line))
         return self.service.RegFactuSistemaFacturacion(headers, body)
 
     def cancel(self, company, body):

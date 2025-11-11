@@ -333,13 +333,13 @@ class Invoice(metaclass=PoolMeta):
                     ('verifactu_state', '=', 'PendienteEnvio')],
                 ], order=[('invoice_date', 'ASC')])
         # TODO: Synchronize invoices missing since last_line
-        huella, last_line = cls.synchro_query(company)
+        fingerprint, last_line = cls.synchro_query(company)
         if not invoices:
             return
         certificate = cls._get_verifactu_certificate()
         with certificate.tmp_ssl_credentials() as (crt, key):
             service = aeat.VerifactuService.bind(crt, key)
-            response = service.submit(company, invoices, last_huella=huella,
+            response = service.submit(company, invoices, last_fingerprint=fingerprint,
                 last_line=last_line)
             lines_to_save = []
             invoices_to_save = []
@@ -396,17 +396,17 @@ class Invoice(metaclass=PoolMeta):
             records = cls.get_verifactu_invoices(company, year, period)
             if not records:
                 return None, None
-            huella = None
+            fingerprint = None
             for record in records:
-                huella = record['DatosRegistroFacturacion']['Huella']
-                verifactu_lines = Verifactu.search([('huella', '=', huella)])
+                fingerprint = record['DatosRegistroFacturacion']['Huella']
+                verifactu_lines = Verifactu.search([('fingerprint', '=', fingerprint)])
                 if verifactu_lines:
                     attempts = 0
                     last_line = verifactu_lines[0]
                     break
                 else:
                     new_line = Verifactu()
-                    new_line.huella = huella
+                    new_line.fingerprint = fingerprint
                     invoices = cls.search([
                             ('number', '=', record['IDFactura']['NumSerieFactura']),
                             ])
@@ -424,7 +424,7 @@ class Invoice(metaclass=PoolMeta):
                 period = 12
                 year -= 1
             attempts -= 1
-        return huella, last_line
+        return fingerprint, last_line
 
     @classmethod
     def _get_verifactu_certificate(self):
