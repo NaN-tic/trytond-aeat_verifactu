@@ -370,9 +370,8 @@ class VerifactuRequest:
         return self.invoice.number if self.invoice.type == 'out' else (self.invoice.reference or '')
 
     def taxes(self):
-        return [invoice_tax for invoice_tax in self.invoice.taxes if (
-                invoice_tax.tax.verifactu_tax_used and
-                not invoice_tax.tax.recargo_equivalencia)]
+        return [invoice_tax for invoice_tax in self.invoice.taxes if
+            not invoice_tax.tax.recargo_equivalencia]
 
     def total_invoice_taxes(self):
         return [invoice_tax for invoice_tax in self.invoice.taxes if

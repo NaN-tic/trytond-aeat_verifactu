@@ -40,16 +40,11 @@ class TemplateTax(metaclass=PoolMeta):
     verifactu_subjected_key = fields.Selection(IVA_SUBJECTED, 'Subjected Key')
     verifactu_exemption_cause = fields.Selection(EXEMPTION_CAUSE,
         'Exemption Cause')
-    verifactu_tax_used = fields.Boolean('Used in Verifactu Taxes')
-
-    @staticmethod
-    def default_verifactu_tax_used():
-        return True
 
     def _get_tax_value(self, tax=None):
         res = super()._get_tax_value(tax)
         for field in ('verifactu_issued_key', 'verifactu_subjected_key',
-                'verifactu_exemption_cause', 'verifactu_tax_used'):
+                'verifactu_exemption_cause'):
             if not tax or getattr(tax, field) != getattr(self, field):
                 res[field] = getattr(self, field)
         return res
@@ -61,7 +56,6 @@ class Tax(metaclass=PoolMeta):
     verifactu_issued_key = fields.Selection(SEND_SPECIAL_REGIME_KEY, 'Issued Key')
     verifactu_subjected_key = fields.Selection(IVA_SUBJECTED, 'Subjected Key')
     verifactu_exemption_cause = fields.Selection(EXEMPTION_CAUSE, 'Exemption Cause')
-    verifactu_tax_used = fields.Boolean('Used in Verifactu Taxes')
 
 
 class FiscalYear(metaclass=PoolMeta):

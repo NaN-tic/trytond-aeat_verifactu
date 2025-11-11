@@ -37,20 +37,16 @@ this repository contains the full copyright notices and license terms. -->
         </record>
         <record model="account.tax.template" id="account_es.suplido_ventas">
             <field name="verifactu_issued_key">10</field>
-            <field name="verifactu_tax_used" eval="False"/>
         </record>
         <record model="account.tax.template" id="account_es.iva_rep_no_sujeto">
             <field name="verifactu_issued_key">01</field>
             <field name="verifactu_exemption_cause">NotSubject</field>
-            <field name="verifactu_tax_used" eval="False"/>
         </record>
         <record model="account.tax.template" id="account_es.iva_rep_no_sujeto_2">
             <field name="verifactu_issued_key">08</field>
-            <field name="verifactu_tax_used" eval="False"/>
         </record>
         <record model="account.tax.template" id="account_es.iva_rep_no_sujeto_2_serv">
             <field name="verifactu_issued_key">08</field>
-            <field name="verifactu_tax_used" eval="False"/>
         </record>
     </data>
     <data depends="account_es" grouped="1">
@@ -101,7 +97,6 @@ this repository contains the full copyright notices and license terms. -->
         <record model="account.tax.template" id="account_es.iva_rep_alq_ex">
             <field name="verifactu_issued_key">01</field>
             <field name="verifactu_exemption_cause">E6</field>
-            <field name="verifactu_tax_used" eval="False"/>
         </record>
     </data>
 </tryton>

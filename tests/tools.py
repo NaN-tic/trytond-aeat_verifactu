@@ -38,7 +38,6 @@ def setup():
 
     # Create tax
     tax = create_tax(Decimal('.10'))
-    tax.verifactu_tax_used = True
     tax.save()
     vars.tax = tax
 
