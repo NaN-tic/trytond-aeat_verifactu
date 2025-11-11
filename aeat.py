@@ -50,17 +50,6 @@ WSDL_TEST = ('https://prewww2.aeat.es/static_files/common/internet/dep/aplicacio
 
 PRODUCTION_ENV = config.getboolean('database', 'production', default=False)
 
-COMMUNICATION_TYPE = [   # L0
-    (None, ''),
-    ('A0', 'Registration of invoices/records'),
-    ('A1', 'Amendment of invoices/records (registration errors)'),
-    # ('A4', 'Amendment of Invoice for Travellers'), # Not supported
-    # ('A5', 'Travellers registration'), # Not supported
-    # ('A6', 'Amendment of travellers tax devolutions'), # Not supported
-    ('C0', 'Query Invoices'),  # Not in L0
-    ('D0', 'Delete Invoices'),  # Not In L0
-    ]
-
 # TipoFactura
 OPERATION_KEY = [    # L2_EMI - L2_RECI
     (None, ''),
@@ -181,11 +170,11 @@ EXEMPTION_CAUSE = [
     ]
 
 
-class VerifactuReportLine(ModelSQL, ModelView):
+class Verifactu(ModelSQL, ModelView):
     '''
-    AEAT Verifactu Line
+    AEAT Verifactu
     '''
-    __name__ = 'aeat.verifactu.report.line'
+    __name__ = 'aeat.verifactu'
 
     invoice = fields.Many2One('account.invoice', 'Invoice', required=True,
             domain=[
@@ -206,16 +195,12 @@ class VerifactuReportLine(ModelSQL, ModelView):
     total_amount = fields.Numeric('Total Amount', readonly=True)
     counterpart_name = fields.Char('Counterpart Name', readonly=True)
     counterpart_id = fields.Char('Counterpart ID', readonly=True)
-    taxes = fields.One2Many('aeat.verifactu.report.line.tax', 'line',
-        'Tax Lines', readonly=True)
     vat_code = fields.Function(fields.Char('VAT Code'), 'get_vat_code')
     identifier_type = fields.Function(fields.Selection(PARTY_IDENTIFIER_TYPE,
             'Identifier Type'), 'get_identifier_type')
     invoice_operation_key = fields.Function(fields.Selection(OPERATION_KEY,
             'Operation Key'), 'get_invoice_operation_key')
     exemption_cause = fields.Char('Exemption Cause', readonly=True)
-    aeat_register = fields.Text('Register from AEAT Webservice', readonly=True)
-    header = fields.Text('Header')
     huella = fields.Text('Huella', readonly=True)
     error_message = fields.Char('Error Message', readonly=True)
 
@@ -241,6 +226,11 @@ class VerifactuReportLine(ModelSQL, ModelView):
         return Transaction().context.get('company')
 
     @classmethod
+    def __setup__(cls):
+        super().__setup__()
+        cls.__access__.add('invoice')
+
+    @classmethod
     def copy(cls, records, default=None):
         if default is None:
             default = {}
@@ -253,7 +243,6 @@ class VerifactuReportLine(ModelSQL, ModelView):
         default['issue_date'] = None
         default['invoice_kind'] = None
         default['total_amount'] = None
-        default['taxes'] = None
         default['counterpart_name'] = None
         default['counterpart_id'] = None
         return super().copy(records, default=default)
@@ -269,8 +258,6 @@ class VerifactuReportLine(ModelSQL, ModelView):
             invoice_id = vals.get('invoice')
             if invoice_id:
                 invoice = Invoice(invoice_id)
-                vals['header'] = invoice.get_verifactu_header(
-                    invoice, delete=False)
             if vals.get('state') == 'Correcto' and invoice:
                 invoice.verifactu_pending_sending = False
                 to_save.append(invoice)
@@ -308,28 +295,6 @@ class VerifactuReportLine(ModelSQL, ModelView):
 
         super().write(*args)
         Invoice.save(to_save)
-
-
-class VerifactuReportLineTax(ModelSQL, ModelView):
-    '''
-    Verifactu Report Line Tax
-    '''
-    __name__ = 'aeat.verifactu.report.line.tax'
-
-    line = fields.Many2One('aeat.verifactu.report.line', 'Report Line',
-        required=True, ondelete='CASCADE')
-    base = fields.Numeric('Base', readonly=True)
-    rate = fields.Numeric('Rate', readonly=True)
-    amount = fields.Numeric('Amount', readonly=True)
-    surcharge_rate = fields.Numeric('Surcharge Rate', readonly=True)
-    surcharge_amount = fields.Numeric('Surcharge Amount', readonly=True)
-    reagyp_rate = fields.Numeric('REAGYP Rate', readonly=True)
-    reagyp_amount = fields.Numeric('REAGYP Amount', readonly=True)
-
-    @classmethod
-    def __setup__(cls):
-        super().__setup__()
-        cls.__access__.add('line')
 
 
 def get_sistema_informatico():

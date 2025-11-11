@@ -94,10 +94,7 @@ class Test(unittest.TestCase):
         invoices = Invoice.find([])
         invoice = invoices[0]
 
-        # Check invoice verifactu
-        self.assertTrue(invoice.is_verifactu)
-
-        # Do not post the invoice
         invoice.click('post')
         self.assertEqual(invoice.state, 'posted')
+        self.assertTrue(invoice.is_verifactu)
         self.assertEqual(invoice.verifactu_operation_key, 'F1')

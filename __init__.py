@@ -14,14 +14,16 @@ def register():
         account.ConfigurationDefaultVerifactu,
         account.TemplateTax,
         account.Tax,
+        account.FiscalYear,
+        account.Period,
         cron.Cron,
         party.Party,
         invoice.Invoice,
         invoice.ResetVerifactuKeysStart,
         invoice.ResetVerifactuKeysEnd,
-        aeat.VerifactuReportLine,
-        aeat.VerifactuReportLineTax,
+        aeat.Verifactu,
         module='aeat_verifactu', type_='model')
     Pool.register(
+        account.RenewFiscalYear,
         invoice.ResetVerifactuKeys,
         module='aeat_verifactu', type_='wizard')

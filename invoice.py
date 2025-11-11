@@ -10,8 +10,7 @@ from trytond.transaction import Transaction
 from trytond.i18n import gettext
 from trytond.exceptions import UserError, UserWarning
 from trytond.wizard import Wizard, StateView, StateTransition, Button
-from .aeat import (
-    OPERATION_KEY, COMMUNICATION_TYPE, AEAT_INVOICE_STATE)
+from .aeat import OPERATION_KEY, AEAT_INVOICE_STATE
 from . import tools
 from . import aeat
 from datetime import datetime
@@ -27,30 +26,24 @@ class Invoice(metaclass=PoolMeta):
     __name__ = 'account.invoice'
 
     verifactu_operation_key = fields.Selection(OPERATION_KEY, 'Verifactu Operation Key')
-    verifactu_records = fields.One2Many('aeat.verifactu.report.line', 'invoice',
+    verifactu_records = fields.One2Many('aeat.verifactu', 'invoice',
         "Verifactu Report Lines")
-    verifactu_state = fields.Selection(AEAT_INVOICE_STATE,
-            'Verifactu State', readonly=True)
-    verifactu_communication_type = fields.Selection(
-        COMMUNICATION_TYPE, 'Verifactu Communication Type', readonly=True)
+    verifactu_state = fields.Selection(AEAT_INVOICE_STATE, 'Verifactu State',
+        readonly=True)
     verifactu_pending_sending = fields.Boolean('Verifactu Pending Sending',
         readonly=True)
-    verifactu_header = fields.Text('Header')
     verifactu_sent = fields.Function(fields.Boolean('Verifactu Sent'),
             'get_verifactu_sent', searcher='search_verifactu_sent')
     verifactu_errors = fields.Function(fields.Boolean('Verifactu Errors'),
             'get_verifactu_errors', searcher='search_verifactu_errors')
-    post_date = fields.Date('Post Date', readonly=True)
-    is_verifactu = fields.Boolean('Is Verifactu', states={
-            'readonly': Bool(Eval('company', False)),
-            })
+    is_verifactu = fields.Function(fields.Boolean('Is Verifactu'),
+            'get_is_verifactu', searcher='search_is_verifactu')
 
     @classmethod
     def __setup__(cls):
         super().__setup__()
-        verifactu_fields = {'verifactu_operation_key',
-            'verifactu_state', 'verifactu_pending_sending',
-            'verifactu_communication_type', 'verifactu_header'}
+        verifactu_fields = {'verifactu_operation_key', 'verifactu_state',
+            'verifactu_pending_sending'}
         cls._check_modify_exclude |= verifactu_fields
         if hasattr(cls, '_intercompany_excluded_fields'):
             cls._intercompany_excluded_fields += verifactu_fields
@@ -71,6 +64,25 @@ class Invoice(metaclass=PoolMeta):
                 'invisible': ~Eval('is_verifactu', False),
             }),
             ]
+
+    def get_is_verifactu(self, name):
+        if not self.move:
+            return False
+        return (self.type == 'out'
+            and self.move.period.es_verifactu_send_invoices)
+
+    @classmethod
+    def search_is_verifactu(cls, name, clause):
+        _, operator, value = clause
+        if operator not in ('=', '!='):
+            return []
+        domain = [('move.period.es_verifactu_send_invoices', '=', True),
+                  ('type', '=', 'out')]
+        if (operator == '=' and not value) or (operator == '!=' and value):
+            domain = ['OR',
+                ('move.period.es_verifactu_send_invoices', '!=', True),
+                ('type', '!=', 'out')]
+        return domain
 
     @classmethod
     def get_verifactu_sent(cls, invoices, name):
@@ -114,10 +126,6 @@ class Invoice(metaclass=PoolMeta):
     def default_verifactu_pending_sending():
         return False
 
-    @staticmethod
-    def default_is_verifactu():
-        return False
-
     def _credit(self, **values):
         credit = super()._credit(**values)
         # TODO: Verifactu operatioin key should be a selection in the credit
@@ -125,32 +133,6 @@ class Invoice(metaclass=PoolMeta):
         credit.verifactu_operation_key = self.verifactu_operation_key
         credit.verifactu_operation_key = 'R1'
         return credit
-
-    @fields.depends('company', 'type')
-    def on_change_with_is_verifactu(self):
-        Configuration = Pool().get('account.configuration')
-        if type == 'out':
-            config = Configuration(1)
-            return config.aeat_certificate_verifactu
-
-    @classmethod
-    def create(cls, vlist):
-        pool = Pool()
-        Configuration = pool.get('account.configuration')
-
-        vlist = [x.copy() for x in vlist]
-
-        companies = set([i.get('company', -1) for i in vlist])
-        is_verifactu = {}
-        for company_id in companies:
-            with Transaction().set_context(company=company_id):
-                is_verifactu[company_id] = Configuration(1).aeat_certificate_verifactu
-        for vals in vlist:
-            if vals.get('is_verifactu'):
-                continue
-            company_id = vals.get('company', -1)
-            vals['is_verifactu'] = is_verifactu.get(company_id, False)
-        return super().create(vlist)
 
     @property
     def verifactu_keys_filled(self):
@@ -165,9 +147,7 @@ class Invoice(metaclass=PoolMeta):
         default = default.copy()
         default.setdefault('verifactu_records')
         default.setdefault('verifactu_state')
-        default.setdefault('verifactu_communication_type')
         default.setdefault('verifactu_pending_sending')
-        default.setdefault('verifactu_header')
         return super().copy(records, default=default)
 
     def _get_verifactu_operation_key(self):
@@ -257,11 +237,15 @@ class Invoice(metaclass=PoolMeta):
 
 
     @classmethod
-    def post(cls, invoices):
+    def _post(cls, invoices):
+        super()._post(invoices)
+
         to_check = []
         for invoice in invoices:
             if not invoice.is_verifactu:
                 continue
+
+            invoice.verifactu_pending_sending = True
             if not invoice.move or invoice.move.state == 'draft':
                 to_check.append(invoice)
 
@@ -288,8 +272,6 @@ class Invoice(metaclass=PoolMeta):
             if not invoice.move or invoice.move.state == 'draft':
                 to_check.append(invoice)
 
-
-        super().post(invoices)
 
         for invoice in to_check:
             for tax in invoice.taxes:
@@ -318,26 +300,20 @@ class Invoice(metaclass=PoolMeta):
 
     @classmethod
     def send_verifactu(cls, invoices=None):
+        # 'invoices' parameter is not used, because all pending invoices are
+        # sent but we need it to be compatible with the queue system
         pool = Pool()
-        Configuration = pool.get('account.configuration')
-        VerifactuLine = pool.get('aeat.verifactu.report.line')
+        Verifactu = pool.get('aeat.verifactu')
         VerifactuConfig = pool.get('account.configuration.default_verifactu')
-
-        # invoices parameter is not used, because all pending invoices are sent
-        # but we need it to be compatible with the queue system
 
         configs = VerifactuConfig.search([
                 ('company', '=', Transaction().context.get('company')),
                 ], limit=1)
         VerifactuConfig.lock(configs)
 
-        verifactu_start_date = Configuration(1).verifactu_start_date
-        if not verifactu_start_date:
-            return
         invoices = cls.search([
-                ('invoice_date', '>=', verifactu_start_date),
+                ('move.period.es_verifactu_send_invoices', '=', True),
                 ('type', '=', 'out'),
-                ('is_verifactu', '=', True),
                 ['OR',
                     ('verifactu_state', '=', 'Incorrecto'),
                     ('verifactu_state', '=', 'PendienteEnvio')],
@@ -372,12 +348,12 @@ class Invoice(metaclass=PoolMeta):
                         ])[0]
                 invoice.verifactu_state = state
                 invoices_to_save.append(invoice)
-                new_line = VerifactuLine()
+                new_line = Verifactu()
                 new_line.invoice = invoice
                 new_line.state = state
                 new_line.error_message = x['DescripcionErrorRegistro']
                 lines_to_save.append(new_line)
-            VerifactuLine.save(lines_to_save)
+            Verifactu.save(lines_to_save)
             cls.save(invoices_to_save)
         cls.synchro_query(invoices)
 
@@ -408,7 +384,7 @@ class Invoice(metaclass=PoolMeta):
     @classmethod
     def synchro_query(cls, invoices):
         pool = Pool()
-        VerifactuLine = pool.get('aeat.verifactu.report.line')
+        Verifactu = pool.get('aeat.verifactu')
 
         records = []
         today = datetime.today()
@@ -423,13 +399,13 @@ class Invoice(metaclass=PoolMeta):
             huella = None
             for record in records:
                 huella = record['DatosRegistroFacturacion']['Huella']
-                verifactu_lines = VerifactuLine.search([('huella', '=', huella)])
+                verifactu_lines = Verifactu.search([('huella', '=', huella)])
                 if verifactu_lines:
                     attempts = 0
                     last_line = verifactu_lines[0]
                     break
                 else:
-                    new_line = VerifactuLine()
+                    new_line = Verifactu()
                     new_line.huella = huella
                     invoices = cls.search([
                             ('number', '=', record['IDFactura']['NumSerieFactura']),
@@ -473,18 +449,6 @@ class Invoice(metaclass=PoolMeta):
                 'verifactu_pending_sending': False,
                 })
         return result
-
-    @classmethod
-    def get_verifactu_header(cls, invoice, delete):
-        if delete:
-            rline = [x for x in invoice.verifactu_records if x.state == 'Correcto'
-                and x.header is not None]
-            if rline:
-                return rline[0].header
-        if invoice.type == 'out':
-            request = aeat.VerifactuRequest(invoice)
-            header = request.build_delete_request()
-        return header
 
     def get_aeat_qr_url(self, name):
         res = super().get_aeat_qr_url(name)

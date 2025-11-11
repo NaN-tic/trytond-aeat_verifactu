@@ -4,7 +4,6 @@ contains the full copyright notices and license terms. -->
 <data>
     <xpath expr="/tree/field[@name='state']" position="after">
       <field name="verifactu_operation_key" optional="1"/>
-      <field name="verifactu_communication_type" optional="1"/>
       <field name="verifactu_state" optional="1"/>
       <field name="verifactu_pending_sending" optional="1"/>
     </xpath>

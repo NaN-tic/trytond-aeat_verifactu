@@ -4,7 +4,6 @@ from trytond.modules.account.tests.tools import create_chart, create_fiscalyear,
 from trytond.modules.account_invoice.tests.tools import set_fiscalyear_invoice_sequences
 from trytond.modules.company.tests.tools import create_company, get_company
 from trytond.config import config as tconfig
-from datetime import date
 from types import SimpleNamespace
 from proteus import Wizard
 import os
@@ -29,6 +28,8 @@ def setup():
     # Create fiscal year
     fiscalyear = set_fiscalyear_invoice_sequences(create_fiscalyear(vars.company))
     fiscalyear.click('create_period')
+    fiscalyear.es_verifactu_send_invoices = True
+    fiscalyear.save()
     vars.fiscalyear = fiscalyear
 
     # Create chart of accounts
@@ -58,7 +59,6 @@ def setup():
     Configuration = Model.get('account.configuration')
     config = Configuration(1)
     config.aeat_certificate_verifactu = certificate
-    config.verifactu_start_date = date.today()
     config.save()
     vars.config = config
 

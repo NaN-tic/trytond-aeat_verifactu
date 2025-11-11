@@ -7,53 +7,48 @@
             sequence="999" parent="account.menu_reporting"
             name="AEAT Verifactu"/>
 
-        <!-- aeat.verifactu.report.line -->
-        <record model="ir.ui.view" id="aeat_verifactu_report_line_form_view">
-            <field name="model">aeat.verifactu.report.line</field>
+        <!-- aeat.verifactu -->
+        <record model="ir.ui.view" id="aeat_verifactu_form_view">
+            <field name="model">aeat.verifactu</field>
             <field name="type">form</field>
-            <field name="name">verifactu_report_line_form</field>
+            <field name="name">verifactu_form</field>
         </record>
 
-        <record model="ir.ui.view" id="aeat_verifactu_report_line_tree_view">
-            <field name="model">aeat.verifactu.report.line</field>
+        <record model="ir.ui.view" id="aeat_verifactu_tree_view">
+            <field name="model">aeat.verifactu</field>
             <field name="type">tree</field>
-            <field name="name">verifactu_report_line_list</field>
+            <field name="name">verifactu_list</field>
         </record>
 
-        <record model="ir.action.act_window" id="act_aeat_verifactu_report_line">
-            <field name="name">AEAT Verifactu Report Lines</field>
-            <field name="res_model">aeat.verifactu.report.line</field>
-            <field name="search_value"></field>
+        <record model="ir.action.act_window" id="act_aeat_verifactu">
+            <field name="name">AEAT Verifactu</field>
+            <field name="res_model">aeat.verifactu</field>
         </record>
-        <record model="ir.action.act_window.view" id="act_aeat_verifactu_report_line_view1">
+        <record model="ir.action.act_window.view" id="act_aeat_verifactu_view1">
             <field name="sequence" eval="10"/>
-            <field name="view" ref="aeat_verifactu_report_line_tree_view"/>
-            <field name="act_window" ref="act_aeat_verifactu_report_line"/>
+            <field name="view" ref="aeat_verifactu_tree_view"/>
+            <field name="act_window" ref="act_aeat_verifactu"/>
         </record>
-        <record model="ir.action.act_window.view" id="act_aeat_verifactu_report_line_view2">
+        <record model="ir.action.act_window.view" id="act_aeat_verifactu_view2">
             <field name="sequence" eval="20"/>
-            <field name="view" ref="aeat_verifactu_report_line_form_view"/>
-            <field name="act_window" ref="act_aeat_verifactu_report_line"/>
+            <field name="view" ref="aeat_verifactu_form_view"/>
+            <field name="act_window" ref="act_aeat_verifactu"/>
         </record>
 
-        <record model="ir.action.act_window" id="act_aeat_verifactu_report_lines">
-            <field name="name">Verifactu Report Lines</field>
-            <field name="res_model">aeat.verifactu.report.line</field>
-        </record>
-        <menuitem action="act_aeat_verifactu_report_lines"
-            id="menu_aeat_verifactu_line_report"
+        <menuitem action="act_aeat_verifactu"
+            id="menu_aeat_verifactu"
             parent="menu_aeat_verifactu_report_menu" sequence="1"
             name="AEAT Verifactu Report Lines"/>
 
-        <record model="ir.model.access" id="access_aeat_verifactu_report_line">
-            <field name="model">aeat.verifactu.report.line</field>
+        <record model="ir.model.access" id="access_aeat_verifactu">
+            <field name="model">aeat.verifactu</field>
             <field name="perm_read" eval="False"/>
             <field name="perm_write" eval="False"/>
             <field name="perm_create" eval="False"/>
             <field name="perm_delete" eval="False"/>
         </record>
-        <record model="ir.model.access" id="access_aeat_verifactu_report_line_account">
-            <field name="model">aeat.verifactu.report.line</field>
+        <record model="ir.model.access" id="access_aeat_verifactu_account">
+            <field name="model">aeat.verifactu</field>
             <field name="group" ref="account.group_account"/>
             <field name="perm_read" eval="True"/>
             <field name="perm_write" eval="False"/>
@@ -61,15 +56,9 @@
             <field name="perm_delete" eval="False"/>
         </record>
 
-        <record model="ir.ui.view" id="aeat_verifactu_report_line_tax_tree_view">
-            <field name="model">aeat.verifactu.report.line.tax</field>
-            <field name="type">tree</field>
-            <field name="name">verifactu_report_line_tax_list</field>
-        </record>
-
         <record model="ir.rule.group" id="rule_group_verifactu_report_line">
             <field name="name">User in company</field>
-            <field name="model">aeat.verifactu.report.line</field>
+            <field name="model">aeat.verifactu</field>
             <field name="global_p" eval="True"/>
         </record>
         <record model="ir.rule" id="rule_verifactu_report_line1">

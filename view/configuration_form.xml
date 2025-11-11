@@ -6,8 +6,6 @@ copyright notices and license types. -->
         <separator id="aeat_verifactu" string="AEAT Verifactu" colspan="4"/>
         <label name="aeat_certificate_verifactu"/>
         <field name="aeat_certificate_verifactu"/>
-        <label name="verifactu_start_date"/>
-        <field name="verifactu_start_date"/>
-	<newline/>
+        <newline/>
     </xpath>
 </data>

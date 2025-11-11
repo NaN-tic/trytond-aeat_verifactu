@@ -11,8 +11,6 @@ contains the full copyright notices and license terms. -->
             <field name="verifactu_pending_sending"/>
             <label name="aeat_qr_url"/>
             <field name="aeat_qr_url" widget="url"/>
-            <label name="verifactu_communication_type"/>
-            <field name="verifactu_communication_type"/>
             <label name="verifactu_state"/>
             <field name="verifactu_state"/>
             <field name="is_verifactu" invisible="1"/>

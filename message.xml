@@ -50,5 +50,8 @@ If you edit them be careful that you need to update to Verifactu again</field>
         <record model="ir.message" id="msg_missing_verifactu_keys">
             <field name="text">The invoice "%(invoice)s" does not have the necessary Verifactu keys filled.</field>
         </record>
+        <record model="ir.message" id="msg_posted_invoices">
+            <field name="text">You can not change the Verifactu setting for period "%(period)s" because there are already posted invoices.</field>
+        </record>
     </data>
 </tryton>
