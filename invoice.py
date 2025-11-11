@@ -503,8 +503,9 @@ class Invoice(metaclass=PoolMeta):
         return header
 
     def get_aeat_qr_url(self, name):
+        res = super().get_aeat_qr_url(name)
         if not self.is_verifactu:
-            return
+            return res
 
         if PRODUCTION_ENV:
             url = PRODUCTION_QR_URL
