@@ -50,8 +50,7 @@ WSDL_TEST = ('https://prewww2.aeat.es/static_files/common/internet/dep/aplicacio
 PRODUCTION_ENV = config.getboolean('database', 'production', default=False)
 
 # TipoFactura
-OPERATION_KEY = [    # L2_EMI - L2_RECI
-    (None, ''),
+OPERATION_KEY = [ # L2
     ('F1', 'Invoice (Art 6.7.3 y 7.3 of RD1619/2012)'),
     ('F2', 'Simplified Invoice (ticket) and Invoices without destination '
         'identidication (Art 6.1.d of RD1619/2012)'),
@@ -70,7 +69,7 @@ OPERATION_KEY = [    # L2_EMI - L2_RECI
     ]
 
 # IDType
-PARTY_IDENTIFIER_TYPE = [
+PARTY_IDENTIFIER_TYPE = [ # L7
     (None, 'VAT (for National operators)'),
     ('02', 'VAT (only for intracommunity operators)'),
     ('03', 'Passport'),
@@ -85,7 +84,7 @@ PARTY_IDENTIFIER_TYPE = [
     ]
 
 # Desglose -> DetalleDesglose -> ClaveRegimen
-SEND_SPECIAL_REGIME_KEY = [  # L8.A
+SEND_SPECIAL_REGIME_KEY = [  # L8A
     (None, ''),
     ('01', 'General tax regime activity'),
     ('02', 'Export'),
@@ -359,9 +358,6 @@ class VerifactuRequest:
             taxes_used[parent.id] = base
         return (taxes_amount + taxes_base + taxes_surcharge)
 
-    def serial_number(self):
-        return self.invoice.number if self.invoice.type == 'out' else (self.invoice.reference or '')
-
     def taxes(self):
         return [invoice_tax for invoice_tax in self.invoice.taxes if
             not invoice_tax.tax.recargo_equivalencia]
@@ -394,10 +390,9 @@ class VerifactuRequest:
             }
 
     def _build_invoice_id(self):
-        number = self.serial_number()
         ret = {
             'IDEmisorFactura': self.invoice.company.party.verifactu_vat_code,
-            'NumSerieFactura': number,
+            'NumSerieFactura': self.invoice.number,
             'FechaExpedicionFactura': self.invoice.invoice_date.strftime(DATE_FMT),
             }
         return ret
@@ -500,13 +495,9 @@ class VerifactuRequest:
         dt_now = datetime.now(tz).replace(microsecond=0)
         formatted_now = dt_now.isoformat()
 
-        description = ''
-        if self.invoice.description:
-            description = tools.unaccent(self.invoice.description)
-        if self.invoice.lines and self.invoice.lines[0].description:
-            description = tools.unaccent(self.invoice.lines[0].description)
-        description = self.serial_number()
-
+        description = tools.unaccent(self.invoice.description or '')
+        if not description:
+            description = self.number
         ret = {
             'IDVersion': '1.0',
             'IDFactura': self._build_invoice_id(),
