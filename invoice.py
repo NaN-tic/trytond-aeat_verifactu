@@ -24,6 +24,7 @@ from trytond.pyson import Bool, Eval
 from trytond.transaction import Transaction
 from trytond.i18n import gettext
 from trytond.exceptions import UserError, UserWarning
+from trytond.tools import grouped_slice
 from . import tools
 
 PRODUCTION_QR_URL = "https://www2.agenciatributaria.gob.es/wlpl/TIKE-CONT/ValidarQR"
@@ -311,7 +312,6 @@ class Invoice(metaclass=PoolMeta):
         default = default.copy()
         default.setdefault('verifactu_operation_key')
         default.setdefault('verifactu_records')
-        default.setdefault('verifactu_state')
         return super().copy(records, default=default)
 
     def _get_verifactu_operation_key(self):
@@ -491,10 +491,15 @@ class Invoice(metaclass=PoolMeta):
         body = []
         for invoice in invoices:
             body.append({
-                    'RegistroAlta': invoice.build_invoice(previous_fingerprint,
-                        last_line),
+                    'RegistroAlta': invoice.verifactu_build_invoice(
+                        previous_fingerprint, last_line),
                     })
-        return service.RegFactuSistemaFacturacion(headers, body)
+
+        responses = []
+        for batch in grouped_slice(body, 1):
+            batch = list(batch)
+            responses += service.RegFactuSistemaFacturacion(headers, batch).RespuestaLinea
+        return responses
 
     @classmethod
     def verifactu_query(cls, service, year=None, period=None, clave_paginacion=None):
@@ -544,11 +549,11 @@ class Invoice(metaclass=PoolMeta):
         certificate = cls._get_verifactu_certificate()
         with certificate.tmp_ssl_credentials() as (crt, key):
             service = cls.verifactu_service(crt, key)
-            response = cls.verifactu_submit(service, invoices,
+            responses = cls.verifactu_submit(service, invoices,
                 previous_fingerprint=fingerprint, last_line=last_line)
             lines_to_save = []
             invoices_to_save = []
-            for x in response.RespuestaLinea:
+            for x in responses:
                 state = x['EstadoRegistro']
                 if state in ('Correcto', 'AceptadoConErrores'):
                     continue
@@ -585,7 +590,7 @@ class Invoice(metaclass=PoolMeta):
                 clave_paginacion = response.ClavePaginacion
         return records
 
-    def build_invoice(self, previous_fingerprint=None, last_line=None):
+    def verifactu_build_invoice(self, previous_fingerprint=None, last_line=None):
 
         def verifactu_taxes():
             return [invoice_tax for invoice_tax in self.taxes if
@@ -638,6 +643,7 @@ class Invoice(metaclass=PoolMeta):
                 }
 
             vat = ''
+            vat_type = None
             if not self.simplified:
                 identifier = self.party_tax_identifier
                 if identifier:
