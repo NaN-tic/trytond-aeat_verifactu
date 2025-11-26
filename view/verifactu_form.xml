@@ -8,22 +8,8 @@
             <field name="invoice"/>
             <label name="state"/>
             <field name="state"/>
-            <label name="communication_msg"/>
-            <field name="communication_msg"/>
-            <label name="serial_number"/>
-            <field name="serial_number"/>
-            <label name="issue_date"/>
-            <field name="issue_date"/>
-            <label name="invoice_kind"/>
-            <field name="invoice_kind"/>
-            <label name="total_amount"/>
-            <field name="total_amount"/>
             <label name="error_message"/>
             <field name="error_message"/>
-            <label name="counterpart_name"/>
-            <field name="counterpart_name"/>
-            <label name="counterpart_id"/>
-            <field name="counterpart_id"/>
         </page>
     </notebook>
 </form>

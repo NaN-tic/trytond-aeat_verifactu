@@ -110,8 +110,7 @@ class RenewFiscalYear(metaclass=PoolMeta):
 class Period(metaclass=PoolMeta):
     __name__ = 'account.period'
     es_verifactu_send_invoices = fields.Boolean(
-        "Send Invoices to Verifactu",
-        states={
+        "Send Invoices to Verifactu", states={
             'invisible': Eval('type') != 'standard',
             },
         help="Check to create Verifactu records for invoices in the period.")

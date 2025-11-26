@@ -124,16 +124,10 @@ AEAT_COMMUNICATION_STATE = [
 
 AEAT_INVOICE_STATE = [
     (None, ''),
-    ('PendienteEnvio', 'Pending Sending'),
-    ('PendienteEnvioSubsanacion', 'Pending Sending Fix'),
-    ('Correcto', 'Accepted '),
-    ('Correcta', 'Accepted'),  # You guys are disgusting
-    ('AceptadoConErrores', 'Accepted with Errors '),
-    ('AceptadaConErrores', 'Accepted with Errors'),  # Shame on AEAT
-    ('Anulada', 'Deleted'),
+    ('Correcto', 'Accepted'),
+    ('AceptadoConErrores', 'Accepted with Errors'),
     ('Incorrecto', 'Rejected'),
-    ('duplicated_unsubscribed', 'Duplicated / Unsubscribed'),
-]
+    ]
 
 PROPERTY_STATE = [  # L6
     ('0', ''),
@@ -177,41 +171,15 @@ class Verifactu(ModelSQL, ModelView):
     invoice = fields.Many2One('account.invoice', 'Invoice', required=True,
         domain=[('type', '=', 'out')])
     state = fields.Selection(AEAT_INVOICE_STATE, 'State')
-    last_modify_date = fields.DateTime('Last Modification Date', readonly=True)
     communication_code = fields.Integer('Communication Code', readonly=True)
-    communication_msg = fields.Char('Communication Message', readonly=True)
     company = fields.Many2One('company.company', 'Company', required=True)
-    serial_number = fields.Char('Serial Number', readonly=True)
-    issue_date = fields.Date('Issued Date', readonly=True)
-    invoice_kind = fields.Char('Invoice Kind', readonly=True)
-    total_amount = fields.Numeric('Total Amount', readonly=True)
-    counterpart_name = fields.Char('Counterpart Name', readonly=True)
-    counterpart_id = fields.Char('Counterpart ID', readonly=True)
-    vat_code = fields.Function(fields.Char('VAT Code'), 'get_vat_code')
-    identifier_type = fields.Function(fields.Selection(PARTY_IDENTIFIER_TYPE,
-            'Identifier Type'), 'get_identifier_type')
     invoice_operation_key = fields.Function(fields.Selection(OPERATION_KEY,
             'Operation Key'), 'get_invoice_operation_key')
-    exemption_cause = fields.Char('Exemption Cause', readonly=True)
     fingerprint = fields.Text('Fingerprint', readonly=True)
     error_message = fields.Char('Error Message', readonly=True)
 
     def get_invoice_operation_key(self, name):
         return self.invoice.verifactu_operation_key if self.invoice else None
-
-    def get_vat_code(self, name):
-        if self.identifier_type and self.identifier_type == 'SI':
-            return None
-        elif self.invoice and self.invoice.party_tax_identifier:
-            return self.invoice.party_tax_identifier.code
-        elif self.invoice and self.invoice.party.tax_identifier:
-            return self.invoice.party.tax_identifier.code
-        else:
-            return None
-
-    def get_identifier_type(self, name):
-        return (self.invoice.party.verifactu_identifier_type if self.invoice
-            else None)
 
     @staticmethod
     def default_company():
@@ -230,63 +198,9 @@ class Verifactu(ModelSQL, ModelView):
             default = default.copy()
         default['state'] = None
         default['communication_code'] = None
-        default['communication_msg'] = None
-        default['serial_number'] = None
-        default['issue_date'] = None
-        default['invoice_kind'] = None
-        default['total_amount'] = None
-        default['counterpart_name'] = None
-        default['counterpart_id'] = None
+        default['fingerprint'] = None
+        default['error_message'] = None
         return super().copy(records, default=default)
-
-    @classmethod
-    def create(cls, vlist):
-        pool = Pool()
-        Invoice = pool.get('account.invoice')
-
-        to_save = []
-        vlist = [x.copy() for x in vlist]
-        for vals in vlist:
-            invoice_id = vals.get('invoice')
-            if invoice_id:
-                invoice = Invoice(invoice_id)
-            if vals.get('state') == 'Correcto' and invoice:
-                invoice.verifactu_pending_sending = False
-                to_save.append(invoice)
-        Invoice.save(to_save)
-        return super().create(vlist)
-
-    @classmethod
-    def write(cls, *args):
-        pool = Pool()
-        Invoice = pool.get('account.invoice')
-
-        actions = iter(args)
-
-        to_save = []
-        for lines, values in zip(actions, actions):
-            if values.get('state', None) == 'Correcto':
-                invoices = [x.invoice for x in lines]
-            else:
-                invoices = [x.invoice for x in lines if x.state == 'Correcto']
-            if invoices:
-                for invoice in invoices:
-                    invoice.verifactu_pending_sending = False
-                to_save += invoices
-
-            if values.get('communication_code', None) in (3000, 3001):
-                invoices = [x.invoice for x in lines]
-            else:
-                invoices = [x.invoice for x in lines
-                    if x.communication_code in (3000, 3001)]
-            if invoices:
-                for invoice in invoices:
-                    invoice.verifactu_pending_sending = False
-                    invoice.verifactu_state = 'duplicated_unsubscribed'
-                to_save += invoices
-
-        super().write(*args)
-        Invoice.save(to_save)
 
 
 def get_sistema_informatico():
@@ -338,7 +252,6 @@ class VerifactuRequest:
         request = {}
         request['RegistroAlta'] = self.build_invoice(last_fingerprint, last_line=last_line)
         return request
-
 
     def get_invoice_total(self):
         taxes = self.total_invoice_taxes()

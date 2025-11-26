@@ -67,14 +67,16 @@ class Test(unittest.TestCase):
         invoice.save()
 
         # Check verifactu fields
+        self.assertEqual(invoice.is_verifactu, True)
         self.assertEqual(invoice.verifactu_operation_key, None)
         self.assertEqual(invoice.verifactu_state, None)
-        self.assertEqual(invoice.verifactu_pending_sending, False)
+        self.assertEqual(invoice.verifactu_to_send, False)
 
         invoice.click('post')
         self.assertEqual(invoice.state, 'posted')
-        self.assertTrue(invoice.is_verifactu)
+        self.assertEqual(invoice.is_verifactu, True)
         self.assertEqual(invoice.verifactu_operation_key, 'F1')
+        self.assertEqual(invoice.verifactu_to_send, True)
 
         vars.fiscalyear.es_verifactu_send_invoices = False
         with self.assertRaises(UserError):
