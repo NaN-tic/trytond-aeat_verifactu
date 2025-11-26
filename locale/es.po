@@ -4,7 +4,7 @@ msgid ""
 msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Last-Translator: albert\n"
-"PO-Revision-Date: 2025-11-11 18:36+0100\n"
+"PO-Revision-Date: 2025-11-27 00:07+0100\n"
 "Project-Id-Version: \n"
 "Language-Team: Catalan <>\n"
 "Language: ca_ES\n"
@@ -34,29 +34,21 @@ msgctxt "field:account.invoice,is_verifactu:"
 msgid "Is Verifactu"
 msgstr "¿Es Verifactu?"
 
-msgctxt "field:account.invoice,verifactu_errors:"
-msgid "Verifactu Errors"
-msgstr "Errores de Verifactu"
-
 msgctxt "field:account.invoice,verifactu_operation_key:"
 msgid "Verifactu Operation Key"
 msgstr "Clave de operación Verifactu"
-
-msgctxt "field:account.invoice,verifactu_pending_sending:"
-msgid "Verifactu Pending Sending"
-msgstr "Verifactu pendiente de envío"
 
 msgctxt "field:account.invoice,verifactu_records:"
 msgid "Verifactu Report Lines"
 msgstr "Líneas de informe Verifactu"
 
-msgctxt "field:account.invoice,verifactu_sent:"
-msgid "Verifactu Sent"
-msgstr "Verificación enviada"
-
 msgctxt "field:account.invoice,verifactu_state:"
 msgid "Verifactu State"
 msgstr "Estado de Verifactu"
+
+msgctxt "field:account.invoice,verifactu_to_send:"
+msgid "Verifactu Pending Sending"
+msgstr "Verifactu Pendiente de Envío"
 
 msgctxt "field:account.period,es_verifactu_send_invoices:"
 msgid "Send Invoices to Verifactu"
@@ -106,73 +98,29 @@ msgctxt "field:aeat.verifactu,communication_code:"
 msgid "Communication Code"
 msgstr "Código de comunicación"
 
-msgctxt "field:aeat.verifactu,communication_msg:"
-msgid "Communication Message"
-msgstr "Mensaje de comunicación"
-
 msgctxt "field:aeat.verifactu,company:"
 msgid "Company"
 msgstr "Compañía"
-
-msgctxt "field:aeat.verifactu,counterpart_id:"
-msgid "Counterpart ID"
-msgstr "ID de contrapartida"
-
-msgctxt "field:aeat.verifactu,counterpart_name:"
-msgid "Counterpart Name"
-msgstr "Nombre de la contrapartida"
 
 msgctxt "field:aeat.verifactu,error_message:"
 msgid "Error Message"
 msgstr "Mensaje de error"
 
-msgctxt "field:aeat.verifactu,exemption_cause:"
-msgid "Exemption Cause"
-msgstr "Causa de exención"
-
 msgctxt "field:aeat.verifactu,fingerprint:"
 msgid "Fingerprint"
 msgstr "Huella"
-
-msgctxt "field:aeat.verifactu,identifier_type:"
-msgid "Identifier Type"
-msgstr "Tipo de identificador"
 
 msgctxt "field:aeat.verifactu,invoice:"
 msgid "Invoice"
 msgstr "Factura"
 
-msgctxt "field:aeat.verifactu,invoice_kind:"
-msgid "Invoice Kind"
-msgstr "Tipo de factura"
-
 msgctxt "field:aeat.verifactu,invoice_operation_key:"
 msgid "Operation Key"
 msgstr "Clave de operación"
 
-msgctxt "field:aeat.verifactu,issue_date:"
-msgid "Issued Date"
-msgstr "Fecha de emisión"
-
-msgctxt "field:aeat.verifactu,last_modify_date:"
-msgid "Last Modification Date"
-msgstr "Fecha de última modificación"
-
-msgctxt "field:aeat.verifactu,serial_number:"
-msgid "Serial Number"
-msgstr "Número de serie"
-
 msgctxt "field:aeat.verifactu,state:"
 msgid "State"
 msgstr "Estado"
-
-msgctxt "field:aeat.verifactu,total_amount:"
-msgid "Total Amount"
-msgstr "Importe total"
-
-msgctxt "field:aeat.verifactu,vat_code:"
-msgid "VAT Code"
-msgstr "Código de identificador fiscal"
 
 msgctxt "field:party.party,verifactu_identifier_type:"
 msgid "Verifactu Identifier Type"
@@ -211,14 +159,6 @@ msgctxt "model:aeat.verifactu,name:"
 msgid "AEAT Verifactu"
 msgstr "AEAT Verifactu"
 
-msgctxt "model:aeat.verifactu.reset.keys.end,name:"
-msgid "Reset to default Verifactu Keys End"
-msgstr "Restablecer a valores predeterminados Verifactu Keys Fin"
-
-msgctxt "model:aeat.verifactu.reset.keys.start,name:"
-msgid "Reset to default Verifactu Keys Start"
-msgstr "Restablecer a valores predeterminados Verifactu Keys Start"
-
 msgctxt "model:ir.action,name:"
 msgid "AEAT Verifactu Report Lines"
 msgstr "Líneas de informe de verificación de AEAT"
@@ -226,10 +166,6 @@ msgstr "Líneas de informe de verificación de AEAT"
 msgctxt "model:ir.action,name:act_aeat_verifactu"
 msgid "AEAT Verifactu"
 msgstr "AEAT Verifactu"
-
-msgctxt "model:ir.action,name:act_aeat_verifactu_reset_keys"
-msgid "Reset AEAT Verifactu Keys"
-msgstr "Restablecer claves de verificación AEAT"
 
 msgctxt "model:ir.message,text:msg_delete_cancel"
 msgid "Report \"%(report)s\" must be cancelled before deletion."
@@ -411,32 +347,8 @@ msgid "Accepted"
 msgstr "Aceptado"
 
 msgctxt "selection:account.invoice,verifactu_state:"
-msgid "Accepted "
-msgstr "Aceptado "
-
-msgctxt "selection:account.invoice,verifactu_state:"
 msgid "Accepted with Errors"
 msgstr "Aceptado con errores"
-
-msgctxt "selection:account.invoice,verifactu_state:"
-msgid "Accepted with Errors "
-msgstr "Aceptado con errores "
-
-msgctxt "selection:account.invoice,verifactu_state:"
-msgid "Deleted"
-msgstr "Eliminado"
-
-msgctxt "selection:account.invoice,verifactu_state:"
-msgid "Duplicated / Unsubscribed"
-msgstr "Suscrito duplicado / Cancelado"
-
-msgctxt "selection:account.invoice,verifactu_state:"
-msgid "Pending Sending"
-msgstr "Pendiente de envío"
-
-msgctxt "selection:account.invoice,verifactu_state:"
-msgid "Pending Sending Fix"
-msgstr "Corrección pendiente de envío"
 
 msgctxt "selection:account.invoice,verifactu_state:"
 msgid "Rejected"
@@ -740,46 +652,11 @@ msgctxt "selection:account.tax.template,verifactu_subjected_key:"
 msgid "Subject - Not exempt. VAT reverse charge"
 msgstr "Sujeto - No exento. Inversión del sujeto pasivo del IVA"
 
-msgctxt "selection:aeat.verifactu,identifier_type:"
-msgid "Not registered (only for Spanish VAT not registered)"
-msgstr "No registrado (solo para el IVA español no registrado)"
-
-msgctxt "selection:aeat.verifactu,identifier_type:"
-msgid ""
-"Official identification document issued by the country or region of "
-"residence"
-msgstr ""
-"Documento oficial de identificación expedido por el país o región de "
-"residencia."
-
-msgctxt "selection:aeat.verifactu,identifier_type:"
-msgid "Other supporting document"
-msgstr "Otro documento de apoyo"
-
-msgctxt "selection:aeat.verifactu,identifier_type:"
-msgid "Passport"
-msgstr "Pasaporte"
-
-msgctxt "selection:aeat.verifactu,identifier_type:"
-msgid "Residence certificate"
-msgstr "Certificado de residencia"
-
-msgctxt "selection:aeat.verifactu,identifier_type:"
-msgid "Simplified Invoice"
-msgstr "Factura simplificada"
-
-msgctxt "selection:aeat.verifactu,identifier_type:"
-msgid "VAT (for National operators)"
-msgstr "VAT (para operadores nacionales)"
-
-msgctxt "selection:aeat.verifactu,identifier_type:"
-msgid "VAT (only for intracommunity operators)"
-msgstr "VAT (solo para operadores intracomunitarios)"
-
 msgctxt "selection:aeat.verifactu,invoice_operation_key:"
 msgid "Corrected Invoice (Art 80.1, 80.2 and 80.6 and error grounded in law)"
 msgstr ""
-"Factura rectificativa (Artículos 80.1, 80.2 y 80.6 y error fundado en derecho)"
+"Factura rectificativa (Artículos 80.1, 80.2 y 80.6 y error fundado en "
+"derecho)"
 
 msgctxt "selection:aeat.verifactu,invoice_operation_key:"
 msgid "Corrected Invoice (Art. 80.3)"
@@ -820,32 +697,8 @@ msgid "Accepted"
 msgstr "Aceptado"
 
 msgctxt "selection:aeat.verifactu,state:"
-msgid "Accepted "
-msgstr "Aceptado "
-
-msgctxt "selection:aeat.verifactu,state:"
 msgid "Accepted with Errors"
 msgstr "Aceptado con errores"
-
-msgctxt "selection:aeat.verifactu,state:"
-msgid "Accepted with Errors "
-msgstr "Aceptado con errores "
-
-msgctxt "selection:aeat.verifactu,state:"
-msgid "Deleted"
-msgstr "Eliminado"
-
-msgctxt "selection:aeat.verifactu,state:"
-msgid "Duplicated / Unsubscribed"
-msgstr "Duplicado / Cancelado"
-
-msgctxt "selection:aeat.verifactu,state:"
-msgid "Pending Sending"
-msgstr "Pendiente de envío"
-
-msgctxt "selection:aeat.verifactu,state:"
-msgid "Pending Sending Fix"
-msgstr "Corrección pendiente de envío"
 
 msgctxt "selection:aeat.verifactu,state:"
 msgid "Rejected"
@@ -907,36 +760,6 @@ msgctxt "view:account.tax:"
 msgid "AEAT Verifactu"
 msgstr "AEAT Verifactu"
 
-msgctxt "view:aeat.verifactu.reset.keys.end:"
-msgid "The AEAT Verifactu Keys have been reset."
-msgstr "Las claves de verificación AEAT se han restablecido."
-
-msgctxt "view:aeat.verifactu.reset.keys.start:"
-msgid "Note that this operation may take a few minutes."
-msgstr "Tenga en cuenta que esta operación puede tardar unos minutos."
-
-msgctxt "view:aeat.verifactu.reset.keys.start:"
-msgid "Only will be reset the draft invoices."
-msgstr "Solo se restablecerán los borradores de facturas."
-
-msgctxt "view:aeat.verifactu.reset.keys.start:"
-msgid "The AEAT Verifactu Keys for selected invoices will be reset to default."
-msgstr ""
-"Las claves AEAT Verifactu para las facturas seleccionadas se restablecerán a"
-" sus valores predeterminados."
-
 msgctxt "view:aeat.verifactu:"
 msgid "Main Information"
 msgstr "Información principal"
-
-msgctxt "wizard_button:aeat.verifactu.reset.keys,done,end:"
-msgid "Ok"
-msgstr "De acuerdo"
-
-msgctxt "wizard_button:aeat.verifactu.reset.keys,start,end:"
-msgid "Cancel"
-msgstr "Cancelar"
-
-msgctxt "wizard_button:aeat.verifactu.reset.keys,start,reset:"
-msgid "Reset"
-msgstr "Reiniciar"
