@@ -1,0 +1,7 @@
+<data>
+    <xpath expr="//field[@name='end_date']" position="after">
+        <label name="es_verifactu_send_invoices"/>
+        <field name="es_verifactu_send_invoices"/>
+    </xpath>
+</data>
+

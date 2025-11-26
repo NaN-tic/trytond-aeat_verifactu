@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<!-- The COPYRIGHT file at the top level of this repository contains the full
+     copyright notices and license terms. -->
+<form>
+    <notebook>
+        <page string="Main Information" id="main_registers">
+            <label name="invoice"/>
+            <field name="invoice"/>
+            <label name="state"/>
+            <field name="state"/>
+            <label name="error_message"/>
+            <field name="error_message"/>
+        </page>
+    </notebook>
+</form>

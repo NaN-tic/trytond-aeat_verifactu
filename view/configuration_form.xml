@@ -1,0 +1,11 @@
+<?xml version="1.0"?>
+<!-- The COPYRIGHT file at the top level of this repository contains the full
+copyright notices and license types. -->
+<data>
+    <xpath expr="/form/separator[@id='invoice']" position="before">
+        <separator id="aeat_verifactu" string="AEAT Verifactu" colspan="4"/>
+        <label name="aeat_certificate_verifactu"/>
+        <field name="aeat_certificate_verifactu"/>
+        <newline/>
+    </xpath>
+</data>

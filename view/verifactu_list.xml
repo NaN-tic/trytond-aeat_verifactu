@@ -1,0 +1,9 @@
+<?xml version="1.0"?>
+<!-- The COPYRIGHT file at the top level of this repository contains the full
+     copyright notices and license terms. -->
+<tree>
+    <field name="invoice"/>
+    <field name="invoice_operation_key"/>
+    <field name="state"/>
+    <field name="error_message" expand="2"/>
+</tree>

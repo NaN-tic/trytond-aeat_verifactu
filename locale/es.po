@@ -1,0 +1,942 @@
+#
+# SPDX-FileCopyrightText: 2025 albert
+msgid ""
+msgstr ""
+"Content-Type: text/plain; charset=UTF-8\n"
+"Last-Translator: albert\n"
+"PO-Revision-Date: 2025-11-11 18:36+0100\n"
+"Project-Id-Version: \n"
+"Language-Team: Catalan <>\n"
+"Language: ca_ES\n"
+"Content-Transfer-Encoding: 8bit\n"
+"MIME-Version: 1.0\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Generator: Lokalize 25.04.0\n"
+
+msgctxt "field:account.configuration,aeat_certificate_verifactu:"
+msgid "AEAT Verifactu Certificate"
+msgstr "Certificado AEAT Verifactu"
+
+msgctxt ""
+"field:account.configuration.default_verifactu,aeat_certificate_verifactu:"
+msgid "AEAT Verifactu Certificate"
+msgstr "Certificado AEAT Verifactu"
+
+msgctxt "field:account.configuration.default_verifactu,company:"
+msgid "Company"
+msgstr "Compañía"
+
+msgctxt "field:account.fiscalyear,es_verifactu_send_invoices:"
+msgid "Send invoices to Verifactu"
+msgstr "Enviar facturas a Verifactu"
+
+msgctxt "field:account.invoice,is_verifactu:"
+msgid "Is Verifactu"
+msgstr "¿Es Verifactu?"
+
+msgctxt "field:account.invoice,verifactu_errors:"
+msgid "Verifactu Errors"
+msgstr "Errores de Verifactu"
+
+msgctxt "field:account.invoice,verifactu_operation_key:"
+msgid "Verifactu Operation Key"
+msgstr "Clave de operación Verifactu"
+
+msgctxt "field:account.invoice,verifactu_pending_sending:"
+msgid "Verifactu Pending Sending"
+msgstr "Verifactu pendiente de envío"
+
+msgctxt "field:account.invoice,verifactu_records:"
+msgid "Verifactu Report Lines"
+msgstr "Líneas de informe Verifactu"
+
+msgctxt "field:account.invoice,verifactu_sent:"
+msgid "Verifactu Sent"
+msgstr "Verificación enviada"
+
+msgctxt "field:account.invoice,verifactu_state:"
+msgid "Verifactu State"
+msgstr "Estado de Verifactu"
+
+msgctxt "field:account.period,es_verifactu_send_invoices:"
+msgid "Send Invoices to Verifactu"
+msgstr "Enviar facturas a Verifactu"
+
+msgctxt "field:account.tax,isp:"
+msgid "Inversion del Sujeto Pasivo"
+msgstr "Inversion del Sujeto Pasivo"
+
+msgctxt "field:account.tax,service:"
+msgid "Service Rate"
+msgstr "Tarifa de servicio"
+
+msgctxt "field:account.tax,verifactu_exemption_cause:"
+msgid "Exemption Cause"
+msgstr "Causa de exención"
+
+msgctxt "field:account.tax,verifactu_issued_key:"
+msgid "Issued Key"
+msgstr "Clave emitida"
+
+msgctxt "field:account.tax,verifactu_subjected_key:"
+msgid "Subjected Key"
+msgstr "Clave sujeta"
+
+msgctxt "field:account.tax.template,isp:"
+msgid "Inversion del Sujeto Pasivo"
+msgstr "Inversion del Sujeto Pasivo"
+
+msgctxt "field:account.tax.template,service:"
+msgid "Service Rate"
+msgstr "Tarifa de servicio"
+
+msgctxt "field:account.tax.template,verifactu_exemption_cause:"
+msgid "Exemption Cause"
+msgstr "Causa de exención"
+
+msgctxt "field:account.tax.template,verifactu_issued_key:"
+msgid "Issued Key"
+msgstr "Clave emitida"
+
+msgctxt "field:account.tax.template,verifactu_subjected_key:"
+msgid "Subjected Key"
+msgstr "Clave sujeta"
+
+msgctxt "field:aeat.verifactu,communication_code:"
+msgid "Communication Code"
+msgstr "Código de comunicación"
+
+msgctxt "field:aeat.verifactu,communication_msg:"
+msgid "Communication Message"
+msgstr "Mensaje de comunicación"
+
+msgctxt "field:aeat.verifactu,company:"
+msgid "Company"
+msgstr "Compañía"
+
+msgctxt "field:aeat.verifactu,counterpart_id:"
+msgid "Counterpart ID"
+msgstr "ID de contrapartida"
+
+msgctxt "field:aeat.verifactu,counterpart_name:"
+msgid "Counterpart Name"
+msgstr "Nombre de la contrapartida"
+
+msgctxt "field:aeat.verifactu,error_message:"
+msgid "Error Message"
+msgstr "Mensaje de error"
+
+msgctxt "field:aeat.verifactu,exemption_cause:"
+msgid "Exemption Cause"
+msgstr "Causa de exención"
+
+msgctxt "field:aeat.verifactu,fingerprint:"
+msgid "Fingerprint"
+msgstr "Huella"
+
+msgctxt "field:aeat.verifactu,identifier_type:"
+msgid "Identifier Type"
+msgstr "Tipo de identificador"
+
+msgctxt "field:aeat.verifactu,invoice:"
+msgid "Invoice"
+msgstr "Factura"
+
+msgctxt "field:aeat.verifactu,invoice_kind:"
+msgid "Invoice Kind"
+msgstr "Tipo de factura"
+
+msgctxt "field:aeat.verifactu,invoice_operation_key:"
+msgid "Operation Key"
+msgstr "Clave de operación"
+
+msgctxt "field:aeat.verifactu,issue_date:"
+msgid "Issued Date"
+msgstr "Fecha de emisión"
+
+msgctxt "field:aeat.verifactu,last_modify_date:"
+msgid "Last Modification Date"
+msgstr "Fecha de última modificación"
+
+msgctxt "field:aeat.verifactu,serial_number:"
+msgid "Serial Number"
+msgstr "Número de serie"
+
+msgctxt "field:aeat.verifactu,state:"
+msgid "State"
+msgstr "Estado"
+
+msgctxt "field:aeat.verifactu,total_amount:"
+msgid "Total Amount"
+msgstr "Importe total"
+
+msgctxt "field:aeat.verifactu,vat_code:"
+msgid "VAT Code"
+msgstr "Código de identificador fiscal"
+
+msgctxt "field:party.party,verifactu_identifier_type:"
+msgid "Verifactu Identifier Type"
+msgstr "Tipo de identificador Verifactu"
+
+msgctxt "field:party.party,verifactu_vat_code:"
+msgid "Verifactu VAT Code"
+msgstr "Código de IVA de Verifactu"
+
+msgctxt "help:account.period,es_verifactu_send_invoices:"
+msgid "Check to create Verifactu records for invoices in the period."
+msgstr ""
+"Marque para que se creen registros Verifactu para las facturas del período."
+
+msgctxt "help:account.tax,isp:"
+msgid "Indicates if the tax is Inversion del sujeto Pasivo"
+msgstr "Indica si el impuesto es Inversión del sujeto Pasivo"
+
+msgctxt "help:account.tax,service:"
+msgid "Indicates if the tax is used for services"
+msgstr "Indica si el impuesto se utiliza para servicios."
+
+msgctxt "help:account.tax.template,isp:"
+msgid "Indicates if the tax is Inversion del sujeto Pasivo"
+msgstr "Indica si el impuesto es Inversión del sujeto Pasivo"
+
+msgctxt "help:account.tax.template,service:"
+msgid "Indicates if the tax is used for services"
+msgstr "Indica si el impuesto se utiliza para servicios."
+
+msgctxt "model:account.configuration.default_verifactu,name:"
+msgid "Account Configuration Default Verifactu Values"
+msgstr "Valores predeterminados de verificación de configuración de cuenta"
+
+msgctxt "model:aeat.verifactu,name:"
+msgid "AEAT Verifactu"
+msgstr "AEAT Verifactu"
+
+msgctxt "model:aeat.verifactu.reset.keys.end,name:"
+msgid "Reset to default Verifactu Keys End"
+msgstr "Restablecer a valores predeterminados Verifactu Keys Fin"
+
+msgctxt "model:aeat.verifactu.reset.keys.start,name:"
+msgid "Reset to default Verifactu Keys Start"
+msgstr "Restablecer a valores predeterminados Verifactu Keys Start"
+
+msgctxt "model:ir.action,name:"
+msgid "AEAT Verifactu Report Lines"
+msgstr "Líneas de informe de verificación de AEAT"
+
+msgctxt "model:ir.action,name:act_aeat_verifactu"
+msgid "AEAT Verifactu"
+msgstr "AEAT Verifactu"
+
+msgctxt "model:ir.action,name:act_aeat_verifactu_reset_keys"
+msgid "Reset AEAT Verifactu Keys"
+msgstr "Restablecer claves de verificación AEAT"
+
+msgctxt "model:ir.message,text:msg_delete_cancel"
+msgid "Report \"%(report)s\" must be cancelled before deletion."
+msgstr "El informe \"%(report)s\" debe cancelarse antes de su eliminación."
+
+msgctxt "model:ir.message,text:msg_invoice_in_missing_ref"
+msgid "The invoices \"%(invoices)s\" do not have reference."
+msgstr "Las facturas \"%(invoices)s\" no tienen referencia."
+
+msgctxt "model:ir.message,text:msg_invoices_verifactu"
+msgid ""
+"The following invoices are related to Verifactu books:\n"
+"%(invoices)s.\n"
+"If you edit them be careful that you need to update to Verifactu again"
+msgstr ""
+"Las siguientes facturas están relacionadas con los libros de Verifactu: "
+"%(facturas)s. Si las edita, tenga en cuenta que deberá actualizar Verifactu "
+"nuevamente."
+
+msgctxt "model:ir.message,text:msg_invoices_verifactu_pending"
+msgid "The following invoices are related to Verifactu books in draft state."
+msgstr ""
+"Las siguientes facturas están relacionadas con libros de Verifactu en estado"
+" de borrador."
+
+msgctxt "model:ir.message,text:msg_missing_certificate"
+msgid ""
+"There isn't a certificate defined in the account configuration for the "
+"Verifactu."
+msgstr ""
+"No hay ningún certificado definido en la configuración de la cuenta para "
+"Verifactu."
+
+msgctxt "model:ir.message,text:msg_missing_fernet_key"
+msgid "Missing Fernet key configuration"
+msgstr "Falta la configuración de la clave Fernet"
+
+msgctxt "model:ir.message,text:msg_missing_nif"
+msgid "The party of invoice \"%(invoice)s\" must have a valid Tax Identifier."
+msgstr ""
+"El tercero que emite la factura \"%(invoice)s\" debe tener un identificador "
+"fiscal válido."
+
+msgctxt "model:ir.message,text:msg_missing_verifactu_keys"
+msgid ""
+"The invoice \"%(invoice)s\" does not have the necessary Verifactu keys "
+"filled."
+msgstr ""
+"La factura \"%(invoice)s\" no tiene las claves Verifactu necesarias "
+"rellenadas."
+
+msgctxt "model:ir.message,text:msg_posted_invoices"
+msgid ""
+"You can not change the Verifactu setting for period \"%(period)s\" because "
+"there are already posted invoices."
+msgstr ""
+"No puedes cambiar la configuración de Verifactu para el período "
+"\"%(period)s\" porque ya hay facturas registradas."
+
+msgctxt "model:ir.message,text:msg_report_duplicated_invoice"
+msgid ""
+"Invoice \"%(invoice)s\" is duplicated in Verifactu Report \"%(report)s\"."
+msgstr ""
+"La factura \"%(invoice)s\" está duplicada en el informe Verifactu "
+"\"%(report)s\"."
+
+msgctxt "model:ir.message,text:msg_report_wrong_invoice_state"
+msgid "Invoice \"%(invoice)s\" must be posted, paid or refunded."
+msgstr "La factura \"%(invoice)s\" debe ser registrada, pagada o reembolsada."
+
+msgctxt "model:ir.message,text:msg_set_simplified_invoice"
+msgid ""
+"The parties of the invoices \"%(invoices)s\" have not set the Verifactu "
+"Identifier as 'Simplified Invoice', but the invoice Verifactu operation key "
+"is set as 'Simplified Invoice (ticket)' or 'Invoice summary entry'. The "
+"invoices will be sent to AEAT without destination identification."
+msgstr ""
+"Las partes de las facturas «%(invoices)s» no han configurado el "
+"identificador Verifactu como «Factura simplificada», pero la clave de "
+"operación Verifactu de la factura está configurada como «Factura "
+"simplificada (ticket)» o «Entrada de resumen de factura». Las facturas se "
+"enviarán a AEAT sin identificación de destino."
+
+msgctxt "model:ir.message,text:msg_set_simplified_party"
+msgid ""
+"The parties of the invoices \"%(invoices)s\" have the Verifactu Identifier "
+"as 'Simplified Invoice'. The Verifactu operation key will be switched to "
+"'Simplified Invoice (ticket)' or 'Invoice summary entry' as appropriate, and"
+" the invoices will be sent to AEAT without destination identification."
+msgstr ""
+"Las partes de las facturas \"%(invoices)s\" tienen el identificador "
+"Verifactu como \"Factura simplificada\". La clave de operación de Verifactu "
+"se cambiará a \"Factura simplificada (ticket)\" o \"Entrada de resumen de "
+"factura\", según corresponda, y las facturas se enviarán a AEAT sin "
+"identificación de destino."
+
+msgctxt "model:ir.message,text:msg_verifactu_operation_key_wrong"
+msgid ""
+"Invoice \"%(invoice)s\" has a wrong subject and operation Verifactu "
+"combination."
+msgstr ""
+"La factura \"%(invoice)s\" tiene una combinación incorrecta de sujeto y "
+"operación Verifactu."
+
+msgctxt "model:ir.message,text:msg_wrong_identifier_type"
+msgid ""
+"Party \"%(party)s\" of invoice \"%(invoice)s\" must have a valid Verifactu "
+"Identifier \"VAT (only for intracommunity operators)\"."
+msgstr ""
+"El tercero \"%(party)s\" de la factura \"%(invoice)s\" debe tener un "
+"identificador Verifactu válido \"IVA (solo para operadores "
+"intracomunitarios)\"."
+
+msgctxt "model:ir.message,text:reports_exist"
+msgid ""
+"There are some reports in draft and/or confirmed. No report will be created "
+"until these reports will be processed."
+msgstr ""
+"Existen algunos informes en borrador y/o confirmados. No se generará ningún "
+"informe hasta que se procesen estos informes."
+
+msgctxt "model:ir.rule.group,name:rule_group_verifactu_report_line"
+msgid "User in company"
+msgstr "Usuario en la empresa"
+
+msgctxt "model:ir.ui.menu,name:"
+msgid "AEAT Verifactu Report Lines"
+msgstr "Líneas de informe de verificación de AEAT"
+
+msgctxt "model:ir.ui.menu,name:menu_aeat_verifactu"
+msgid "AEAT Verifactu Report Lines"
+msgstr "Líneas de informe de verificación de AEAT"
+
+msgctxt "model:ir.ui.menu,name:menu_aeat_verifactu_report_menu"
+msgid "AEAT Verifactu"
+msgstr "AEAT Verifactu"
+
+msgctxt "selection:account.invoice,verifactu_operation_key:"
+msgid "Corrected Invoice (Art 80.1, 80.2 and 80.6 and error grounded in law)"
+msgstr ""
+"Factura corregida (Artículos 80.1, 80.2 y 80.6 y error fundado en derecho)"
+
+msgctxt "selection:account.invoice,verifactu_operation_key:"
+msgid "Corrected Invoice (Art. 80.3)"
+msgstr "Factura corregida (Art. 80.3)"
+
+msgctxt "selection:account.invoice,verifactu_operation_key:"
+msgid "Corrected Invoice (Other)"
+msgstr "Factura corregida (Otros)"
+
+msgctxt "selection:account.invoice,verifactu_operation_key:"
+msgid "Corrected Invoice in simplified invoices"
+msgstr "Factura corregida en facturas simplificadas"
+
+msgctxt "selection:account.invoice,verifactu_operation_key:"
+msgid "Credit Note (Art 80.4)"
+msgstr "Nota de crédito (Art. 80.4)"
+
+msgctxt "selection:account.invoice,verifactu_operation_key:"
+msgid "Invoice (Art 6.7.3 y 7.3 of RD1619/2012)"
+msgstr "Factura (Artículos 6.7.3 y 7.3 del RD1619/2012)"
+
+msgctxt "selection:account.invoice,verifactu_operation_key:"
+msgid "Invoice issued to replace simplified invoices issued and filed"
+msgstr ""
+"Factura emitida para reemplazar las facturas simplificadas emitidas y "
+"archivadas"
+
+msgctxt "selection:account.invoice,verifactu_operation_key:"
+msgid ""
+"Simplified Invoice (ticket) and Invoices without destination identidication "
+"(Art 6.1.d of RD1619/2012)"
+msgstr ""
+"Factura simplificada (billete) y facturas sin identificación de destino "
+"(Art. 6.1.d del RD1619/2012)"
+
+msgctxt "selection:account.invoice,verifactu_state:"
+msgid "Accepted"
+msgstr "Aceptado"
+
+msgctxt "selection:account.invoice,verifactu_state:"
+msgid "Accepted "
+msgstr "Aceptado "
+
+msgctxt "selection:account.invoice,verifactu_state:"
+msgid "Accepted with Errors"
+msgstr "Aceptado con errores"
+
+msgctxt "selection:account.invoice,verifactu_state:"
+msgid "Accepted with Errors "
+msgstr "Aceptado con errores "
+
+msgctxt "selection:account.invoice,verifactu_state:"
+msgid "Deleted"
+msgstr "Eliminado"
+
+msgctxt "selection:account.invoice,verifactu_state:"
+msgid "Duplicated / Unsubscribed"
+msgstr "Suscrito duplicado / Cancelado"
+
+msgctxt "selection:account.invoice,verifactu_state:"
+msgid "Pending Sending"
+msgstr "Pendiente de envío"
+
+msgctxt "selection:account.invoice,verifactu_state:"
+msgid "Pending Sending Fix"
+msgstr "Corrección pendiente de envío"
+
+msgctxt "selection:account.invoice,verifactu_state:"
+msgid "Rejected"
+msgstr "Rechazado"
+
+msgctxt "selection:account.tax,verifactu_exemption_cause:"
+msgid "Exempt on account of Article 20"
+msgstr "Exento en virtud del artículo 20"
+
+msgctxt "selection:account.tax,verifactu_exemption_cause:"
+msgid "Exempt on account of Article 21"
+msgstr "Exento en virtud del artículo 21"
+
+msgctxt "selection:account.tax,verifactu_exemption_cause:"
+msgid "Exempt on account of Article 22"
+msgstr "Exento en virtud del artículo 22"
+
+msgctxt "selection:account.tax,verifactu_exemption_cause:"
+msgid "Exempt on account of Article 23 and Article 24"
+msgstr "Exento en virtud de los artículos 23 y 24."
+
+msgctxt "selection:account.tax,verifactu_exemption_cause:"
+msgid "Exempt on account of Article 25"
+msgstr "Exento en virtud del artículo 25"
+
+msgctxt "selection:account.tax,verifactu_exemption_cause:"
+msgid "Exempt on other grounds"
+msgstr "Exento por otros motivos"
+
+msgctxt "selection:account.tax,verifactu_exemption_cause:"
+msgid "Not Subject"
+msgstr "No sujeto a"
+
+msgctxt "selection:account.tax,verifactu_issued_key:"
+msgid ""
+"Activities subject to Canary Islands General Indirect Tax/Tax on Production,"
+" Services and Imports"
+msgstr ""
+"Actividades sujetas al Impuesto General Indirecto de Canarias/Impuesto sobre"
+" la Producción, los Servicios y las Importaciones"
+
+msgctxt "selection:account.tax,verifactu_issued_key:"
+msgid ""
+"Activities to which the special scheme of used goods, works of art, "
+"antiquities and collectables (135-139 of the VAT Law)"
+msgstr ""
+"Actividades a las que se aplica el régimen especial de bienes usados, obras "
+"de arte, antigüedades y objetos de colección (artículos 135-139 de la Ley "
+"del IVA)."
+
+msgctxt "selection:account.tax,verifactu_issued_key:"
+msgid "Business premises lease activities subject to withholding"
+msgstr ""
+"Actividades de arrendamiento de locales comerciales sujetas a retención"
+
+msgctxt "selection:account.tax,verifactu_issued_key:"
+msgid ""
+"Collections on behalf of third parties of professional fees or industrial "
+"property, copyright or other such rights by partners, associates or members "
+"undertaken by companies, associations, professional organisations or other "
+"entities that, amongst their functions, undertake collections"
+msgstr ""
+"Cobros en nombre de terceros de honorarios profesionales o derechos de "
+"propiedad industrial, derechos de autor u otros derechos similares por parte"
+" de socios, asociados o miembros, realizados por empresas, asociaciones, "
+"organizaciones profesionales u otras entidades que, entre sus funciones, "
+"realizan cobros."
+
+msgctxt "selection:account.tax,verifactu_issued_key:"
+msgid "Equivalence surcharge"
+msgstr "recargo por equivalencia"
+
+msgctxt "selection:account.tax,verifactu_issued_key:"
+msgid "Export"
+msgstr "Exportar"
+
+msgctxt "selection:account.tax,verifactu_issued_key:"
+msgid "General tax regime activity"
+msgstr "actividad del régimen fiscal general"
+
+msgctxt "selection:account.tax,verifactu_issued_key:"
+msgid ""
+"Invoice with VAT pending accrual (work certifications with Public "
+"Administration recipients)"
+msgstr ""
+"Factura con IVA pendiente de devengo (certificados de trabajo con "
+"destinatarios de la Administración Pública)"
+
+msgctxt "selection:account.tax,verifactu_issued_key:"
+msgid "Invoice with VAT pending accrual - operations of successive tract"
+msgstr "Factura con IVA pendiente de devengo - operaciones de tramo sucesivo"
+
+msgctxt "selection:account.tax,verifactu_issued_key:"
+msgid ""
+"Invoicing of the provision of travel agency services acting as "
+"intermediaries in the name of and on behalf of other persons (Additional "
+"Provision 4, Royal Decree 1619/2012)"
+msgstr ""
+"Facturación de la prestación de servicios de agencia de viajes actuando como"
+" intermediarios en nombre y por cuenta de otras personas (Disposición "
+"Adicional 4, Real Decreto 1619/2012)."
+
+msgctxt "selection:account.tax,verifactu_issued_key:"
+msgid ""
+"Operation covered by one of the regimes provided for in Chapter XI of Title "
+"IX (OSS and IOSS)"
+msgstr ""
+"Operación cubierta por uno de los regímenes previstos en el Capítulo XI del "
+"Título IX (OSS e IOSS)."
+
+msgctxt "selection:account.tax,verifactu_issued_key:"
+msgid ""
+"Operations of activities included in the Special Regime for Agriculture, "
+"Livestock and Fisheries (REAGYP)"
+msgstr ""
+"Operaciones de actividades incluidas en el Régimen Especial para la "
+"Agricultura, la Ganadería y la Pesca (REAGYP)"
+
+msgctxt "selection:account.tax,verifactu_issued_key:"
+msgid "Simplified regime"
+msgstr "Régimen simplificado"
+
+msgctxt "selection:account.tax,verifactu_issued_key:"
+msgid "Special cash basis scheme"
+msgstr "Plan especial basado en efectivo"
+
+msgctxt "selection:account.tax,verifactu_issued_key:"
+msgid "Special scheme applicable to groups of entities, VAT (Advanced)"
+msgstr "Régimen especial aplicable a grupos de entidades, IVA (Anticipado)"
+
+msgctxt "selection:account.tax,verifactu_issued_key:"
+msgid "Special scheme for investment gold"
+msgstr "Plan especial para la inversión en oro"
+
+msgctxt "selection:account.tax,verifactu_issued_key:"
+msgid "Special scheme for travel agencies"
+msgstr "Plan especial para agencias de viajes"
+
+msgctxt "selection:account.tax,verifactu_subjected_key:"
+msgid "Exempt by location rules"
+msgstr "Exento por normas de ubicación"
+
+msgctxt "selection:account.tax,verifactu_subjected_key:"
+msgid "Exempt on acconunt of Articles 7, 14, others"
+msgstr "Exento en virtud de los artículos 7, 14 y otros."
+
+msgctxt "selection:account.tax,verifactu_subjected_key:"
+msgid "Subject - Not exempt. Non VAT reverse charge"
+msgstr "Sujeto - No exento. Inversión del sujeto pasivo sin IVA"
+
+msgctxt "selection:account.tax,verifactu_subjected_key:"
+msgid "Subject - Not exempt. VAT reverse charge"
+msgstr "Sujeto - No exento. Inversión del sujeto pasivo del IVA"
+
+msgctxt "selection:account.tax.template,verifactu_exemption_cause:"
+msgid "Exempt on account of Article 20"
+msgstr "Exento en virtud del artículo 20"
+
+msgctxt "selection:account.tax.template,verifactu_exemption_cause:"
+msgid "Exempt on account of Article 21"
+msgstr "Exento en virtud del artículo 21"
+
+msgctxt "selection:account.tax.template,verifactu_exemption_cause:"
+msgid "Exempt on account of Article 22"
+msgstr "Exento en virtud del artículo 22"
+
+msgctxt "selection:account.tax.template,verifactu_exemption_cause:"
+msgid "Exempt on account of Article 23 and Article 24"
+msgstr "Exento en virtud de los artículos 23 y 24."
+
+msgctxt "selection:account.tax.template,verifactu_exemption_cause:"
+msgid "Exempt on account of Article 25"
+msgstr "Exento en virtud del artículo 25"
+
+msgctxt "selection:account.tax.template,verifactu_exemption_cause:"
+msgid "Exempt on other grounds"
+msgstr "Exento por otros motivos"
+
+msgctxt "selection:account.tax.template,verifactu_exemption_cause:"
+msgid "Not Subject"
+msgstr "No sujeto a"
+
+msgctxt "selection:account.tax.template,verifactu_issued_key:"
+msgid ""
+"Activities subject to Canary Islands General Indirect Tax/Tax on Production,"
+" Services and Imports"
+msgstr ""
+"Actividades sujetas al Impuesto General Indirecto de Canarias/Impuesto sobre"
+" la Producción, los Servicios y las Importaciones"
+
+msgctxt "selection:account.tax.template,verifactu_issued_key:"
+msgid ""
+"Activities to which the special scheme of used goods, works of art, "
+"antiquities and collectables (135-139 of the VAT Law)"
+msgstr ""
+"Actividades a las que se aplica el régimen especial de bienes usados, obras "
+"de arte, antigüedades y objetos de colección (artículos 135-139 de la Ley "
+"del IVA)."
+
+msgctxt "selection:account.tax.template,verifactu_issued_key:"
+msgid "Business premises lease activities subject to withholding"
+msgstr ""
+"Actividades de arrendamiento de locales comerciales sujetas a retención"
+
+msgctxt "selection:account.tax.template,verifactu_issued_key:"
+msgid ""
+"Collections on behalf of third parties of professional fees or industrial "
+"property, copyright or other such rights by partners, associates or members "
+"undertaken by companies, associations, professional organisations or other "
+"entities that, amongst their functions, undertake collections"
+msgstr ""
+"Cobros en nombre de terceros de honorarios profesionales o derechos de "
+"propiedad industrial, derechos de autor u otros derechos similares por parte"
+" de socios, asociados o miembros, realizados por empresas, asociaciones, "
+"organizaciones profesionales u otras entidades que, entre sus funciones, "
+"realizan cobros."
+
+msgctxt "selection:account.tax.template,verifactu_issued_key:"
+msgid "Equivalence surcharge"
+msgstr "recargo por equivalencia"
+
+msgctxt "selection:account.tax.template,verifactu_issued_key:"
+msgid "Export"
+msgstr "Exportar"
+
+msgctxt "selection:account.tax.template,verifactu_issued_key:"
+msgid "General tax regime activity"
+msgstr "actividad del régimen fiscal general"
+
+msgctxt "selection:account.tax.template,verifactu_issued_key:"
+msgid ""
+"Invoice with VAT pending accrual (work certifications with Public "
+"Administration recipients)"
+msgstr ""
+"Factura con IVA pendiente de devengo (certificados de trabajo con "
+"destinatarios de la Administración Pública)"
+
+msgctxt "selection:account.tax.template,verifactu_issued_key:"
+msgid "Invoice with VAT pending accrual - operations of successive tract"
+msgstr "Factura con IVA pendiente de devengo - operaciones de tramo sucesivo"
+
+msgctxt "selection:account.tax.template,verifactu_issued_key:"
+msgid ""
+"Invoicing of the provision of travel agency services acting as "
+"intermediaries in the name of and on behalf of other persons (Additional "
+"Provision 4, Royal Decree 1619/2012)"
+msgstr ""
+"Facturación de la prestación de servicios de agencia de viajes actuando como"
+" intermediarios en nombre y por cuenta de otras personas (Disposición "
+"Adicional 4, Real Decreto 1619/2012)."
+
+msgctxt "selection:account.tax.template,verifactu_issued_key:"
+msgid ""
+"Operation covered by one of the regimes provided for in Chapter XI of Title "
+"IX (OSS and IOSS)"
+msgstr ""
+"Operación cubierta por uno de los regímenes previstos en el Capítulo XI del "
+"Título IX (OSS e IOSS)."
+
+msgctxt "selection:account.tax.template,verifactu_issued_key:"
+msgid ""
+"Operations of activities included in the Special Regime for Agriculture, "
+"Livestock and Fisheries (REAGYP)"
+msgstr ""
+"Operaciones de actividades incluidas en el Régimen Especial para la "
+"Agricultura, la Ganadería y la Pesca (REAGYP)"
+
+msgctxt "selection:account.tax.template,verifactu_issued_key:"
+msgid "Simplified regime"
+msgstr "Régimen simplificado"
+
+msgctxt "selection:account.tax.template,verifactu_issued_key:"
+msgid "Special cash basis scheme"
+msgstr "Plan especial basado en efectivo"
+
+msgctxt "selection:account.tax.template,verifactu_issued_key:"
+msgid "Special scheme applicable to groups of entities, VAT (Advanced)"
+msgstr "Régimen especial aplicable a grupos de entidades, IVA (Anticipado)"
+
+msgctxt "selection:account.tax.template,verifactu_issued_key:"
+msgid "Special scheme for investment gold"
+msgstr "Plan especial para la inversión en oro"
+
+msgctxt "selection:account.tax.template,verifactu_issued_key:"
+msgid "Special scheme for travel agencies"
+msgstr "Plan especial para agencias de viajes"
+
+msgctxt "selection:account.tax.template,verifactu_subjected_key:"
+msgid "Exempt by location rules"
+msgstr "Exento por normas de ubicación"
+
+msgctxt "selection:account.tax.template,verifactu_subjected_key:"
+msgid "Exempt on acconunt of Articles 7, 14, others"
+msgstr "Exento en virtud de los artículos 7, 14 y otros."
+
+msgctxt "selection:account.tax.template,verifactu_subjected_key:"
+msgid "Subject - Not exempt. Non VAT reverse charge"
+msgstr "Sujeto - No exento. Inversión del sujeto pasivo sin IVA"
+
+msgctxt "selection:account.tax.template,verifactu_subjected_key:"
+msgid "Subject - Not exempt. VAT reverse charge"
+msgstr "Sujeto - No exento. Inversión del sujeto pasivo del IVA"
+
+msgctxt "selection:aeat.verifactu,identifier_type:"
+msgid "Not registered (only for Spanish VAT not registered)"
+msgstr "No registrado (solo para el IVA español no registrado)"
+
+msgctxt "selection:aeat.verifactu,identifier_type:"
+msgid ""
+"Official identification document issued by the country or region of "
+"residence"
+msgstr ""
+"Documento oficial de identificación expedido por el país o región de "
+"residencia."
+
+msgctxt "selection:aeat.verifactu,identifier_type:"
+msgid "Other supporting document"
+msgstr "Otro documento de apoyo"
+
+msgctxt "selection:aeat.verifactu,identifier_type:"
+msgid "Passport"
+msgstr "Pasaporte"
+
+msgctxt "selection:aeat.verifactu,identifier_type:"
+msgid "Residence certificate"
+msgstr "Certificado de residencia"
+
+msgctxt "selection:aeat.verifactu,identifier_type:"
+msgid "Simplified Invoice"
+msgstr "Factura simplificada"
+
+msgctxt "selection:aeat.verifactu,identifier_type:"
+msgid "VAT (for National operators)"
+msgstr "VAT (para operadores nacionales)"
+
+msgctxt "selection:aeat.verifactu,identifier_type:"
+msgid "VAT (only for intracommunity operators)"
+msgstr "VAT (solo para operadores intracomunitarios)"
+
+msgctxt "selection:aeat.verifactu,invoice_operation_key:"
+msgid "Corrected Invoice (Art 80.1, 80.2 and 80.6 and error grounded in law)"
+msgstr ""
+"Factura rectificativa (Artículos 80.1, 80.2 y 80.6 y error fundado en derecho)"
+
+msgctxt "selection:aeat.verifactu,invoice_operation_key:"
+msgid "Corrected Invoice (Art. 80.3)"
+msgstr "Factura rectificativa (Art. 80.3)"
+
+msgctxt "selection:aeat.verifactu,invoice_operation_key:"
+msgid "Corrected Invoice (Other)"
+msgstr "Factura rectificativa (Otros)"
+
+msgctxt "selection:aeat.verifactu,invoice_operation_key:"
+msgid "Corrected Invoice in simplified invoices"
+msgstr "Factura rectificativa en facturas simplificadas"
+
+msgctxt "selection:aeat.verifactu,invoice_operation_key:"
+msgid "Credit Note (Art 80.4)"
+msgstr "Factura rectificativa (Art. 80.4)"
+
+msgctxt "selection:aeat.verifactu,invoice_operation_key:"
+msgid "Invoice (Art 6.7.3 y 7.3 of RD1619/2012)"
+msgstr "Factura (Artículos 6.7.3 y 7.3 del RD1619/2012)"
+
+msgctxt "selection:aeat.verifactu,invoice_operation_key:"
+msgid "Invoice issued to replace simplified invoices issued and filed"
+msgstr ""
+"Factura emitida para reemplazar las facturas simplificadas emitidas y "
+"archivadas"
+
+msgctxt "selection:aeat.verifactu,invoice_operation_key:"
+msgid ""
+"Simplified Invoice (ticket) and Invoices without destination identidication "
+"(Art 6.1.d of RD1619/2012)"
+msgstr ""
+"Factura simplificada (billete) y facturas sin identificación de destino "
+"(Art. 6.1.d del RD1619/2012)"
+
+msgctxt "selection:aeat.verifactu,state:"
+msgid "Accepted"
+msgstr "Aceptado"
+
+msgctxt "selection:aeat.verifactu,state:"
+msgid "Accepted "
+msgstr "Aceptado "
+
+msgctxt "selection:aeat.verifactu,state:"
+msgid "Accepted with Errors"
+msgstr "Aceptado con errores"
+
+msgctxt "selection:aeat.verifactu,state:"
+msgid "Accepted with Errors "
+msgstr "Aceptado con errores "
+
+msgctxt "selection:aeat.verifactu,state:"
+msgid "Deleted"
+msgstr "Eliminado"
+
+msgctxt "selection:aeat.verifactu,state:"
+msgid "Duplicated / Unsubscribed"
+msgstr "Duplicado / Cancelado"
+
+msgctxt "selection:aeat.verifactu,state:"
+msgid "Pending Sending"
+msgstr "Pendiente de envío"
+
+msgctxt "selection:aeat.verifactu,state:"
+msgid "Pending Sending Fix"
+msgstr "Corrección pendiente de envío"
+
+msgctxt "selection:aeat.verifactu,state:"
+msgid "Rejected"
+msgstr "Rechazado"
+
+msgctxt "selection:ir.cron,method:"
+msgid "AEAT Verifactu"
+msgstr "AEAT Verifactu"
+
+msgctxt "selection:party.party,verifactu_identifier_type:"
+msgid "Not registered (only for Spanish VAT not registered)"
+msgstr "No registrado (solo para el IVA español no registrado)"
+
+msgctxt "selection:party.party,verifactu_identifier_type:"
+msgid ""
+"Official identification document issued by the country or region of "
+"residence"
+msgstr ""
+"Documento oficial de identificación expedido por el país o región de "
+"residencia."
+
+msgctxt "selection:party.party,verifactu_identifier_type:"
+msgid "Other supporting document"
+msgstr "Otro documento de apoyo"
+
+msgctxt "selection:party.party,verifactu_identifier_type:"
+msgid "Passport"
+msgstr "Pasaporte"
+
+msgctxt "selection:party.party,verifactu_identifier_type:"
+msgid "Residence certificate"
+msgstr "Certificado de residencia"
+
+msgctxt "selection:party.party,verifactu_identifier_type:"
+msgid "Simplified Invoice"
+msgstr "Factura simplificada"
+
+msgctxt "selection:party.party,verifactu_identifier_type:"
+msgid "VAT (for National operators)"
+msgstr "IVA (para operadores nacionales)"
+
+msgctxt "selection:party.party,verifactu_identifier_type:"
+msgid "VAT (only for intracommunity operators)"
+msgstr "IVA (solo para operadores intracomunitarios)"
+
+msgctxt "view:account.configuration:"
+msgid "AEAT Verifactu"
+msgstr "AEAT Verifactu"
+
+msgctxt "view:account.invoice:"
+msgid "AEAT Verifactu"
+msgstr "AEAT Verifactu"
+
+msgctxt "view:account.tax.template:"
+msgid "AEAT Verifactu"
+msgstr "AEAT Verifactu"
+
+msgctxt "view:account.tax:"
+msgid "AEAT Verifactu"
+msgstr "AEAT Verifactu"
+
+msgctxt "view:aeat.verifactu.reset.keys.end:"
+msgid "The AEAT Verifactu Keys have been reset."
+msgstr "Las claves de verificación AEAT se han restablecido."
+
+msgctxt "view:aeat.verifactu.reset.keys.start:"
+msgid "Note that this operation may take a few minutes."
+msgstr "Tenga en cuenta que esta operación puede tardar unos minutos."
+
+msgctxt "view:aeat.verifactu.reset.keys.start:"
+msgid "Only will be reset the draft invoices."
+msgstr "Solo se restablecerán los borradores de facturas."
+
+msgctxt "view:aeat.verifactu.reset.keys.start:"
+msgid "The AEAT Verifactu Keys for selected invoices will be reset to default."
+msgstr ""
+"Las claves AEAT Verifactu para las facturas seleccionadas se restablecerán a"
+" sus valores predeterminados."
+
+msgctxt "view:aeat.verifactu:"
+msgid "Main Information"
+msgstr "Información principal"
+
+msgctxt "wizard_button:aeat.verifactu.reset.keys,done,end:"
+msgid "Ok"
+msgstr "De acuerdo"
+
+msgctxt "wizard_button:aeat.verifactu.reset.keys,start,end:"
+msgid "Cancel"
+msgstr "Cancelar"
+
+msgctxt "wizard_button:aeat.verifactu.reset.keys,start,reset:"
+msgid "Reset"
+msgstr "Reiniciar"
