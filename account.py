@@ -7,7 +7,59 @@ from trytond.model import fields, ModelSQL
 from trytond.pool import Pool, PoolMeta
 from trytond.exceptions import UserError
 from trytond.modules.company.model import CompanyValueMixin
-from .aeat import SEND_SPECIAL_REGIME_KEY, IVA_SUBJECTED, EXEMPTION_CAUSE
+
+# Desglose -> DetalleDesglose -> ClaveRegimen
+SEND_SPECIAL_REGIME_KEY = [  # L8A
+    (None, ''),
+    ('01', 'General tax regime activity'),
+    ('02', 'Export'),
+    ('03', 'Activities to which the special scheme of used goods, '
+        'works of art, antiquities and collectables (135-139 of the VAT Law)'),
+    ('04', 'Special scheme for investment gold'),
+    ('05', 'Special scheme for travel agencies'),
+    ('06', 'Special scheme applicable to groups of entities, VAT (Advanced)'),
+    ('07', 'Special cash basis scheme'),
+    ('08', 'Activities subject to Canary Islands General Indirect Tax/Tax on '
+        'Production, Services and Imports'),
+    ('09', 'Invoicing of the provision of travel agency services acting as '
+        'intermediaries in the name of and on behalf of other persons '
+        '(Additional Provision 4, Royal Decree 1619/2012)'),
+    ('10', 'Collections on behalf of third parties of professional fees or '
+        'industrial property, copyright or other such rights by partners, '
+        'associates or members undertaken by companies, associations, '
+        'professional organisations or other entities that, amongst their '
+        'functions, undertake collections'),
+    ('11', 'Business premises lease activities subject to withholding'),
+    ('14', 'Invoice with VAT pending accrual (work certifications with Public '
+        'Administration recipients)'),
+    ('15', 'Invoice with VAT pending accrual - '
+        'operations of successive tract'),
+    ('17', 'Operation covered by one of the regimes provided for in Chapter XI of Title IX (OSS and IOSS)'),
+    ('18', 'Equivalence surcharge'),
+    ('19', 'Operations of activities included in the Special Regime for Agriculture, Livestock and Fisheries (REAGYP)'),
+    ('20', 'Simplified regime'),
+    ]
+
+# L9 - Iva Subjected
+IVA_SUBJECTED = [
+    (None, ''),
+    ('S1', 'Subject - Not exempt. Non VAT reverse charge'),
+    ('S2', 'Subject - Not exempt. VAT reverse charge'),
+    ('N1', 'Exempt on acconunt of Articles 7, 14, others'),
+    ('N2', 'Exempt by location rules'),
+    ]
+
+# L10 - Exemption cause
+EXEMPTION_CAUSE = [
+    (None, ''),
+    ('E1', 'Exempt on account of Article 20'),
+    ('E2', 'Exempt on account of Article 21'),
+    ('E3', 'Exempt on account of Article 22'),
+    ('E4', 'Exempt on account of Article 23 and Article 24'),
+    ('E5', 'Exempt on account of Article 25'),
+    ('E6', 'Exempt on other grounds'),
+    ('NotSubject', 'Not Subject'),
+    ]
 
 
 class Configuration(metaclass=PoolMeta):

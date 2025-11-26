@@ -3,27 +3,140 @@
 from decimal import Decimal
 import datetime
 import hashlib
+import pytz
 from sql import Literal, Null
 from sql.aggregate import Max
 from sql.functions import Substring
 from sql.conditionals import Case, Coalesce
+from requests import Session
+from requests.exceptions import ConnectionError
+from urllib.parse import urlencode
+from zeep import Client
+from zeep.transports import Transport
+from zeep.settings import Settings
+from zeep.plugins import HistoryPlugin
 
+import trytond
 from trytond.config import config
-from trytond.model import ModelView, fields
+from trytond.model import ModelSQL, ModelView, fields
 from trytond.pool import Pool, PoolMeta
 from trytond.pyson import Bool, Eval
 from trytond.transaction import Transaction
 from trytond.i18n import gettext
 from trytond.exceptions import UserError, UserWarning
-from trytond.wizard import Wizard, StateView, StateTransition, Button
-from .aeat import OPERATION_KEY, AEAT_INVOICE_STATE
-from . import aeat
-from urllib.parse import urlencode
+from . import tools
 
 PRODUCTION_QR_URL = "https://www2.agenciatributaria.gob.es/wlpl/TIKE-CONT/ValidarQR"
 TEST_QR_URL = "https://prewww2.aeat.es/wlpl/TIKE-CONT/ValidarQR"
 
 PRODUCTION_ENV = config.getboolean('database', 'production', default=False)
+
+WSDL_PROD = ('https://prewww10.aeat.es/wlpl/TIKE-CONT/ws/SistemaFacturacion/RequerimientoSOAP')
+WSDL_TEST = ('https://prewww10.aeat.es/wlpl/TIKE-CONT/ws/SistemaFacturacion/RequerimientoSOAP')
+WSDL_PROD = ('https://prewww1.aeat.es/wlpl/TIKE-CONT/ws/SistemaFacturacion/VerifactuSOAP')
+WSDL_TEST = ('https://prewww1.aeat.es/wlpl/TIKE-CONT/ws/SistemaFacturacion/VerifactuSOAP')
+WSDL_PROD = ('https://prewww2.aeat.es/static_files/common/internet/dep/aplicaciones/es/aeat/tikeV1.0/cont/ws/')
+WSDL_TEST = ('https://prewww2.aeat.es/static_files/common/internet/dep/aplicaciones/es/aeat/tikeV1.0/cont/ws/')
+
+AEAT_INVOICE_STATE = [
+    (None, ''),
+    ('Correcto', 'Accepted'),
+    ('AceptadoConErrores', 'Accepted with Errors'),
+    ('Incorrecto', 'Rejected'),
+    ]
+
+OPERATION_KEY = [ # L2
+    ('F1', 'Invoice (Art 6.7.3 y 7.3 of RD1619/2012)'),
+    ('F2', 'Simplified Invoice (ticket) and Invoices without destination '
+        'identidication (Art 6.1.d of RD1619/2012)'),
+    ('F3', 'Invoice issued to replace simplified invoices issued and filed'),
+    # R1: errores fundados de derecho y causas del artículo 80.Uno, Dos y Seis
+    #    LIVA
+    ('R1', 'Corrected Invoice '
+        '(Art 80.1, 80.2 and 80.6 and error grounded in law)'),
+    # R2: concurso de acreedores
+    ('R2', 'Corrected Invoice (Art. 80.3)'),
+    # R3: deudas incobrables
+    ('R3', 'Credit Note (Art 80.4)'),
+    # R4: resto de causas
+    ('R4', 'Corrected Invoice (Other)'),
+    ('R5', 'Corrected Invoice in simplified invoices'),
+    ]
+
+
+def get_sistema_informatico():
+    pool = Pool()
+    Company = pool.get('company.company')
+
+    # TODO: We should check if the other companies are Spanish
+    # and/or should be counted
+    companies = Company.search([], count=True)
+
+    return {
+        'NombreRazon': config.get('aeat_verifactu', 'nombre_razon'),
+        'NIF': config.get('aeat_verifactu', 'nif'),
+        'NombreSistemaInformatico': config.get('aeat_verifactu',
+            'nombre_sistema_informatico'),
+        'IdSistemaInformatico': config.get('aeat_verifactu',
+            'id_sistema_informatico'),
+        'Version': trytond.__version__,
+        'NumeroInstalacion': config.get('aeat_verifactu',
+            'numero_instalacion'),
+        'TipoUsoPosibleSoloVerifactu': 'N',
+        'TipoUsoPosibleMultiOT': 'S',
+        'IndicadorMultiplesOT': 'S' if companies > 1 else 'N',
+        }
+
+def get_headers(company):
+    return {
+        'IDVersion': '1.0',
+        'ObligadoEmision': {
+            'NombreRazon': tools.unaccent(company.party.name),
+            'NIF': company.party.verifactu_vat_code,
+            # TODO: NIFRepresentante
+        },
+    }
+
+
+class Verifactu(ModelSQL, ModelView):
+    '''
+    AEAT Verifactu
+    '''
+    __name__ = 'aeat.verifactu'
+
+    invoice = fields.Many2One('account.invoice', 'Invoice', required=True,
+        domain=[('type', '=', 'out')])
+    state = fields.Selection(AEAT_INVOICE_STATE, 'State')
+    communication_code = fields.Integer('Communication Code', readonly=True)
+    company = fields.Many2One('company.company', 'Company', required=True)
+    invoice_operation_key = fields.Function(fields.Selection(OPERATION_KEY,
+            'Operation Key'), 'get_invoice_operation_key')
+    fingerprint = fields.Text('Fingerprint', readonly=True)
+    error_message = fields.Char('Error Message', readonly=True)
+
+    def get_invoice_operation_key(self, name):
+        return self.invoice.verifactu_operation_key if self.invoice else None
+
+    @staticmethod
+    def default_company():
+        return Transaction().context.get('company')
+
+    @classmethod
+    def __setup__(cls):
+        super().__setup__()
+        cls.__access__.add('invoice')
+
+    @classmethod
+    def copy(cls, records, default=None):
+        if default is None:
+            default = {}
+        else:
+            default = default.copy()
+        default['state'] = None
+        default['communication_code'] = None
+        default['fingerprint'] = None
+        default['error_message'] = None
+        return super().copy(records, default=default)
 
 
 class Invoice(metaclass=PoolMeta):
@@ -340,9 +453,66 @@ class Invoice(metaclass=PoolMeta):
 
         super()._post(invoices)
 
-        #cls.send_verifactu()
+        cls.send_verifactu()
         # TODO:
         #cls.__queue__.send_verifactu(invoices)
+
+    @staticmethod
+    def verifactu_service(crt, pkey):
+        if PRODUCTION_ENV:
+            wsdl = WSDL_PROD
+            port_name = 'SistemaVerifactu'
+        else:
+            wsdl = WSDL_TEST
+            port_name = 'SistemaVerifactuPruebas'
+
+        wsdl += 'SistemaFacturacion.wsdl'
+        session = Session()
+        session.cert = (crt, pkey)
+        transport = Transport(session=session)
+        settings = Settings(forbid_entities=False)
+        plugins = [HistoryPlugin()]
+        if not PRODUCTION_ENV:
+            plugins.append(tools.LoggingPlugin())
+        try:
+            client = Client(wsdl=wsdl, transport=transport, plugins=plugins, settings=settings)
+        except ConnectionError as e:
+            raise UserError(str(e))
+
+        return client.bind('sfVerifactu', port_name)
+
+    @classmethod
+    def verifactu_submit(cls, service, invoices, previous_fingerprint=None, last_line=None):
+        pool = Pool()
+        Company = pool.get('company.company')
+
+        company = Company(Transaction().context.get('company'))
+        headers = get_headers(company)
+        body = []
+        for invoice in invoices:
+            body.append({
+                    'RegistroAlta': invoice.build_invoice(previous_fingerprint,
+                        last_line),
+                    })
+        return service.RegFactuSistemaFacturacion(headers, body)
+
+    @classmethod
+    def verifactu_query(cls, service, year=None, period=None, clave_paginacion=None):
+        pool = Pool()
+        Company = pool.get('company.company')
+
+        company = Company(Transaction().context.get('company'))
+        headers = get_headers(company)
+        filter_ = {
+            'PeriodoImputacion': {
+                'Ejercicio': year,
+                'Periodo': tools.format_period(period),
+                },
+            'SistemaInformatico': get_sistema_informatico(),
+            }
+        if clave_paginacion:
+            filter_['ClavePaginacion'] = clave_paginacion
+        return service.ConsultaFactuSistemaFacturacion(headers, filter_)
 
     @classmethod
     def send_verifactu(cls, invoices=None):
@@ -373,9 +543,9 @@ class Invoice(metaclass=PoolMeta):
             return
         certificate = cls._get_verifactu_certificate()
         with certificate.tmp_ssl_credentials() as (crt, key):
-            service = aeat.VerifactuService.bind(crt, key)
-            response = service.submit(company, invoices, last_fingerprint=fingerprint,
-                last_line=last_line)
+            service = cls.verifactu_service(crt, key)
+            response = cls.verifactu_submit(service, invoices,
+                previous_fingerprint=fingerprint, last_line=last_line)
             lines_to_save = []
             invoices_to_save = []
             for x in response.RespuestaLinea:
@@ -405,8 +575,8 @@ class Invoice(metaclass=PoolMeta):
         records = []
         while pagination == 'S':
             with certificate.tmp_ssl_credentials() as (crt, key):
-                service = aeat.VerifactuService.bind(crt, key)
-                response = service.query(company, year=year, period=period, clave_paginacion=clave_paginacion)
+                service = cls.verifactu_service(crt, key)
+                response = cls.verifactu_query(service, year=year, period=period, clave_paginacion=clave_paginacion)
                 invoices = response.RegistroRespuestaConsultaFactuSistemaFacturacion
                 if invoices:
                     records.extend(invoices)
@@ -414,6 +584,173 @@ class Invoice(metaclass=PoolMeta):
             if pagination == 'S':
                 clave_paginacion = response.ClavePaginacion
         return records
+
+    def build_invoice(self, previous_fingerprint=None, last_line=None):
+
+        def verifactu_taxes():
+            return [invoice_tax for invoice_tax in self.taxes if
+                not invoice_tax.tax.recargo_equivalencia]
+
+        def _build_encadenamiento(previous_line):
+            if not previous_line:
+                return {
+                    'PrimerRegistro': 'S',
+                    }
+            previous_invoice = previous_line.invoice
+            return {
+                'RegistroAnterior': {
+                    'IDEmisorFactura': previous_invoice.company.party.verifactu_vat_code,
+                    'NumSerieFactura': previous_invoice.number,
+                    'FechaExpedicionFactura': previous_invoice.invoice_date.strftime(
+                        '%d-%m-%Y'),
+                    'Huella': previous_line.fingerprint,
+                    }}
+
+        def _build_desglose():
+            desgloses = []
+            for tax in verifactu_taxes():
+                desglose = {}
+                desglose['ClaveRegimen'] = tax.tax.verifactu_issued_key
+                if tax.tax.verifactu_subjected_key is not None:
+                    desglose['CalificacionOperacion']= tax.tax.verifactu_subjected_key
+                    desglose['TipoImpositivo'] = tools._rate_to_percent(tax.tax.rate)
+                    desglose['CuotaRepercutida'] = tax.company_amount
+                else:
+                    desglose['OperacionExenta'] = tax.tax.verifactu_exemption_cause
+                desglose['BaseImponibleOimporteNoSujeto'] = tax.company_base
+                if tax.tax.recargo_equivalencia_related_tax:
+                    for tax2 in self.taxes:
+                        if (tax2.tax.recargo_equivalencia and
+                                tax.tax.recargo_equivalencia_related_tax ==
+                                tax2.tax and tax2.base ==
+                                tax2.base.copy_sign(tax.base)):
+                            desglose['TipoRecargoEquivalencia'] = tools._rate_to_percent(
+                                tax2.tax.rate)
+                            desglose['CuotaRecargoEquivalencia'] = tax2.company_amount
+                            desglose['ClaveRegimen'] = 18 # Recargo de equivalencia
+                            break
+                desgloses.append(desglose)
+            return desgloses
+
+        def _build_counterpart():
+            ret = {
+                'NombreRazon': tools.unaccent(self.party.name),
+                }
+
+            vat = ''
+            if not self.simplified:
+                identifier = self.party_tax_identifier
+                if identifier:
+                    vat = identifier.es_code()
+                    vat_type = identifier.es_vat_type()
+                    for tax in self.taxes:
+                        if (tax.tax.verifactu_exemption_cause == 'E5' and
+                                vat_type != '02'):
+                            raise UserError(gettext(
+                                    'aeat_verifactu.msg_wrong_identifier_type',
+                                    invoice=self.number,
+                                    party=self.party.rec_name))
+            if vat_type and vat_type in {'02', '03', '04', '05', '06', '07'}:
+                ret['IDOtro'] = {
+                    'IDType': vat_type,
+                    'CodigoPais': identifier.es_country(),
+                    'ID': vat,
+                    }
+            else:
+                ret['NIF'] = vat
+            return ret
+
+        def tax_equivalence_surcharge_amount(invoice_tax):
+            surcharge_tax = None
+            for invoicetax in invoice_tax.invoice.taxes:
+                if (invoicetax.tax.recargo_equivalencia and
+                        invoice_tax.tax.recargo_equivalencia_related_tax ==
+                        invoicetax.tax and invoicetax.base ==
+                        invoicetax.base.copy_sign(invoice_tax.base)):
+                    surcharge_tax = invoicetax
+                    break
+            if surcharge_tax:
+                return surcharge_tax.company_amount
+
+        def get_invoice_total():
+            taxes = [invoice_tax for invoice_tax in self.taxes if
+                not invoice_tax.tax.recargo_equivalencia]
+            taxes_base = 0
+            taxes_amount = 0
+            taxes_surcharge = 0
+            taxes_used = {}
+            for tax in taxes:
+                base = tax.company_base
+                taxes_amount += tax.company_amount
+                taxes_surcharge += tax_equivalence_surcharge_amount(tax) or 0
+                parent = tax.tax.parent if tax.tax.parent else tax.tax
+                if (parent.id in list(taxes_used.keys()) and
+                        base == taxes_used[parent.id]):
+                    continue
+                taxes_base += base
+                taxes_used[parent.id] = base
+            return (taxes_amount + taxes_base + taxes_surcharge)
+
+
+        tz = pytz.timezone('Europe/Madrid')
+        dt_now = datetime.datetime.now(tz).replace(microsecond=0)
+        formatted_now = dt_now.isoformat()
+
+        # TODO: Review CuotaTotal as it is a string. How many digits are we using?
+        # TODO: The same for ImporteTotal
+        fingerprint_string = (
+            f'IDEmisorFactura={self.company.party.verifactu_vat_code}&'
+            f'NumSerieFactura={self.number}&'
+            f'FechaExpedicionFactura={self.invoice_date.strftime('%d-%m-%Y')}&'
+            f'TipoFactura={self.verifactu_operation_key}&'
+            f'CuotaTotal={sum(tax.company_amount for tax in verifactu_taxes())}&'
+            f'ImporteTotal={get_invoice_total()}&'
+            f'Huella={previous_fingerprint or ''}&'
+            f'FechaHoraHusoGenRegistro={formatted_now}')
+        fingerprint_hash = hashlib.sha256(fingerprint_string.encode('utf-8'))
+        fingerprint_hash = fingerprint_hash.hexdigest().upper()
+
+        description = tools.unaccent(self.description or '')
+        if not description:
+            description = self.number
+
+        ret = {
+            'IDVersion': '1.0',
+            'IDFactura': {
+                'IDEmisorFactura': self.company.party.verifactu_vat_code,
+                'NumSerieFactura': self.number,
+                'FechaExpedicionFactura': self.invoice_date.strftime('%d-%m-%Y'),
+                },
+            'NombreRazonEmisor': tools.unaccent(self.company.party.name),
+            'TipoFactura': self.verifactu_operation_key,
+            'DescripcionOperacion': description,
+            'Desglose': {
+                'DetalleDesglose': _build_desglose(),
+                },
+            'CuotaTotal': sum(tax.company_amount for tax in verifactu_taxes()),
+            'ImporteTotal': get_invoice_total(),
+            'Encadenamiento': _build_encadenamiento(last_line),
+            'SistemaInformatico': get_sistema_informatico(),
+            'FechaHoraHusoGenRegistro':  formatted_now,
+            'TipoHuella': '01',
+            'Huella': fingerprint_hash,
+            }
+
+        # TODO
+        if (self.verifactu_records
+                and self.verifactu_state == 'PendienteEnvioSubsanacion'):
+
+            ret['Subsanacion'] = 'S'
+            ret['RechazoPrevio'] = 'S'
+
+        if ret['TipoFactura'] not in {'F2', 'R5'}:
+            ret['Destinatarios'] = {
+                'IDDestinatario': _build_counterpart()
+                }
+
+        if ret['TipoFactura'] in {'R1', 'R2', 'R3', 'R4', 'R5'}:
+            ret['TipoRectificativa'] = 'I'
+        return ret
 
     @classmethod
     def synchro_query(cls, company):
@@ -478,17 +815,6 @@ class Invoice(metaclass=PoolMeta):
             raise UserError(gettext('aeat_verifactu.msg_missing_certificate'))
         return certificate
 
-    @classmethod
-    def cancel(cls, invoices):
-        result = super().cancel(invoices)
-        to_write = []
-        for invoice in invoices:
-            if not invoice.is_verifactu:
-                continue
-            if not invoice.cancel_move:
-                to_write.append(invoice)
-        return result
-
     def get_aeat_qr_url(self, name):
         res = super().get_aeat_qr_url(name)
         if not self.is_verifactu:
@@ -516,42 +842,3 @@ class Invoice(metaclass=PoolMeta):
         query = urlencode(params)
         qr_url = f"{url}?{query}"
         return qr_url
-
-
-class ResetVerifactuKeysStart(ModelView):
-    """
-    Reset to default Verifactu Keys Start
-    """
-    __name__ = "aeat.verifactu.reset.keys.start"
-
-
-class ResetVerifactuKeysEnd(ModelView):
-    """
-    Reset to default Verifactu Keys End
-    """
-    __name__ = "aeat.verifactu.reset.keys.end"
-
-
-class ResetVerifactuKeys(Wizard):
-    """
-    Reset to default Verifactu Keys
-    """
-    __name__ = "aeat.verifactu.reset.keys"
-
-    start = StateView('aeat.verifactu.reset.keys.start',
-        'aeat_verifactu.reset_keys_start_view', [
-            Button('Cancel', 'end', 'tryton-cancel'),
-            Button('Reset', 'reset', 'tryton-ok', default=True),
-            ])
-    reset = StateTransition()
-    done = StateView('aeat.verifactu.reset.keys.end',
-        'aeat_verifactu.reset_keys_end_view', [
-            Button('Ok', 'end', 'tryton-ok', default=True),
-            ])
-
-    def transition_reset(self):
-        pool = Pool()
-        Invoice = pool.get('account.invoice')
-        Invoice.reset_verifactu_keys(self.records)
-        Invoice.simplified_aeat_verifactu_invoices(self.records)
-        return 'done'

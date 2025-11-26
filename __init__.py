@@ -3,7 +3,6 @@
 from trytond.pool import Pool
 from . import cron
 from . import invoice
-from . import aeat
 from . import party
 from . import account
 
@@ -18,12 +17,6 @@ def register():
         account.Period,
         cron.Cron,
         party.Party,
+        invoice.Verifactu,
         invoice.Invoice,
-        invoice.ResetVerifactuKeysStart,
-        invoice.ResetVerifactuKeysEnd,
-        aeat.Verifactu,
         module='aeat_verifactu', type_='model')
-    Pool.register(
-        account.RenewFiscalYear,
-        invoice.ResetVerifactuKeys,
-        module='aeat_verifactu', type_='wizard')
