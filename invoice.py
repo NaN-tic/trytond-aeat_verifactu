@@ -594,7 +594,7 @@ class Invoice(metaclass=PoolMeta):
 
         def verifactu_taxes():
             return [invoice_tax for invoice_tax in self.taxes if
-                not invoice_tax.tax.recargo_equivalencia]
+                not invoice_tax.tax.tax_kind == 'surcharge']
 
         def _build_encadenamiento(previous_line):
             if not previous_line:
@@ -625,7 +625,7 @@ class Invoice(metaclass=PoolMeta):
                 desglose['BaseImponibleOimporteNoSujeto'] = tax.company_base
                 if tax.tax.recargo_equivalencia_related_tax:
                     for tax2 in self.taxes:
-                        if (tax2.tax.recargo_equivalencia and
+                        if (tax2.tax.tax_kind == 'surcharge' and
                                 tax.tax.recargo_equivalencia_related_tax ==
                                 tax2.tax and tax2.base ==
                                 tax2.base.copy_sign(tax.base)):
@@ -669,7 +669,7 @@ class Invoice(metaclass=PoolMeta):
         def tax_equivalence_surcharge_amount(invoice_tax):
             surcharge_tax = None
             for invoicetax in invoice_tax.invoice.taxes:
-                if (invoicetax.tax.recargo_equivalencia and
+                if (invoicetax.tax.tax_kind == 'tax_kind' and
                         invoice_tax.tax.recargo_equivalencia_related_tax ==
                         invoicetax.tax and invoicetax.base ==
                         invoicetax.base.copy_sign(invoice_tax.base)):
@@ -680,7 +680,7 @@ class Invoice(metaclass=PoolMeta):
 
         def get_invoice_total():
             taxes = [invoice_tax for invoice_tax in self.taxes if
-                not invoice_tax.tax.recargo_equivalencia]
+                not invoice_tax.tax.tax_kind == 'surcharge']
             taxes_base = 0
             taxes_amount = 0
             taxes_surcharge = 0
