@@ -5,6 +5,7 @@ from . import cron
 from . import invoice
 from . import party
 from . import account
+from . import certificate
 
 
 def register():
@@ -20,3 +21,6 @@ def register():
         invoice.Verifactu,
         invoice.Invoice,
         module='aeat_verifactu', type_='model')
+    Pool.register(
+        certificate.CertificateReport,
+        module='aeat_verifactu', type_='report')

@@ -1,17 +1,6 @@
 #
-# SPDX-FileCopyrightText: 2025 albert
 msgid ""
-msgstr ""
-"Content-Type: text/plain; charset=UTF-8\n"
-"Last-Translator: albert\n"
-"PO-Revision-Date: 2025-12-01 14:24+0100\n"
-"Project-Id-Version: \n"
-"Language-Team: Catalan <>\n"
-"Language: ca_ES\n"
-"Content-Transfer-Encoding: 8bit\n"
-"MIME-Version: 1.0\n"
-"Plural-Forms: nplurals=2; plural=(n != 1);\n"
-"X-Generator: Lokalize 25.04.0\n"
+msgstr "Content-Type: text/plain; charset=utf-8\n"
 
 msgctxt "field:account.configuration,aeat_certificate_verifactu:"
 msgid "AEAT Verifactu Certificate"
@@ -167,6 +156,11 @@ msgctxt "model:ir.action,name:act_aeat_verifactu"
 msgid "AEAT Verifactu"
 msgstr "AEAT Verifactu"
 
+#, fuzzy
+msgctxt "model:ir.action,name:report_aeat_verifactu_certificate"
+msgid "AEAT Verifactu Certificate"
+msgstr "Certificado Verifactu de la AEAT"
+
 msgctxt "model:ir.message,text:msg_delete_cancel"
 msgid "Report \"%(report)s\" must be cancelled before deletion."
 msgstr "El informe \"%(report)s\" debe cancelarse antes de su eliminación."
@@ -228,8 +222,7 @@ msgstr ""
 "en este período."
 
 msgctxt "model:ir.message,text:msg_report_duplicated_invoice"
-msgid ""
-"Invoice \"%(invoice)s\" is duplicated in Verifactu Report \"%(report)s\"."
+msgid "Invoice \"%(invoice)s\" is duplicated in Verifactu Report \"%(report)s\"."
 msgstr ""
 "La factura \"%(invoice)s\" está duplicada en el informe Verifactu "
 "\"%(report)s\"."
@@ -300,6 +293,11 @@ msgstr "Líneas de informe de verificación de AEAT"
 msgctxt "model:ir.ui.menu,name:menu_aeat_verifactu"
 msgid "AEAT Verifactu Report Lines"
 msgstr "Líneas de informe de verificación de AEAT"
+
+#, fuzzy
+msgctxt "model:ir.ui.menu,name:menu_aeat_verifactu_certificate"
+msgid "AEAT Verifactu Certificate"
+msgstr "Certificado Verifactu de la AEAT"
 
 msgctxt "model:ir.ui.menu,name:menu_aeat_verifactu_report_menu"
 msgid "AEAT Verifactu"
