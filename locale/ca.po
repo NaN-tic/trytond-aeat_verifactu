@@ -157,6 +157,11 @@ msgctxt "model:ir.action,name:act_aeat_verifactu"
 msgid "AEAT Verifactu"
 msgstr "AEAT Verifactu"
 
+#, fuzzy
+msgctxt "model:ir.action,name:report_aeat_verifactu_certificate"
+msgid "AEAT Verifactu Certificate"
+msgstr "Certificat de verificació de l'AEAT"
+
 msgctxt "model:ir.message,text:msg_delete_cancel"
 msgid "Report \"%(report)s\" must be cancelled before deletion."
 msgstr "L'informe \"%(report)s\" s'ha de cancel·lar abans de ser eliminat."
@@ -288,6 +293,11 @@ msgstr "Línies d'informe de verificació de l'AEAT"
 msgctxt "model:ir.ui.menu,name:menu_aeat_verifactu"
 msgid "AEAT Verifactu Report Lines"
 msgstr "Línies d'informe de verificació de l'AEAT"
+
+#, fuzzy
+msgctxt "model:ir.ui.menu,name:menu_aeat_verifactu_certificate"
+msgid "AEAT Verifactu Certificate"
+msgstr "Certificat Verifactu de l'AEAT"
 
 msgctxt "model:ir.ui.menu,name:menu_aeat_verifactu_report_menu"
 msgid "AEAT Verifactu"
