@@ -39,6 +39,9 @@ WSDL_TEST = ('https://prewww1.aeat.es/wlpl/TIKE-CONT/ws/SistemaFacturacion/Verif
 WSDL_PROD = ('https://prewww2.aeat.es/static_files/common/internet/dep/aplicaciones/es/aeat/tikeV1.0/cont/ws/')
 WSDL_TEST = ('https://prewww2.aeat.es/static_files/common/internet/dep/aplicaciones/es/aeat/tikeV1.0/cont/ws/')
 
+VERSION = trytond.__version__
+VERSION = '.'.join(VERSION.split('.')[:2])
+
 AEAT_INVOICE_STATE = [
     (None, ''),
     ('Correcto', 'Accepted'),
@@ -80,7 +83,7 @@ def get_sistema_informatico():
             'nombre_sistema_informatico'),
         'IdSistemaInformatico': config.get('aeat_verifactu',
             'id_sistema_informatico'),
-        'Version': trytond.__version__,
+        'Version': VERSION,
         'NumeroInstalacion': config.get('aeat_verifactu',
             'numero_instalacion'),
         'TipoUsoPosibleSoloVerifactu': 'N',
