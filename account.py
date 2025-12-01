@@ -5,8 +5,8 @@ from trytond.tools import grouped_slice
 from trytond.i18n import gettext
 from trytond.model import fields, ModelSQL
 from trytond.pool import Pool, PoolMeta
-from trytond.exceptions import UserError
 from trytond.modules.company.model import CompanyValueMixin
+from trytond.exceptions import UserWarning
 
 # Desglose -> DetalleDesglose -> ClaveRegimen
 SEND_SPECIAL_REGIME_KEY = [  # L8A
@@ -184,12 +184,17 @@ class Period(metaclass=PoolMeta):
     def check_es_verifactu_posted_invoices(cls, periods):
         pool = Pool()
         Invoice = pool.get('account.invoice')
+        Warning = pool.get('res.user.warning')
+
         for sub_ids in grouped_slice(list(map(int, periods))):
             invoices = Invoice.search([
                     ('move.period', 'in', sub_ids),
                     ], limit=1)
             if invoices:
                 invoice, = invoices
-                raise UserError(gettext('aeat_verifactu.msg_posted_invoices',
+                key = Warning.format('invoices_already_posted', sub_ids)
+                if Warning.check(key):
+                    raise UserWarning(key, gettext(
+                        'aeat_verifactu.msg_posted_invoices',
                         period=invoice.move.period.rec_name))
 
