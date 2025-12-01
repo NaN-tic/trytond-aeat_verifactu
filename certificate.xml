@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<tryton>
+    <data>
+        <record model="ir.action.report" id="report_aeat_verifactu_certificate">
+            <field name="name">AEAT Verifactu Certificate</field>
+            <field name="model" eval="None"/>
+            <field name="report_name">aeat.verifactu.certificate</field>
+            <field name="extension">pdf</field>
+        </record>
+
+        <menuitem action="report_aeat_verifactu_certificate"
+            id="menu_aeat_verifactu_certificate"
+            parent="account.menu_account_configuration" sequence="999"/>
+    </data>
+</tryton>
