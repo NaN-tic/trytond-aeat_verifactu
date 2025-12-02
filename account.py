@@ -188,6 +188,8 @@ class Period(metaclass=PoolMeta):
 
         for sub_ids in grouped_slice(list(map(int, periods))):
             invoices = Invoice.search([
+                    ('type', '=', 'out'),
+                    ('move', '!=', None),
                     ('move.period', 'in', sub_ids),
                     ], limit=1)
             if invoices:
