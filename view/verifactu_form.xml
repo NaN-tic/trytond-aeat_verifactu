@@ -6,6 +6,7 @@
         <page string="Main Information" id="main_registers">
             <label name="invoice"/>
             <field name="invoice"/>
+            <newline/>
             <label name="state"/>
             <field name="state"/>
             <label name="error_message"/>
