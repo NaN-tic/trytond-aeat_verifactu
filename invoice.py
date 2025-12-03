@@ -530,7 +530,13 @@ class Invoice(metaclass=PoolMeta):
         configs = VerifactuConfig.search([
                 ('company', '=', company),
                 ], limit=1)
+        if not configs:
+            return
         VerifactuConfig.lock(configs)
+
+        config, = configs
+        if not config.aeat_certificate_verifactu:
+            return
 
         invoices = cls.search([
                 ('company', '=', company),
