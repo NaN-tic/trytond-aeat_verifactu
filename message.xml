@@ -12,7 +12,8 @@ this repository contains the full copyright notices and license terms. -->
         <record model="ir.message" id="msg_invoices_verifactu">
             <field name="text">The following invoices are related to Verifactu books:
 %(invoices)s.
-If you edit them be careful that you need to update to Verifactu again</field>
+
+If you edit them be careful that information will NOT be sent to Verifactu again.</field>
         </record>
         <record model="ir.message" id="msg_invoices_verifactu_pending">
             <field name="text">The following invoices are related to Verifactu books in draft state.</field>
