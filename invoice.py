@@ -355,14 +355,10 @@ class Invoice(metaclass=PoolMeta):
         pool = Pool()
         Warning = pool.get('res.user.warning')
 
-        super().draft(invoices)
-
         invoices_verifactu = []
-        to_write = []
         for invoice in invoices:
             if not invoice.is_verifactu:
                 continue
-            to_write.extend(([invoice], {'verifactu_state': None}))
             if invoice.verifactu_state:
                 invoices_verifactu.append('%s: %s' % (
                     invoice.number, invoice.verifactu_state))
@@ -373,8 +369,8 @@ class Invoice(metaclass=PoolMeta):
                 raise UserWarning(warning_name,
                         gettext('aeat_verifactu.msg_invoices_verifactu',
                         invoices='\n'.join(invoices_verifactu)))
-        if to_write:
-            cls.write(*to_write)
+
+        super().draft(invoices)
 
     def simplified_serial_number(self, type='first'):
         pool = Pool()
