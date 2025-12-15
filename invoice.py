@@ -25,6 +25,7 @@ from trytond.transaction import Transaction
 from trytond.i18n import gettext
 from trytond.exceptions import UserError, UserWarning
 from trytond.tools import grouped_slice
+from trytond.modules.account.exceptions import PeriodNotFoundError
 from . import tools
 
 PRODUCTION_QR_URL = "https://www2.agenciatributaria.gob.es/wlpl/TIKE-CONT/ValidarQR"
@@ -194,8 +195,11 @@ class Invoice(metaclass=PoolMeta):
             accounting_date = (self.accounting_date or self.invoice_date
                 or Date.today())
             with Transaction().set_context(company=self.company.id):
-                period = Period.find(self.company, date=accounting_date,
-                    test_state=False)
+                try:
+                    period = Period.find(self.company, date=accounting_date,
+			test_state=False)
+                except PeriodNotFoundError:
+                    return False
         return (self.type == 'out'
             and period.es_verifactu_send_invoices)
 
