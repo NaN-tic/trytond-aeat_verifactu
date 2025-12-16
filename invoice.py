@@ -189,6 +189,9 @@ class Invoice(metaclass=PoolMeta):
         Period = pool.get('account.period')
         Date = pool.get('ir.date')
 
+        if self.type != 'out':
+            return False
+
         if self.move:
             period = self.move.period
         else:
@@ -197,11 +200,10 @@ class Invoice(metaclass=PoolMeta):
             with Transaction().set_context(company=self.company.id):
                 try:
                     period = Period.find(self.company, date=accounting_date,
-			test_state=False)
+                        test_state=False)
                 except PeriodNotFoundError:
                     return False
-        return (self.type == 'out'
-            and period.es_verifactu_send_invoices)
+        return period.es_verifactu_send_invoices
 
     @classmethod
     def search_is_verifactu(cls, name, clause):
