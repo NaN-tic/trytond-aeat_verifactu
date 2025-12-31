@@ -829,7 +829,8 @@ class Invoice(metaclass=PoolMeta):
 
     def get_aeat_qr_url(self, name):
         res = super().get_aeat_qr_url(name)
-        if not self.is_verifactu:
+        if (not self.is_verifactu
+                or self.verifactu_state in (None, 'Incorrecto')):
             return res
 
         if PRODUCTION_ENV:
@@ -839,11 +840,8 @@ class Invoice(metaclass=PoolMeta):
 
         nif = self.company.party.verifactu_vat_code
         numserie = self.number
-        fecha = self.invoice_date.strftime("%d-%m-%Y") if self.invoice_date else None
+        fecha = self.invoice_date.strftime("%d-%m-%Y")
         importe = self.total_amount
-
-        if not all([nif, numserie, fecha, importe]):
-            return
 
         params = {
             "nif": nif,
