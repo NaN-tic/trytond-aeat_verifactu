@@ -126,6 +126,7 @@ class Verifactu(ModelSQL, ModelView):
     def __setup__(cls):
         super().__setup__()
         cls.__access__.add('invoice')
+        cls._order = [('id', 'DESC')]
 
     @classmethod
     def copy(cls, records, default=None):
