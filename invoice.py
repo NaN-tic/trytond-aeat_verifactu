@@ -108,7 +108,6 @@ class Verifactu(ModelSQL, ModelView):
     invoice = fields.Many2One('account.invoice', 'Invoice', required=True,
         domain=[('type', '=', 'out')])
     state = fields.Selection(AEAT_INVOICE_STATE, 'State')
-    communication_code = fields.Integer('Communication Code', readonly=True)
     company = fields.Many2One('company.company', 'Company', required=True)
     invoice_operation_key = fields.Function(fields.Selection(OPERATION_KEY,
             'Operation Key'), 'get_invoice_operation_key')
@@ -135,7 +134,6 @@ class Verifactu(ModelSQL, ModelView):
         else:
             default = default.copy()
         default['state'] = None
-        default['communication_code'] = None
         default['fingerprint'] = None
         default['error_message'] = None
         return super().copy(records, default=default)
@@ -225,6 +223,10 @@ class Invoice(metaclass=PoolMeta):
         if not self.number:
             return False
         if self.verifactu_state in (None, 'Incorrecto'):
+            if self.verifactu_records:
+                record = self.verifactu_records[0]
+                if 'duplicad' in record.error_message.lower():
+                    return False
             return True
         return False
 
@@ -245,10 +247,7 @@ class Invoice(metaclass=PoolMeta):
     def get_verifactu_state(self, name):
         if not self.verifactu_records:
             return
-        for record in self.verifactu_records:
-            if record.state in ('Correcto', 'AceptadoConErrores'):
-                return record.state
-        return 'Incorrecto'
+        return self.verifactu_records[0].state
 
     @classmethod
     def search_verifactu_state(cls, name, clause):
@@ -545,9 +544,7 @@ class Invoice(metaclass=PoolMeta):
                 ('company', '=', company),
                 ('move.period.es_verifactu_send_invoices', '=', True),
                 ('type', '=', 'out'),
-                ['OR',
-                    ('verifactu_state', '=', 'Incorrecto'),
-                    ('verifactu_state', '=', 'PendienteEnvio')],
+                ('verifactu_to_send', '=', True),
                 ], order=[('invoice_date', 'ASC')])
         # TODO: Synchronize invoices missing since last_line
         fingerprint, last_line = cls.synchro_query(company)

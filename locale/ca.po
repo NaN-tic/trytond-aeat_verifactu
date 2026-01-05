@@ -94,10 +94,6 @@ msgctxt "field:account.tax.template,verifactu_subjected_key:"
 msgid "Subjected Key"
 msgstr "Clau subjecta"
 
-msgctxt "field:aeat.verifactu,communication_code:"
-msgid "Communication Code"
-msgstr "Codi de comunicació"
-
 msgctxt "field:aeat.verifactu,company:"
 msgid "Company"
 msgstr "Companyia"
