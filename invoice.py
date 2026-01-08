@@ -1,5 +1,6 @@
 # The COPYRIGHT file at the top level of this repository contains the full
 # copyright notices and license terms.
+import time
 from decimal import Decimal
 import datetime
 import hashlib
@@ -9,7 +10,6 @@ from sql.aggregate import Max
 from sql.functions import Substring
 from sql.conditionals import Case, Coalesce
 from requests import Session
-from requests.exceptions import ConnectionError
 from urllib.parse import urlencode
 from zeep import Client
 from zeep.transports import Transport
@@ -474,11 +474,15 @@ class Invoice(metaclass=PoolMeta):
         plugins = [HistoryPlugin()]
         if not PRODUCTION_ENV:
             plugins.append(tools.LoggingPlugin())
-        try:
-            client = Client(wsdl=wsdl, transport=transport, plugins=plugins, settings=settings)
-        except ConnectionError as e:
-            raise UserError(str(e))
-
+        for retry in range(3):
+            try:
+                client = Client(wsdl=wsdl, transport=transport, plugins=plugins, settings=settings)
+                break
+            except Exception as e:
+                if retry < 2:
+                    time.sleep(2 ** retry)
+                    continue
+                raise UserError(str(e))
         return client.bind('sfVerifactu', port_name)
 
     @classmethod
