@@ -182,7 +182,7 @@ msgid ""
 "If you edit them be careful that you need to update to Verifactu again"
 msgstr ""
 "Las siguientes facturas están relacionadas con los libros de Verifactu: "
-"%(facturas)s. Si las edita, tenga en cuenta que deberá actualizar Verifactu "
+"%(invoices)s. Si las edita, tenga en cuenta que deberá actualizar Verifactu "
 "nuevamente."
 
 msgctxt "model:ir.message,text:msg_invoices_verifactu_pending"
