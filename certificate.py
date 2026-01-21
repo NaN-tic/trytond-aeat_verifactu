@@ -19,7 +19,6 @@ class CertificateReport(HTMLReport):
         pool = Pool()
         ActionReport = pool.get('ir.action.report')
         ModelAccess = pool.get('ir.model.access')
-        cls.check_access()
 
         ids = [int(x) for x in ids]
 
@@ -33,9 +32,11 @@ class CertificateReport(HTMLReport):
         else:
             report = ActionReport(action_id)
 
+        model = report.model or data.get('model')
+        cls.check_access(report, model, ids)
+
         Model = None
         records = []
-        model = data.get('model')
         if model:
             Model = pool.get(model)
             with check_access():
