@@ -19,7 +19,9 @@ class CertificateReport(HTMLReport):
         pool = Pool()
         ActionReport = pool.get('ir.action.report')
         ModelAccess = pool.get('ir.model.access')
-        cls.check_access()
+
+        action, model = cls.get_action(data)
+        cls.check_access(action, model, ids)
 
         ids = [int(x) for x in ids]
 
