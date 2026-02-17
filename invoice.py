@@ -677,7 +677,7 @@ class Invoice(metaclass=PoolMeta):
         def tax_equivalence_surcharge_amount(invoice_tax):
             surcharge_tax = None
             for invoicetax in invoice_tax.invoice.taxes:
-                if (invoicetax.tax.tax_kind == 'tax_kind' and
+                if (invoicetax.tax.tax_kind == 'surcharge' and
                         invoice_tax.tax.recargo_equivalencia_related_tax ==
                         invoicetax.tax and invoicetax.base ==
                         invoicetax.base.copy_sign(invoice_tax.base)):
