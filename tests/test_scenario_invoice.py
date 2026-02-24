@@ -77,6 +77,10 @@ class Test(unittest.TestCase):
         self.assertEqual(invoice.is_verifactu, True)
         self.assertEqual(invoice.verifactu_operation_key, 'F1')
         self.assertEqual(invoice.verifactu_to_send, True)
+        invoices_to_send = Invoice.find([('verifactu_to_send', '=', True)])
+        self.assertIn(invoice, invoices_to_send)
+        invoices_not_to_send = Invoice.find([('verifactu_to_send', '=', False)])
+        self.assertNotIn(invoice, invoices_not_to_send)
 
         vars.fiscalyear.es_verifactu_send_invoices = False
         with self.assertRaises(UserWarning):
