@@ -277,13 +277,14 @@ class Invoice(metaclass=PoolMeta):
 
         # Construïm la condició segons l'operador
         # Tryton normalitza els operadors, però gestionem els més habituals
-        if operator == 'in':
-            condition = (final_state == value) if value is not None else (final_state == None)
-        elif operator == '!=':
-            condition = (final_state != value) if value is not None else (final_state != None)
+        if operator in ('=', '!='):
+            if value is None:
+                condition = (final_state == None) if operator == '=' else (final_state != None)
+            else:
+                condition = (final_state == value) if operator == '=' else (final_state != value)
         elif operator in ('in', 'not in'):
             if not value:
-                condition = Literal(False)
+                condition = Literal(False) if operator == 'in' else Literal(True)
             else:
                 condition = final_state.in_(value)
                 if operator == 'not in':
