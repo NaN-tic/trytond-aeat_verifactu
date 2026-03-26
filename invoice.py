@@ -1,5 +1,6 @@
 # The COPYRIGHT file at the top level of this repository contains the full
 # copyright notices and license terms.
+import logging
 import time
 from decimal import Decimal
 import datetime
@@ -10,8 +11,10 @@ from sql.aggregate import Max
 from sql.functions import Substring
 from sql.conditionals import Case, Coalesce
 from requests import Session
+from requests.exceptions import RequestException
 from urllib.parse import urlencode
 from zeep import Client
+from zeep.exceptions import TransportError
 from zeep.transports import Transport
 from zeep.settings import Settings
 from zeep.plugins import HistoryPlugin
@@ -38,6 +41,8 @@ WSDL_TEST = 'https://prewww2.aeat.es/static_files/common/internet/dep/aplicacion
 
 VERSION = trytond.__version__
 VERSION = '.'.join(VERSION.split('.')[:2])
+
+logger = logging.getLogger(__name__)
 
 AEAT_INVOICE_STATE = [
     (None, ''),
@@ -552,34 +557,45 @@ class Invoice(metaclass=PoolMeta):
                 ('verifactu_to_send', '=', True),
                 ], order=[('invoice_date', 'ASC')])
         # TODO: Synchronize invoices missing since last_line
-        fingerprint, last_line = cls.synchro_query(company)
+        try:
+            fingerprint, last_line = cls.synchro_query(company)
+        except (RequestException, TransportError) as e:
+            logger.warning("Verifactu synchronization failed: %s", e)
+            return
         if not invoices:
             return
         certificate = cls._get_verifactu_certificate()
-        with certificate.tmp_ssl_credentials() as (crt, key):
-            service = cls.verifactu_service(crt, key)
-            responses = cls.verifactu_submit(service, invoices,
-                previous_fingerprint=fingerprint, last_line=last_line)
-            lines_to_save = []
-            invoices_to_save = []
-            for x in responses:
-                state = x['EstadoRegistro']
-                if state in ('Correcto', 'AceptadoConErrores'):
-                    continue
+        try:
+            with certificate.tmp_ssl_credentials() as (crt, key):
+                service = cls.verifactu_service(crt, key)
+                responses = cls.verifactu_submit(service, invoices,
+                    previous_fingerprint=fingerprint, last_line=last_line)
+                lines_to_save = []
+                invoices_to_save = []
+                for x in responses:
+                    state = x['EstadoRegistro']
+                    if state in ('Correcto', 'AceptadoConErrores'):
+                        continue
 
-                invoice = cls.search([
-                        ('number', '=', x['IDFactura']['NumSerieFactura']),
-                        ])[0]
-                invoice.verifactu_state = state
-                invoices_to_save.append(invoice)
-                new_line = Verifactu()
-                new_line.invoice = invoice
-                new_line.state = state
-                new_line.error_message = x['DescripcionErrorRegistro']
-                lines_to_save.append(new_line)
-            Verifactu.save(lines_to_save)
-            cls.save(invoices_to_save)
-        cls.synchro_query(company)
+                    invoice = cls.search([
+                            ('number', '=', x['IDFactura']['NumSerieFactura']),
+                            ])[0]
+                    invoice.verifactu_state = state
+                    invoices_to_save.append(invoice)
+                    new_line = Verifactu()
+                    new_line.invoice = invoice
+                    new_line.state = state
+                    new_line.error_message = x['DescripcionErrorRegistro']
+                    lines_to_save.append(new_line)
+                Verifactu.save(lines_to_save)
+                cls.save(invoices_to_save)
+        except (RequestException, TransportError) as e:
+            logger.warning("Verifactu submission failed: %s", e)
+            return
+        try:
+            cls.synchro_query(company)
+        except (RequestException, TransportError) as e:
+            logger.warning("Verifactu synchronization failed: %s", e)
 
     @classmethod
     def get_verifactu_invoices(cls, company, year, period):
@@ -588,12 +604,17 @@ class Invoice(metaclass=PoolMeta):
         clave_paginacion = None
         records = []
         while pagination == 'S':
-            with certificate.tmp_ssl_credentials() as (crt, key):
-                service = cls.verifactu_service(crt, key)
-                response = cls.verifactu_query(service, year=year, period=period, clave_paginacion=clave_paginacion)
-                invoices = response.RegistroRespuestaConsultaFactuSistemaFacturacion
-                if invoices:
-                    records.extend(invoices)
+            try:
+                with certificate.tmp_ssl_credentials() as (crt, key):
+                    service = cls.verifactu_service(crt, key)
+                    response = cls.verifactu_query(service, year=year, period=period,
+                        clave_paginacion=clave_paginacion)
+                    invoices = response.RegistroRespuestaConsultaFactuSistemaFacturacion
+                    if invoices:
+                        records.extend(invoices)
+            except (RequestException, TransportError) as e:
+                logger.warning("Verifactu query failed: %s", e)
+                return records
             pagination = response.IndicadorPaginacion
             if pagination == 'S':
                 clave_paginacion = response.ClavePaginacion
