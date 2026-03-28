@@ -1,6 +1,7 @@
 # The COPYRIGHT file at the top level of this repository contains the full
 # copyright notices and license terms.
 import time
+import logging
 from decimal import Decimal
 import datetime
 import hashlib
@@ -15,6 +16,7 @@ from zeep import Client
 from zeep.transports import Transport
 from zeep.settings import Settings
 from zeep.plugins import HistoryPlugin
+from zeep.exceptions import TransportError
 
 import trytond
 from trytond.config import config
@@ -27,6 +29,8 @@ from trytond.exceptions import UserError, UserWarning
 from trytond.tools import grouped_slice
 from trytond.modules.account.exceptions import PeriodNotFoundError
 from . import tools
+
+logger = logging.getLogger(__name__)
 
 PRODUCTION_QR_URL = "https://www2.agenciatributaria.gob.es/wlpl/TIKE-CONT/ValidarQR"
 TEST_QR_URL = "https://prewww2.aeat.es/wlpl/TIKE-CONT/ValidarQR"
@@ -63,6 +67,22 @@ OPERATION_KEY = [ # L2
     ('R4', 'Corrected Invoice (Other)'),
     ('R5', 'Corrected Invoice in simplified invoices'),
     ]
+
+
+class VerifactuServiceUnavailable(Exception):
+    def __init__(self, message, status_code=None):
+        super().__init__(message)
+        self.status_code = status_code
+
+
+def _is_service_unavailable(error):
+    status_code = getattr(error, 'status_code', None)
+    if status_code in (502, 503, 504):
+        return True
+    content = getattr(error, 'content', b'') or b''
+    if isinstance(content, str):
+        content = content.encode('utf-8', 'ignore')
+    return b'<!doctype html' in content[:200].lower()
 
 
 def get_sistema_informatico():
@@ -503,7 +523,16 @@ class Invoice(metaclass=PoolMeta):
         responses = []
         for batch in grouped_slice(body, 1):
             batch = list(batch)
-            responses += service.RegFactuSistemaFacturacion(headers, batch).RespuestaLinea
+            try:
+                responses += service.RegFactuSistemaFacturacion(
+                    headers, batch).RespuestaLinea
+            except TransportError as exc:
+                if _is_service_unavailable(exc):
+                    raise VerifactuServiceUnavailable(
+                        'Verifactu service unavailable',
+                        status_code=getattr(exc, 'status_code', None),
+                        ) from exc
+                raise
         return responses
 
     @classmethod
@@ -519,10 +548,18 @@ class Invoice(metaclass=PoolMeta):
                 'Periodo': tools.format_period(period),
                 },
             'SistemaInformatico': get_sistema_informatico(),
-            }
+        }
         if clave_paginacion:
             filter_['ClavePaginacion'] = clave_paginacion
-        return service.ConsultaFactuSistemaFacturacion(headers, filter_)
+        try:
+            return service.ConsultaFactuSistemaFacturacion(headers, filter_)
+        except TransportError as exc:
+            if _is_service_unavailable(exc):
+                raise VerifactuServiceUnavailable(
+                    'Verifactu service unavailable',
+                    status_code=getattr(exc, 'status_code', None),
+                    ) from exc
+            raise
 
     @classmethod
     def send_verifactu(cls, invoices=None):
@@ -552,14 +589,30 @@ class Invoice(metaclass=PoolMeta):
                 ('verifactu_to_send', '=', True),
                 ], order=[('invoice_date', 'ASC')])
         # TODO: Synchronize invoices missing since last_line
-        fingerprint, last_line = cls.synchro_query(company)
+        try:
+            fingerprint, last_line = cls.synchro_query(company)
+        except VerifactuServiceUnavailable as exc:
+            logger.warning(
+                "AEAT Verifactu service unavailable during sync (HTTP %s). "
+                "Will retry later.",
+                exc.status_code or 'unknown',
+                )
+            return
         if not invoices:
             return
         certificate = cls._get_verifactu_certificate()
         with certificate.tmp_ssl_credentials() as (crt, key):
             service = cls.verifactu_service(crt, key)
-            responses = cls.verifactu_submit(service, invoices,
-                previous_fingerprint=fingerprint, last_line=last_line)
+            try:
+                responses = cls.verifactu_submit(service, invoices,
+                    previous_fingerprint=fingerprint, last_line=last_line)
+            except VerifactuServiceUnavailable as exc:
+                logger.warning(
+                    "AEAT Verifactu service unavailable during submit (HTTP %s). "
+                    "Will retry later.",
+                    exc.status_code or 'unknown',
+                    )
+                return
             lines_to_save = []
             invoices_to_save = []
             for x in responses:
@@ -579,7 +632,15 @@ class Invoice(metaclass=PoolMeta):
                 lines_to_save.append(new_line)
             Verifactu.save(lines_to_save)
             cls.save(invoices_to_save)
-        cls.synchro_query(company)
+        try:
+            cls.synchro_query(company)
+        except VerifactuServiceUnavailable as exc:
+            logger.warning(
+                "AEAT Verifactu service unavailable during post-sync (HTTP %s). "
+                "Will retry later.",
+                exc.status_code or 'unknown',
+                )
+            return
 
     @classmethod
     def get_verifactu_invoices(cls, company, year, period):
@@ -590,7 +651,9 @@ class Invoice(metaclass=PoolMeta):
         while pagination == 'S':
             with certificate.tmp_ssl_credentials() as (crt, key):
                 service = cls.verifactu_service(crt, key)
-                response = cls.verifactu_query(service, year=year, period=period, clave_paginacion=clave_paginacion)
+                response = cls.verifactu_query(
+                    service, year=year, period=period,
+                    clave_paginacion=clave_paginacion)
                 invoices = response.RegistroRespuestaConsultaFactuSistemaFacturacion
                 if invoices:
                     records.extend(invoices)
