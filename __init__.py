@@ -20,7 +20,11 @@ def register():
         party.Party,
         invoice.Verifactu,
         invoice.Invoice,
+        invoice.DownloadVerifactuInvoicesStart,
         module='aeat_verifactu', type_='model')
+    Pool.register(
+        invoice.DownloadVerifactuInvoices,
+        module='aeat_verifactu', type_='wizard')
     Pool.register(
         certificate.CertificateReport,
         module='aeat_verifactu', type_='report')

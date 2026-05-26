@@ -67,11 +67,16 @@ class Configuration(metaclass=PoolMeta):
 
     aeat_certificate_verifactu = fields.MultiValue(fields.Many2One('certificate',
         'AEAT Verifactu Certificate'))
+    verifactu_journal = fields.MultiValue(fields.Many2One(
+            'account.journal', 'Verifactu Journal',
+            domain=[
+                ('type', '=', 'revenue'),
+                ]))
 
     @classmethod
     def multivalue_model(cls, field):
         pool = Pool()
-        if field in {'aeat_certificate_verifactu'}:
+        if field in {'aeat_certificate_verifactu', 'verifactu_journal'}:
             return pool.get('account.configuration.default_verifactu')
         return super().multivalue_model(field)
 
@@ -82,6 +87,10 @@ class ConfigurationDefaultVerifactu(ModelSQL, CompanyValueMixin):
 
     aeat_certificate_verifactu = fields.Many2One('certificate',
         'AEAT Verifactu Certificate')
+    verifactu_journal = fields.Many2One('account.journal',
+        'Verifactu Journal', domain=[
+            ('type', '=', 'revenue'),
+            ])
 
 
 class TemplateTax(metaclass=PoolMeta):
@@ -199,4 +208,3 @@ class Period(metaclass=PoolMeta):
                     raise UserWarning(key, gettext(
                         'aeat_verifactu.msg_posted_invoices',
                         period=invoice.move.period.rec_name))
-

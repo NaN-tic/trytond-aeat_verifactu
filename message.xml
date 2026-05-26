@@ -54,5 +54,23 @@ If you edit them be careful that information will NOT be sent to Verifactu again
         <record model="ir.message" id="msg_posted_invoices">
             <field name="text">Are you sure you want to change the Verifactu setting for period "%(period)s"? Take into account that there are already posted invoices in this period.</field>
         </record>
+        <record model="ir.message" id="msg_missing_verifactu_journal">
+            <field name="text">There isn't a Verifactu journal defined in the account configuration.</field>
+        </record>
+        <record model="ir.message" id="msg_missing_verifactu_account">
+            <field name="text">There isn't an open revenue account available to create downloaded Verifactu invoices.</field>
+        </record>
+        <record model="ir.message" id="msg_missing_verifactu_party">
+            <field name="text">Unable to resolve the party for downloaded Verifactu invoice "%(invoice)s".</field>
+        </record>
+        <record model="ir.message" id="msg_verifactu_matching_tax">
+            <field name="text">Unable to resolve a unique Tryton tax for regime "%(regime)s", operation "%(operation)s", exemption "%(exemption)s" and rate "%(rate)s".</field>
+        </record>
+        <record model="ir.message" id="msg_verifactu_missing_tax_data">
+            <field name="text">Downloaded Verifactu tax data has no usable fiscal criteria to resolve a Tryton tax.</field>
+        </record>
+        <record model="ir.message" id="msg_verifactu_missing_surcharge_tax">
+            <field name="text">Tax "%(tax)s" has no equivalence surcharge related tax configured.</field>
+        </record>
     </data>
 </tryton>
