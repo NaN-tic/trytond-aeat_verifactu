@@ -45,7 +45,7 @@
         </record>
 
         <record model="ir.action.wizard" id="wizard_download_verifactu_invoices">
-            <field name="name">Download Verifactu Invoices</field>
+            <field name="name">Synchronize Verifactu Invoices</field>
             <field name="wiz_name">aeat_verifactu.download_invoices</field>
         </record>
 

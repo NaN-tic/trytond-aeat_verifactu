@@ -3,6 +3,11 @@
      copyright notices and license terms. -->
 <tryton>
     <data>
+        <record model="ir.cron" id="cron_update_verifactu_invoices">
+            <field name="interval_number" eval="1"/>
+            <field name="interval_type">days</field>
+            <field name="method">account.invoice|cron_update_verifactu_invoices</field>
+        </record>
         <record model="ir.cron" id="cron_send_verifactu">
             <field name="interval_number" eval="5"/>
             <field name="interval_type">minutes</field>

@@ -57,20 +57,26 @@ If you edit them be careful that information will NOT be sent to Verifactu again
         <record model="ir.message" id="msg_missing_verifactu_journal">
             <field name="text">There isn't a Verifactu journal defined in the account configuration.</field>
         </record>
-        <record model="ir.message" id="msg_missing_verifactu_account">
-            <field name="text">There isn't an open revenue account available to create downloaded Verifactu invoices.</field>
-        </record>
         <record model="ir.message" id="msg_missing_verifactu_party">
-            <field name="text">Unable to resolve the party for downloaded Verifactu invoice "%(invoice)s".</field>
+            <field name="text">Unable to resolve the party for downloaded Verifactu invoice "%(invoice)s" using NIF "%(nif)s".</field>
+        </record>
+        <record model="ir.message" id="msg_missing_verifactu_tax_account">
+            <field name="text">Tax "%(tax)s" has no Verifactu tax-account mapping configured.</field>
         </record>
         <record model="ir.message" id="msg_verifactu_matching_tax">
             <field name="text">Unable to resolve a unique Tryton tax for regime "%(regime)s", operation "%(operation)s", exemption "%(exemption)s" and rate "%(rate)s".</field>
+        </record>
+        <record model="ir.message" id="msg_verifactu_tax_account_unique">
+            <field name="text">Only one Verifactu tax-account mapping is allowed per company and tax.</field>
         </record>
         <record model="ir.message" id="msg_verifactu_missing_tax_data">
             <field name="text">Downloaded Verifactu tax data has no usable fiscal criteria to resolve a Tryton tax.</field>
         </record>
         <record model="ir.message" id="msg_verifactu_missing_surcharge_tax">
             <field name="text">Tax "%(tax)s" has no equivalence surcharge related tax configured.</field>
+        </record>
+        <record model="ir.message" id="msg_missing_verifactu_sync_company">
+            <field name="text">There is no company available to synchronize VeriFactu tax accounts.</field>
         </record>
     </data>
 </tryton>

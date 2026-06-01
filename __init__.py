@@ -14,6 +14,8 @@ def register():
         account.ConfigurationDefaultVerifactu,
         account.TemplateTax,
         account.Tax,
+        account.VerifactuTaxAccount,
+        account.SyncVerifactuTaxAccountStart,
         account.FiscalYear,
         account.Period,
         cron.Cron,
@@ -23,6 +25,7 @@ def register():
         invoice.DownloadVerifactuInvoicesStart,
         module='aeat_verifactu', type_='model')
     Pool.register(
+        account.SyncVerifactuTaxAccount,
         invoice.DownloadVerifactuInvoices,
         module='aeat_verifactu', type_='wizard')
     Pool.register(
