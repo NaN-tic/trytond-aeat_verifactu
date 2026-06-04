@@ -12,6 +12,7 @@ from sql.conditionals import Case, Coalesce
 from requests import Session
 from urllib.parse import urlencode
 from zeep import Client
+from zeep.helpers import serialize_object
 from zeep.transports import Transport
 from zeep.settings import Settings
 from zeep.plugins import HistoryPlugin
@@ -170,7 +171,8 @@ class Invoice(metaclass=PoolMeta):
     verifactu_issuing_nif = fields.Char('Nif emisor verifactu',
         readonly=True)
     verifactu_issuing_party = fields.Function(fields.Many2One('party.party',
-            'Emisor verifactu'), 'get_verifactu_presenter_party')
+            'Emisor verifactu', context={'company': Eval('company', -1)},
+            depends=['company']), 'get_verifactu_presenter_party')
     verifactu_to_send = fields.Function(fields.Boolean(
             'Verifactu Pending Sending'), 'get_verifactu_to_send',
         searcher='search_verifactu_to_send')
@@ -656,6 +658,8 @@ class Invoice(metaclass=PoolMeta):
 
     @classmethod
     def get_verifactu_invoice_data(cls, record):
+        record = serialize_object(record, target_cls=dict)
+
         id_factura = record['IDFactura']
         datos = record['DatosRegistroFacturacion']
         presentacion = record['DatosPresentacion']
@@ -667,13 +671,16 @@ class Invoice(metaclass=PoolMeta):
         destinatario = destinatarios[0] if destinatarios else {}
         if destinatario and 'IDDestinatario' in destinatario:
             destinatario = destinatario['IDDestinatario']
+        if isinstance(destinatario, list):
+            destinatario = destinatario[0] if destinatario else {}
 
-        detalle = datos.get('Desglose', {}).get('DetalleDesglose') or []
+        desglose = datos.get('Desglose') or {}
+        detalle = desglose.get('DetalleDesglose') or []
         if not isinstance(detalle, list):
             detalle = [detalle]
 
         invoice_date = id_factura.get('FechaExpedicionFactura')
-        if invoice_date:
+        if isinstance(invoice_date, str):
             invoice_date = datetime.datetime.strptime(
                 invoice_date, '%d-%m-%Y').date()
         state = estado.get('EstadoRegistro')
