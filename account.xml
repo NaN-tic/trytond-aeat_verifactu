@@ -21,6 +21,78 @@
             <field name="inherit" ref="account.tax_template_view_form"/>
             <field name="name">template_tax_form</field>
         </record>
+        <record model="ir.ui.view" id="verifactu_tax_account_form_view">
+            <field name="model">aeat.verifactu.tax_account</field>
+            <field name="type">form</field>
+            <field name="name">verifactu_tax_account_form</field>
+        </record>
+        <record model="ir.ui.view" id="verifactu_tax_account_tree_view">
+            <field name="model">aeat.verifactu.tax_account</field>
+            <field name="type">tree</field>
+            <field name="name">verifactu_tax_account_tree</field>
+        </record>
+        <record model="ir.ui.view"
+            id="sync_verifactu_tax_account_start_view_form">
+            <field name="model">aeat.verifactu.tax_account.sync.start</field>
+            <field name="type">form</field>
+            <field name="name">sync_verifactu_tax_account_start_form</field>
+        </record>
+        <record model="ir.action.act_window" id="act_verifactu_tax_account">
+            <field name="name">Verifactu Tax Account</field>
+            <field name="res_model">aeat.verifactu.tax_account</field>
+            <field name="domain" eval="[('company', '=', Eval('company', -1))]"
+                pyson="1"/>
+        </record>
+        <record model="ir.action.wizard" id="wizard_sync_verifactu_tax_account">
+            <field name="name">Synchronize Verifactu Tax Accounts</field>
+            <field name="wiz_name">aeat.verifactu.tax_account.sync</field>
+        </record>
+        <record model="ir.action.act_window.view"
+            id="act_verifactu_tax_account_view1">
+            <field name="sequence" eval="10"/>
+            <field name="view" ref="verifactu_tax_account_tree_view"/>
+            <field name="act_window" ref="act_verifactu_tax_account"/>
+        </record>
+        <record model="ir.action.act_window.view"
+            id="act_verifactu_tax_account_view2">
+            <field name="sequence" eval="20"/>
+            <field name="view" ref="verifactu_tax_account_form_view"/>
+            <field name="act_window" ref="act_verifactu_tax_account"/>
+        </record>
+        <record model="ir.model.access" id="access_verifactu_tax_account">
+            <field name="model">aeat.verifactu.tax_account</field>
+            <field name="perm_read" eval="True"/>
+            <field name="perm_write" eval="False"/>
+            <field name="perm_create" eval="False"/>
+            <field name="perm_delete" eval="False"/>
+        </record>
+        <record model="ir.model.access"
+            id="access_verifactu_tax_account_admin">
+            <field name="model">aeat.verifactu.tax_account</field>
+            <field name="group" ref="account.group_account"/>
+            <field name="perm_read" eval="True"/>
+            <field name="perm_write" eval="True"/>
+            <field name="perm_create" eval="True"/>
+            <field name="perm_delete" eval="True"/>
+        </record>
+        <record model="ir.rule.group" id="rule_group_verifactu_tax_account">
+            <field name="name">User in company</field>
+            <field name="model">aeat.verifactu.tax_account</field>
+            <field name="global_p" eval="True"/>
+        </record>
+        <record model="ir.rule" id="rule_verifactu_tax_account1">
+            <field name="domain" eval="[('company', 'in', Eval('companies', []))]"
+                pyson="1"/>
+            <field name="rule_group" ref="rule_group_verifactu_tax_account"/>
+        </record>
+        <menuitem action="act_verifactu_tax_account"
+            id="menu_verifactu_tax_account"
+            parent="account.menu_taxes" sequence="320"
+            name="Verifactu Tax Account"/>
+        <menuitem action="wizard_sync_verifactu_tax_account"
+            id="menu_sync_verifactu_tax_account"
+            parent="account.menu_taxes" sequence="321"
+            name="Synchronize Verifactu Tax Accounts"/>
 
         <record model="ir.ui.view" id="fiscalyear_view_form">
             <field name="model">account.fiscalyear</field>

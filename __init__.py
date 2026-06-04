@@ -14,13 +14,20 @@ def register():
         account.ConfigurationDefaultVerifactu,
         account.TemplateTax,
         account.Tax,
+        account.VerifactuTaxAccount,
+        account.SyncVerifactuTaxAccountStart,
         account.FiscalYear,
         account.Period,
         cron.Cron,
         party.Party,
         invoice.Verifactu,
         invoice.Invoice,
+        invoice.DownloadVerifactuInvoicesStart,
         module='aeat_verifactu', type_='model')
+    Pool.register(
+        account.SyncVerifactuTaxAccount,
+        invoice.DownloadVerifactuInvoices,
+        module='aeat_verifactu', type_='wizard')
     Pool.register(
         certificate.CertificateReport,
         module='aeat_verifactu', type_='report')

@@ -3,10 +3,12 @@
 from trytond.pyson import Eval
 from trytond.tools import grouped_slice
 from trytond.i18n import gettext
-from trytond.model import fields, ModelSQL
+from trytond.model import fields, ModelSQL, ModelView, Unique
 from trytond.pool import Pool, PoolMeta
 from trytond.modules.company.model import CompanyValueMixin
-from trytond.exceptions import UserWarning
+from trytond.exceptions import UserError, UserWarning
+from trytond.transaction import Transaction
+from trytond.wizard import Button, Wizard, StateTransition, StateView
 
 # Desglose -> DetalleDesglose -> ClaveRegimen
 SEND_SPECIAL_REGIME_KEY = [  # L8A
@@ -67,13 +69,27 @@ class Configuration(metaclass=PoolMeta):
 
     aeat_certificate_verifactu = fields.MultiValue(fields.Many2One('certificate',
         'AEAT Verifactu Certificate'))
+    verifactu_default_offset_days = fields.MultiValue(fields.Integer(
+            'Verifactu Default Offset Days',
+            help='Default offset days in the invoices search for '
+            'Verifactu downloads'))
+    verifactu_journal = fields.MultiValue(fields.Many2One(
+            'account.journal', 'Verifactu Journal',
+            domain=[
+                ('type', '=', 'revenue'),
+                ]))
 
     @classmethod
     def multivalue_model(cls, field):
         pool = Pool()
-        if field in {'aeat_certificate_verifactu'}:
+        if field in {'aeat_certificate_verifactu', 'verifactu_default_offset_days',
+                'verifactu_journal'}:
             return pool.get('account.configuration.default_verifactu')
         return super().multivalue_model(field)
+
+    @classmethod
+    def default_verifactu_default_offset_days(cls, **pattern):
+        return 0
 
 
 class ConfigurationDefaultVerifactu(ModelSQL, CompanyValueMixin):
@@ -82,6 +98,17 @@ class ConfigurationDefaultVerifactu(ModelSQL, CompanyValueMixin):
 
     aeat_certificate_verifactu = fields.Many2One('certificate',
         'AEAT Verifactu Certificate')
+    verifactu_default_offset_days = fields.Integer(
+        'Verifactu Default Offset Days',
+        help='Default offset days in the invoices search for '
+        'Verifactu downloads',
+        domain=[
+            ('verifactu_default_offset_days', '>=', 0),
+            ])
+    verifactu_journal = fields.Many2One('account.journal',
+        'Verifactu Journal', domain=[
+            ('type', '=', 'revenue'),
+            ])
 
 
 class TemplateTax(metaclass=PoolMeta):
@@ -108,6 +135,93 @@ class Tax(metaclass=PoolMeta):
     verifactu_issued_key = fields.Selection(SEND_SPECIAL_REGIME_KEY, 'Issued Key')
     verifactu_subjected_key = fields.Selection(IVA_SUBJECTED, 'Subjected Key')
     verifactu_exemption_cause = fields.Selection(EXEMPTION_CAUSE, 'Exemption Cause')
+
+
+class VerifactuTaxAccount(ModelSQL, ModelView):
+    'Verifactu Tax Account'
+    __name__ = 'aeat.verifactu.tax_account'
+
+    @staticmethod
+    def verifactu_tax_domain(company):
+        return [
+            ('company', '=', company),
+            ['OR',
+                ('verifactu_issued_key', 'not in', [None, '']),
+                ('verifactu_subjected_key', 'not in', [None, '']),
+                ('verifactu_exemption_cause', 'not in', [None, '']),
+                ],
+            ]
+
+    company = fields.Many2One('company.company', 'Company',
+        required=True, ondelete='RESTRICT', readonly=True)
+    tax = fields.Many2One('account.tax', 'Tax', required=True,
+        domain=verifactu_tax_domain(Eval('company', -1)),
+        depends=['company'])
+    account = fields.Many2One('account.account', 'Account',
+        domain=[
+            ('company', '=', Eval('company', -1)),
+            ('closed', '!=', True),
+            ('type.revenue', '=', True),
+            ], depends=['company'])
+
+    @classmethod
+    def __setup__(cls):
+        super().__setup__()
+        t = cls.__table__()
+        cls._sql_constraints += [
+            ('tax_unique_per_company', Unique(t, t.company, t.tax),
+                'aeat_verifactu.msg_verifactu_tax_account_unique'),
+            ]
+
+    @staticmethod
+    def default_company():
+        return Transaction().context.get('company')
+
+    @classmethod
+    def sync_verifactu_tax_accounts(cls, company_id):
+        Tax = Pool().get('account.tax')
+        taxes = Tax.search(cls.verifactu_tax_domain(company_id))
+        if not taxes:
+            return
+        mappings = super().search([
+                ('company', '=', company_id),
+                ('tax', 'in', [tax.id for tax in taxes]),
+                ])
+        mapped_tax_ids = {mapping.tax.id for mapping in mappings}
+        to_create = []
+        for tax in taxes:
+            if tax.id not in mapped_tax_ids:
+                to_create.append({
+                        'company': company_id,
+                        'tax': tax.id,
+                        })
+        if to_create:
+            cls.create(to_create)
+
+class SyncVerifactuTaxAccountStart(ModelView):
+    'Synchronize Verifactu Tax Accounts Start'
+    __name__ = 'aeat.verifactu.tax_account.sync.start'
+
+class SyncVerifactuTaxAccount(Wizard):
+    'Synchronize Verifactu Tax Accounts'
+    __name__ = 'aeat.verifactu.tax_account.sync'
+
+    start = StateView('aeat.verifactu.tax_account.sync.start',
+        'aeat_verifactu.sync_verifactu_tax_account_start_view_form', [
+            Button('Cancel', 'end', 'tryton-cancel'),
+            Button('Synchronize', 'synchronize', 'tryton-ok', default=True),
+            ])
+    synchronize = StateTransition()
+
+    def transition_synchronize(self):
+        VerifactuTaxAccount = Pool().get('aeat.verifactu.tax_account')
+
+        company_id = Transaction().context.get('company')
+        if not company_id:
+            raise UserError(gettext(
+                    'aeat_verifactu.msg_missing_verifactu_sync_company'))
+        VerifactuTaxAccount.sync_verifactu_tax_accounts(company_id)
+        return 'end'
 
 
 class FiscalYear(metaclass=PoolMeta):
@@ -199,4 +313,3 @@ class Period(metaclass=PoolMeta):
                     raise UserWarning(key, gettext(
                         'aeat_verifactu.msg_posted_invoices',
                         period=invoice.move.period.rec_name))
-
