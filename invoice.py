@@ -4,6 +4,7 @@ import time
 from decimal import Decimal
 import datetime
 import hashlib
+from types import SimpleNamespace
 import pytz
 from sql import Literal, Null
 from sql.aggregate import Max
@@ -493,15 +494,27 @@ class Invoice(metaclass=PoolMeta):
 
         company = Company(Transaction().context.get('company'))
         headers = get_headers(company)
+        body = cls.build_verifactu_records(invoices,
+            previous_fingerprint=previous_fingerprint, last_line=last_line)
+        return cls.verifactu_submit_records(service, headers, body)
+
+    @classmethod
+    def build_verifactu_records(cls, invoices, previous_fingerprint=None,
+            last_line=None):
         body = []
         for invoice in invoices:
-            body.append({
-                    'RegistroAlta': invoice.verifactu_build_invoice(
-                        previous_fingerprint, last_line),
-                    })
+            record = invoice.verifactu_build_invoice(
+                previous_fingerprint=previous_fingerprint, last_line=last_line)
+            body.append({'RegistroAlta': record})
+            previous_fingerprint = record['Huella']
+            last_line = SimpleNamespace(
+                invoice=invoice, fingerprint=previous_fingerprint)
+        return body
 
+    @classmethod
+    def verifactu_submit_records(cls, service, headers, records):
         responses = []
-        for batch in grouped_slice(body, 1):
+        for batch in grouped_slice(records, 1):
             batch = list(batch)
             responses += service.RegFactuSistemaFacturacion(headers, batch).RespuestaLinea
         return responses
@@ -551,35 +564,34 @@ class Invoice(metaclass=PoolMeta):
                 ('type', '=', 'out'),
                 ('verifactu_to_send', '=', True),
                 ], order=[('invoice_date', 'ASC')])
-        # TODO: Synchronize invoices missing since last_line
-        fingerprint, last_line = cls.synchro_query(company)
         if not invoices:
             return
+        last_line = Verifactu.search([
+                ('company', '=', company),
+                ('fingerprint', '!=', None),
+                ], order=[('id', 'DESC')], limit=1)
+        last_line = last_line[0] if last_line else None
         certificate = cls._get_verifactu_certificate()
         with certificate.tmp_ssl_credentials() as (crt, key):
             service = cls.verifactu_service(crt, key)
-            responses = cls.verifactu_submit(service, invoices,
-                previous_fingerprint=fingerprint, last_line=last_line)
+            records = cls.build_verifactu_records(
+                invoices,
+                previous_fingerprint=(
+                    last_line.fingerprint if last_line else None),
+                last_line=last_line)
+            responses = cls.verifactu_submit_records(
+                service, get_headers(company), records)
             lines_to_save = []
-            invoices_to_save = []
-            for x in responses:
-                state = x['EstadoRegistro']
-                if state in ('Correcto', 'AceptadoConErrores'):
-                    continue
-
-                invoice = cls.search([
-                        ('number', '=', x['IDFactura']['NumSerieFactura']),
-                        ])[0]
-                invoice.verifactu_state = state
-                invoices_to_save.append(invoice)
+            for invoice, record, response in zip(invoices, records, responses):
+                state = response['EstadoRegistro']
                 new_line = Verifactu()
                 new_line.invoice = invoice
+                new_line.company = company
                 new_line.state = state
-                new_line.error_message = x['DescripcionErrorRegistro']
+                new_line.fingerprint = record['RegistroAlta']['Huella']
+                new_line.error_message = response.get('DescripcionErrorRegistro')
                 lines_to_save.append(new_line)
             Verifactu.save(lines_to_save)
-            cls.save(invoices_to_save)
-        cls.synchro_query(company)
 
     @classmethod
     def get_verifactu_invoices(cls, company, year, period):
@@ -832,8 +844,8 @@ class Invoice(metaclass=PoolMeta):
 
     def get_aeat_qr_url(self, name):
         res = super().get_aeat_qr_url(name)
-        if (not self.is_verifactu
-                or self.verifactu_state in (None, 'Incorrecto')):
+        if (not self.is_verifactu or self.state not in {'posted', 'paid'}
+                or not self.number or not self.invoice_date):
             return res
 
         if PRODUCTION_ENV:
