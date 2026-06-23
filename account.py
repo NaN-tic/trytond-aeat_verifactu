@@ -76,6 +76,18 @@ class Configuration(metaclass=PoolMeta):
         return super().multivalue_model(field)
 
 
+class Journal(metaclass=PoolMeta):
+    __name__ = 'account.journal'
+
+    exclude_verifactu = fields.Boolean("Exclude VeriFactu",
+        help="Check to prevent invoices posted with this journal from being "
+        "sent to VeriFactu.")
+
+    @staticmethod
+    def default_exclude_verifactu():
+        return False
+
+
 class ConfigurationDefaultVerifactu(ModelSQL, CompanyValueMixin):
     "Account Configuration Default Verifactu Values"
     __name__ = 'account.configuration.default_verifactu'
@@ -199,4 +211,3 @@ class Period(metaclass=PoolMeta):
                     raise UserWarning(key, gettext(
                         'aeat_verifactu.msg_posted_invoices',
                         period=invoice.move.period.rec_name))
-

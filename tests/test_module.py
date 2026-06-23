@@ -14,19 +14,17 @@ class GrauTestCase(ModuleTestCase):
     def test_build_verifactu_records_keeps_local_chain(self):
         invoice_1 = SimpleNamespace(
             number='INV/1',
-            verifactu_build_invoice=lambda previous_fingerprint=None,
-            last_line=None: {
+            verifactu_build_invoice=lambda last_line=None: {
                 'Huella': 'FP-1',
-                'PreviousFingerprint': previous_fingerprint,
+                'PreviousFingerprint': getattr(last_line, 'fingerprint', None),
                 'PreviousInvoice': getattr(last_line.invoice, 'number', None)
                     if last_line else None,
             })
         invoice_2 = SimpleNamespace(
             number='INV/2',
-            verifactu_build_invoice=lambda previous_fingerprint=None,
-            last_line=None: {
+            verifactu_build_invoice=lambda last_line=None: {
                 'Huella': 'FP-2',
-                'PreviousFingerprint': previous_fingerprint,
+                'PreviousFingerprint': getattr(last_line, 'fingerprint', None),
                 'PreviousInvoice': getattr(last_line.invoice, 'number', None)
                     if last_line else None,
             })
@@ -37,7 +35,6 @@ class GrauTestCase(ModuleTestCase):
 
         records = Invoice.build_verifactu_records(
             [invoice_1, invoice_2],
-            previous_fingerprint='FP-0',
             last_line=last_line)
 
         self.assertEqual(records[0]['RegistroAlta']['PreviousFingerprint'], 'FP-0')
