@@ -332,6 +332,8 @@ class Invoice(metaclass=PoolMeta):
         # Si no hi ha cap registre → best_state és NULL → 'Incorrecto'
         final_state = Coalesce(best_state, Literal('Incorrecto'))
 
+        # Construïm la condició segons l'operador
+        # Tryton normalitza els operadors, però gestionem els més habituals
         if operator in ('=', '!='):
             if value is None:
                 condition = (final_state == None) if operator == '=' else (final_state != None)
