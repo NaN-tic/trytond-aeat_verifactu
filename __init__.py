@@ -12,6 +12,7 @@ def register():
     Pool.register(
         account.Configuration,
         account.ConfigurationDefaultVerifactu,
+        account.Journal,
         account.TemplateTax,
         account.Tax,
         account.FiscalYear,
