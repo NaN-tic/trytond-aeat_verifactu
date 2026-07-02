@@ -495,9 +495,6 @@ class Invoice(metaclass=PoolMeta):
 
         super()._post(invoices)
 
-        if any(x.is_verifactu for x in invoices):
-            cls.__queue__.send_verifactu(invoices)
-
     @staticmethod
     def verifactu_service(crt, pkey):
         if PRODUCTION_ENV:
