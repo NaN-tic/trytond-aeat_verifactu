@@ -1,3 +1,4 @@
+
 # The COPYRIGHT file at the top level of this repository contains the full
 # copyright notices and license terms.
 from dominate.tags import (body, div, h1, p, b, head,
@@ -7,9 +8,9 @@ from trytond.pool import Pool
 from trytond.transaction import check_access
 from trytond.modules.html_report.html_report import HTMLReport
 from trytond.modules.html_report.engine import DualRecord
-from trytond.modules.voyager.i18n import _
-from .invoice import VERSION
+from trytond.modules.xgettext import _
 
+from .invoice import VERSION
 
 class CertificateReport(HTMLReport):
     __name__ = 'aeat.verifactu.certificate'
