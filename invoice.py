@@ -18,7 +18,7 @@ from zeep.settings import Settings
 from zeep.plugins import HistoryPlugin
 
 import trytond
-from trytond.config import config
+import trytond.config as config
 from trytond.model import ModelSQL, ModelView, fields
 from trytond.pool import Pool, PoolMeta
 from trytond.pyson import Bool, Eval
