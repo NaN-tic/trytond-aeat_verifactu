@@ -288,7 +288,8 @@ class Invoice(metaclass=PoolMeta):
                     record.state if record else None)
             if 'verifactu_to_send' in result:
                 to_send = False
-                if is_verifactu and invoice.number:
+                if (is_verifactu and invoice.number
+                        and not invoice.verifactu_handled_externally):
                     state = record.state if record else None
                     if state in {None, 'Incorrecto'}:
                         error_message = (
@@ -341,19 +342,14 @@ class Invoice(metaclass=PoolMeta):
         _, operator, value = clause
         if operator not in ('=', '!='):
             return []
-
-        true_domain = [
-            ('is_verifactu', '=', True),
-            ('number', '!=', None),
-            ('verifactu_handled_externally', '=', False),
-            ['OR',
+        if (operator == '=' and not value) or (operator == '!=' and value):
+            domain = ['OR',
+                ('verifactu_state', 'in', ('Correcto', 'AceptadoConErrores')),
                 ('verifactu_state', '=', None),
-                ('verifactu_state', '=', 'Incorrecto'),
-            ],
-        ]
-        if (operator == '=' and value) or (operator == '!=' and not value):
-            return true_domain
-        return ['NOT', true_domain]
+                ]
+        else:
+            domain = [('verifactu_state', '=', 'Incorrecto')]
+        return domain
 
     def get_verifactu_state(self, name):
         return self.__class__.get_verifactu_fields([self], [name])[name][self.id]
