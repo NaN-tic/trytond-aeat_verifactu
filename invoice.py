@@ -9,7 +9,7 @@ import pytz
 from sql import Literal, Null
 from sql.aggregate import Max
 from sql.functions import Substring
-from sql.conditionals import Case
+from sql.conditionals import Case, Coalesce
 from requests import Session
 from urllib.parse import urlencode
 from zeep import Client
@@ -367,6 +367,7 @@ class Invoice(metaclass=PoolMeta):
         _, operator, value = clause
         invoice = cls.__table__()
 
+        # Assign a sorted value: 'Correcto' always wins
         ordered_state = Case(
             (verifactu.state == 'Correcto', '1-Correcto'),
             (verifactu.state == 'AceptadoConErrores', '2-AceptadoConErrores'),
@@ -376,22 +377,30 @@ class Invoice(metaclass=PoolMeta):
         subquery = verifactu.select(verifactu.invoice,
             Max(ordered_state).as_('best_raw'), group_by=verifactu.invoice)
 
-        state = Substring(subquery.best_raw, 3)
+        # Extract only the state name (after the dash)
+        best_state = Substring(subquery.best_raw, 3)
+
+        # Si no hi ha cap registre → best_state és NULL → 'Incorrecto'
+        final_state = Coalesce(best_state, Literal('Incorrecto'))
 
         if operator in ('=', '!='):
             if value is None:
-                condition = (state == None) if operator == '=' else (state != None)
+                condition = (
+                    final_state == None if operator == '='
+                    else final_state != None)
             else:
-                condition = (state == value) if operator == '=' else (state != value)
+                condition = (
+                    final_state == value if operator == '='
+                    else final_state != value)
         elif operator in ('in', 'not in'):
             if not value:
                 condition = Literal(False) if operator == 'in' else Literal(True)
             else:
-                condition = state.in_(value)
+                condition = final_state.in_(value)
                 if operator == 'not in':
                     condition = ~condition
         else:
-            condition = (state == value)
+            condition = (final_state == value)
 
         query = invoice.join(subquery, 'LEFT', subquery.invoice == invoice.id
             ).select(invoice.id, where=condition)
@@ -485,14 +494,6 @@ class Invoice(metaclass=PoolMeta):
             else:
                 return ''
 
-    @staticmethod
-    def _has_verifactu_duplicate_record(invoice):
-        for record in invoice.verifactu_records:
-            if (record.error_message
-                    and 'duplicad' in record.error_message.lower()):
-                return True
-        return False
-
     @classmethod
     def _post(cls, invoices):
         to_check = []
@@ -500,11 +501,6 @@ class Invoice(metaclass=PoolMeta):
             if (not invoice.is_verifactu
                     or invoice.verifactu_handled_externally):
                 continue
-            if cls._has_verifactu_duplicate_record(invoice):
-                raise UserError(gettext(
-                        'aeat_verifactu.msg_verifactu_duplicate_post',
-                        id=invoice.id,
-                        number=invoice.number or ''))
 
             invoice.verifactu_state = 'PendienteEnvio'
             if not invoice.move or invoice.move.state == 'draft':
