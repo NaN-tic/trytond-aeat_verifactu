@@ -92,6 +92,18 @@ class Configuration(metaclass=PoolMeta):
         return 0
 
 
+class Journal(metaclass=PoolMeta):
+    __name__ = 'account.journal'
+
+    exclude_verifactu = fields.Boolean("Exclude VeriFactu",
+        help="Check to prevent invoices posted with this journal from being "
+        "sent to VeriFactu.")
+
+    @staticmethod
+    def default_exclude_verifactu():
+        return False
+
+
 class ConfigurationDefaultVerifactu(ModelSQL, CompanyValueMixin):
     "Account Configuration Default Verifactu Values"
     __name__ = 'account.configuration.default_verifactu'
