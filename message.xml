@@ -78,5 +78,8 @@ If you edit them be careful that information will NOT be sent to Verifactu again
         <record model="ir.message" id="msg_missing_verifactu_sync_company">
             <field name="text">There is no company available to synchronize VeriFactu tax accounts.</field>
         </record>
+        <record model="ir.message" id="msg_verifactu_duplicate_post">
+            <field name="text">Invoice with id "%(id)s" and number "%(number)s" cannot be posted because it clashes with an already VeriFactu-verified invoice.</field>
+        </record>
     </data>
 </tryton>

@@ -235,6 +235,16 @@ msgctxt "model:ir.action,name:report_aeat_verifactu_certificate"
 msgid "AEAT Verifactu Certificate"
 msgstr "Certificat de verificació de l'AEAT"
 
+#, python-format
+msgctxt "model:ir.message,text:msg_verifactu_duplicate_post"
+msgid ""
+"Invoice with id \"%(id)s\" and number \"%(number)s\" cannot be posted "
+"because it clashes with an already VeriFactu-verified invoice."
+msgstr ""
+"La factura amb id \"%(id)s\" i número \"%(number)s\" no es pot "
+"comptabilitzar perquè entra en conflicte amb una factura ja verificada a "
+"VeriFactu."
+
 msgctxt "model:ir.action,name:wizard_download_verifactu_invoices"
 msgid "Synchronize Verifactu Invoices"
 msgstr "Sincronitzar factures Verifactu"
