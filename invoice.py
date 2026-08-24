@@ -828,10 +828,6 @@ class Invoice(metaclass=PoolMeta):
                     rate=rate if rate is not None else ''))
         tax, = taxes
 
-        # TODO: Confirm with real payloads how equivalence surcharge should be
-        # mapped on imported invoices. For now, if a surcharge is present, we
-        # require it to be linked from the main tax already configured in
-        # Tryton.
         if surcharge is not None and not tax.recargo_equivalencia_related_tax:
             raise UserError(gettext(
                     'aeat_verifactu.msg_verifactu_missing_surcharge_tax',
