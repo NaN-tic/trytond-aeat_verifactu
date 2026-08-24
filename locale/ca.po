@@ -1,21 +1,18 @@
 #
-# SPDX-FileCopyrightText: 2025 albert
 msgid ""
-msgstr ""
-"Content-Type: text/plain; charset=UTF-8\n"
-"Last-Translator: albert\n"
-"PO-Revision-Date: 2025-12-02 00:22+0100\n"
-"Project-Id-Version: \n"
-"Language-Team: Catalan <>\n"
-"Language: ca_ES\n"
-"Content-Transfer-Encoding: 8bit\n"
-"MIME-Version: 1.0\n"
-"Plural-Forms: nplurals=2; plural=(n != 1);\n"
-"X-Generator: Lokalize 25.04.0\n"
+msgstr "Content-Type: text/plain; charset=utf-8\n"
 
 msgctxt "field:account.configuration,aeat_certificate_verifactu:"
 msgid "AEAT Verifactu Certificate"
 msgstr "Certificat Verifactu de l'AEAT"
+
+msgctxt "field:account.configuration,verifactu_default_offset_days:"
+msgid "Verifactu Default Offset Days"
+msgstr "Offset Dies per defecte Verifactu"
+
+msgctxt "field:account.configuration,verifactu_journal:"
+msgid "Verifactu Journal"
+msgstr "Diari Verifactu"
 
 msgctxt ""
 "field:account.configuration.default_verifactu,aeat_certificate_verifactu:"
@@ -26,6 +23,15 @@ msgctxt "field:account.configuration.default_verifactu,company:"
 msgid "Company"
 msgstr "Empresa"
 
+msgctxt ""
+"field:account.configuration.default_verifactu,verifactu_default_offset_days:"
+msgid "Verifactu Default Offset Days"
+msgstr "Offset Dies per defecte Verifactu"
+
+msgctxt "field:account.configuration.default_verifactu,verifactu_journal:"
+msgid "Verifactu Journal"
+msgstr "Diari Verifactu"
+
 msgctxt "field:account.fiscalyear,es_verifactu_send_invoices:"
 msgid "Send invoices to Verifactu"
 msgstr "Enviar factures a Verifactu"
@@ -33,6 +39,18 @@ msgstr "Enviar factures a Verifactu"
 msgctxt "field:account.invoice,is_verifactu:"
 msgid "Is Verifactu"
 msgstr "És verificable"
+
+msgctxt "field:account.invoice,verifactu_handled_externally:"
+msgid "Handled externally in Verifactu"
+msgstr "Gestió Verifactu externa"
+
+msgctxt "field:account.invoice,verifactu_issuing_nif:"
+msgid "Nif emisor verifactu"
+msgstr "Emissor Verifactu"
+
+msgctxt "field:account.invoice,verifactu_issuing_party:"
+msgid "Emisor verifactu"
+msgstr "Tercer Emissor Verifactu"
 
 msgctxt "field:account.invoice,verifactu_operation_key:"
 msgid "Verifactu Operation Key"
@@ -114,9 +132,33 @@ msgctxt "field:aeat.verifactu,invoice_operation_key:"
 msgid "Operation Key"
 msgstr "Clau d'operació"
 
+msgctxt "field:aeat.verifactu,presenter:"
+msgid "Presenter VAT"
+msgstr "NIF presentador"
+
 msgctxt "field:aeat.verifactu,state:"
 msgid "State"
 msgstr "Estat"
+
+msgctxt "field:aeat.verifactu.tax_account,account:"
+msgid "Account"
+msgstr "Compte"
+
+msgctxt "field:aeat.verifactu.tax_account,company:"
+msgid "Company"
+msgstr "Empresa"
+
+msgctxt "field:aeat.verifactu.tax_account,tax:"
+msgid "Tax"
+msgstr "Impost"
+
+msgctxt "field:aeat_verifactu.download_invoices.start,date_from:"
+msgid "Date From"
+msgstr "Data Inici"
+
+msgctxt "field:aeat_verifactu.download_invoices.start,date_to:"
+msgid "Date To"
+msgstr "Data Fi"
 
 msgctxt "field:party.party,verifactu_identifier_type:"
 msgid "Verifactu Identifier Type"
@@ -125,6 +167,19 @@ msgstr "Tipus d'identificador Verifactu"
 msgctxt "field:party.party,verifactu_vat_code:"
 msgid "Verifactu VAT Code"
 msgstr "Codi IVA verificat"
+
+msgctxt "help:account.configuration,verifactu_default_offset_days:"
+msgid "Default offset days in the invoices search for Verifactu downloads"
+msgstr ""
+"Offset de dies predeterminat per la cerca de factures a la descàrrega "
+"Verifactu"
+
+msgctxt ""
+"help:account.configuration.default_verifactu,verifactu_default_offset_days:"
+msgid "Default offset days in the invoices search for Verifactu downloads"
+msgstr ""
+"Offset de dies predeterminat per la cerca de factures a la descàrrega "
+"Verifactu"
 
 msgctxt "help:account.period,es_verifactu_send_invoices:"
 msgid "Check to create Verifactu records for invoices in the period."
@@ -148,43 +203,67 @@ msgctxt "help:account.tax.template,service:"
 msgid "Indicates if the tax is used for services"
 msgstr "Indica si l'impost s'utilitza per a serveis"
 
-msgctxt "model:account.configuration.default_verifactu,name:"
-msgid "Account Configuration Default Verifactu Values"
-msgstr "Valors de verificació predeterminats de la configuració del compte"
+msgctxt "model:account.configuration.default_verifactu,string:"
+msgid "Account Configuration Default Verifactu"
+msgstr "Configuració del compte per defecte Verifactu"
 
-msgctxt "model:aeat.verifactu,name:"
-msgid "AEAT Verifactu"
-msgstr "AEAT Verifactu"
+msgctxt "model:aeat.verifactu,string:"
+msgid "Aeat Verifactu"
+msgstr "Aeat Verifactu"
 
-msgctxt "model:ir.action,name:"
-msgid "AEAT Verifactu Report Lines"
-msgstr "Línies d'informe de verificació de l'AEAT"
+msgctxt "model:aeat.verifactu.tax_account,string:"
+msgid "Aeat Verifactu Tax Account"
+msgstr "Compte impostos Aeat Verifactu"
+
+msgctxt "model:aeat.verifactu.tax_account.sync.start,string:"
+msgid "Aeat Verifactu Tax Account Sync Start"
+msgstr "Inici sincronització comptes d'impostos Aeat Verifactu"
+
+msgctxt "model:aeat_verifactu.download_invoices.start,string:"
+msgid "Aeat Verifactu Download Invoices Start"
+msgstr "Inici descàrrega factures Aeat Verifactu"
 
 msgctxt "model:ir.action,name:act_aeat_verifactu"
 msgid "AEAT Verifactu"
 msgstr "AEAT Verifactu"
 
+msgctxt "model:ir.action,name:act_verifactu_tax_account"
+msgid "Verifactu Tax Account"
+msgstr "Compte impostos Verifactu"
+
 msgctxt "model:ir.action,name:report_aeat_verifactu_certificate"
 msgid "AEAT Verifactu Certificate"
 msgstr "Certificat de verificació de l'AEAT"
 
+msgctxt "model:ir.action,name:wizard_download_verifactu_invoices"
+msgid "Synchronize Verifactu Invoices"
+msgstr "Sincronitzar factures Verifactu"
+
+msgctxt "model:ir.action,name:wizard_sync_verifactu_tax_account"
+msgid "Synchronize Verifactu Tax Accounts"
+msgstr "Sincronitzar comptes impostos Verifactu"
+
+#, python-format
 msgctxt "model:ir.message,text:msg_delete_cancel"
 msgid "Report \"%(report)s\" must be cancelled before deletion."
 msgstr "L'informe \"%(report)s\" s'ha de cancel·lar abans de ser eliminat."
 
+#, python-format
 msgctxt "model:ir.message,text:msg_invoice_in_missing_ref"
 msgid "The invoices \"%(invoices)s\" do not have reference."
 msgstr "Les factures \"%(invoices)s\" no tenen referència."
 
+#, python-format
 msgctxt "model:ir.message,text:msg_invoices_verifactu"
 msgid ""
 "The following invoices are related to Verifactu books:\n"
 "%(invoices)s.\n"
-"If you edit them be careful that you need to update to Verifactu again"
+"\n"
+"If you edit them be careful that information will NOT be sent to Verifactu again."
 msgstr ""
 "Les factures següents estan relacionades amb llibres de Verifactu: "
-"%(invoices)s. Si les editeu, tingueu en compte que cal actualitzar a "
-"Verifactu de nou."
+"%(invoices)s. Si les editeu, aneu amb compte que la informació NO es tornarà"
+" a enviar a Verifactu."
 
 msgctxt "model:ir.message,text:msg_invoices_verifactu_pending"
 msgid "The following invoices are related to Verifactu books in draft state."
@@ -204,12 +283,18 @@ msgctxt "model:ir.message,text:msg_missing_fernet_key"
 msgid "Missing Fernet key configuration"
 msgstr "Falta la configuració de la clau Fernet"
 
+#, python-format
 msgctxt "model:ir.message,text:msg_missing_nif"
 msgid "The party of invoice \"%(invoice)s\" must have a valid Tax Identifier."
 msgstr ""
 "El tercer de la factura \"%(invoice)s\" ha de tenir un identificador fiscal "
 "vàlid."
 
+msgctxt "model:ir.message,text:msg_missing_verifactu_journal"
+msgid "There isn't a Verifactu journal defined in the account configuration."
+msgstr "No hi ha cap diari Verifactu definit a configuració comptable."
+
+#, python-format
 msgctxt "model:ir.message,text:msg_missing_verifactu_keys"
 msgid ""
 "The invoice \"%(invoice)s\" does not have the necessary Verifactu keys "
@@ -217,6 +302,29 @@ msgid ""
 msgstr ""
 "La factura \"%(invoice)s\" no té les claus Verifactu necessàries emplenades."
 
+#, python-format
+msgctxt "model:ir.message,text:msg_missing_verifactu_party"
+msgid ""
+"Unable to resolve the party for downloaded Verifactu invoice \"%(invoice)s\""
+" using NIF \"%(nif)s\"."
+msgstr ""
+"No s'ha pogut trobar el tercer per a la factura Verifactu descarregada "
+"\"%(invoice)s\" amb el NIF \"%(nif)s\"."
+
+msgctxt "model:ir.message,text:msg_missing_verifactu_sync_company"
+msgid "There is no company available to synchronize VeriFactu tax accounts."
+msgstr ""
+"No s'ha trobat cap companyia per fer la sincronització de comptes impostos "
+"VeriFactu."
+
+#, python-format
+msgctxt "model:ir.message,text:msg_missing_verifactu_tax_account"
+msgid "Tax \"%(tax)s\" has no Verifactu tax-account mapping configured."
+msgstr ""
+"L'impost \"%(tax)s\" no té configurada cap assignació impost-compte de "
+"Verifactu."
+
+#, python-format
 msgctxt "model:ir.message,text:msg_posted_invoices"
 msgid ""
 "Are you sure you want to change the Verifactu setting for period "
@@ -227,17 +335,19 @@ msgstr ""
 "\"%(period)s\"? Tingueu en compte que ja hi ha factures registrades en "
 "aquest període."
 
+#, python-format
 msgctxt "model:ir.message,text:msg_report_duplicated_invoice"
-msgid ""
-"Invoice \"%(invoice)s\" is duplicated in Verifactu Report \"%(report)s\"."
+msgid "Invoice \"%(invoice)s\" is duplicated in Verifactu Report \"%(report)s\"."
 msgstr ""
 "La factura \"%(invoice)s\" està duplicada a l'informe Verifactu "
 "\"%(report)s\"."
 
+#, python-format
 msgctxt "model:ir.message,text:msg_report_wrong_invoice_state"
 msgid "Invoice \"%(invoice)s\" must be posted, paid or refunded."
 msgstr "La factura \"%(invoice)s\" s'ha de publicar, pagar o reemborsar."
 
+#, python-format
 msgctxt "model:ir.message,text:msg_set_simplified_invoice"
 msgid ""
 "The parties of the invoices \"%(invoices)s\" have not set the Verifactu "
@@ -251,6 +361,7 @@ msgstr ""
 "\"Entrada resum de factura\". Les factures s'enviaran a l'AEAT sense "
 "identificació de destinació."
 
+#, python-format
 msgctxt "model:ir.message,text:msg_set_simplified_party"
 msgid ""
 "The parties of the invoices \"%(invoices)s\" have the Verifactu Identifier "
@@ -264,6 +375,32 @@ msgstr ""
 "correspongui, i les factures s'enviaran a l'AEAT sense identificació de "
 "destinació."
 
+#, python-format
+msgctxt "model:ir.message,text:msg_verifactu_matching_tax"
+msgid ""
+"Unable to resolve a unique Tryton tax for regime \"%(regime)s\", operation "
+"\"%(operation)s\", exemption \"%(exemption)s\" and rate \"%(rate)s\"."
+msgstr ""
+"No s'ha pogut trobar un impost Tryton únic per al règim \"%(regime)s\", "
+"l'operació \"%(operation)s\", l'exempció \"%(exemption)s\" i el tipus "
+"\"%(rate)s\"."
+
+#, python-format
+msgctxt "model:ir.message,text:msg_verifactu_missing_surcharge_tax"
+msgid "Tax \"%(tax)s\" has no equivalence surcharge related tax configured."
+msgstr ""
+"L'impost \"%(tax)s\" no té configurat cap impost relacionat amb el recàrrec "
+"d'equivalència."
+
+msgctxt "model:ir.message,text:msg_verifactu_missing_tax_data"
+msgid ""
+"Downloaded Verifactu tax data has no usable fiscal criteria to resolve a "
+"Tryton tax."
+msgstr ""
+"Les dades d'impost de Verifactu descarregades no tenen criteris fiscals "
+"utilitzables per relacionar-los amb un impost de Tryton."
+
+#, python-format
 msgctxt "model:ir.message,text:msg_verifactu_operation_key_wrong"
 msgid ""
 "Invoice \"%(invoice)s\" has a wrong subject and operation Verifactu "
@@ -272,6 +409,13 @@ msgstr ""
 "La factura \"%(invoice)s\" té una combinació incorrecta d'assumpte i "
 "operació Verifactu."
 
+msgctxt "model:ir.message,text:msg_verifactu_tax_account_unique"
+msgid "Only one Verifactu tax-account mapping is allowed per company and tax."
+msgstr ""
+"Només es permet una assignació de impost-compte de Verifactu per empresa i "
+"impost."
+
+#, python-format
 msgctxt "model:ir.message,text:msg_wrong_identifier_type"
 msgid ""
 "Party \"%(party)s\" of invoice \"%(invoice)s\" must have a valid Verifactu "
@@ -293,9 +437,9 @@ msgctxt "model:ir.rule.group,name:rule_group_verifactu_report_line"
 msgid "User in company"
 msgstr "Usuari a l'empresa"
 
-msgctxt "model:ir.ui.menu,name:"
-msgid "AEAT Verifactu Report Lines"
-msgstr "Línies d'informe de verificació de l'AEAT"
+msgctxt "model:ir.rule.group,name:rule_group_verifactu_tax_account"
+msgid "User in company"
+msgstr "Usuari a l'empresa"
 
 msgctxt "model:ir.ui.menu,name:menu_aeat_verifactu"
 msgid "AEAT Verifactu Report Lines"
@@ -308,6 +452,18 @@ msgstr "Certificat Verifactu de l'AEAT"
 msgctxt "model:ir.ui.menu,name:menu_aeat_verifactu_report_menu"
 msgid "AEAT Verifactu"
 msgstr "AEAT Verifactu"
+
+msgctxt "model:ir.ui.menu,name:menu_download_verifactu_invoices"
+msgid "Synchronize Verifactu Invoices"
+msgstr "Sincronitzar factures Verifactu"
+
+msgctxt "model:ir.ui.menu,name:menu_sync_verifactu_tax_account"
+msgid "Synchronize Verifactu Tax Accounts"
+msgstr "Sincronitzar impostos-comptes Verifactu"
+
+msgctxt "model:ir.ui.menu,name:menu_verifactu_tax_account"
+msgid "Verifactu Tax Account"
+msgstr "Impost compte Verifactu"
 
 msgctxt "selection:account.invoice,verifactu_operation_key:"
 msgid "Corrected Invoice (Art 80.1, 80.2 and 80.6 and error grounded in law)"
@@ -706,6 +862,10 @@ msgctxt "selection:ir.cron,method:"
 msgid "AEAT Verifactu"
 msgstr "AEAT Verifactu"
 
+msgctxt "selection:ir.cron,method:"
+msgid "AEAT Verifactu Invoice Synchronization"
+msgstr "Sincronització de factures AEAT Verifactu"
+
 msgctxt "selection:party.party,verifactu_identifier_type:"
 msgid "Not registered (only for Spanish VAT not registered)"
 msgstr "No registrat (només per a l'IVA espanyol no registrat)"
@@ -757,6 +917,34 @@ msgctxt "view:account.tax:"
 msgid "AEAT Verifactu"
 msgstr "AEAT Verifactu"
 
+msgctxt "view:aeat.verifactu.tax_account.sync.start:"
+msgid ""
+"Missing VeriFactu tax-account mappings for the current company will be "
+"created."
+msgstr ""
+"Es crearan les relacions impost-compte de VeriFactu que faltin per a "
+"l'empresa actual."
+
 msgctxt "view:aeat.verifactu:"
 msgid "Main Information"
 msgstr "Informació principal"
+
+msgctxt "wizard_button:aeat.verifactu.tax_account.sync,start,end:"
+msgid "Cancel"
+msgstr "Cancel·la"
+
+msgctxt "wizard_button:aeat.verifactu.tax_account.sync,start,synchronize:"
+msgid "Synchronize"
+msgstr "Sincronitza"
+
+msgctxt "wizard_button:aeat_verifactu.download_invoices,start,download:"
+msgid "Create and Update"
+msgstr "Crea i actualitza"
+
+msgctxt "wizard_button:aeat_verifactu.download_invoices,start,end:"
+msgid "Cancel"
+msgstr "Cancel·la"
+
+msgctxt "wizard_button:aeat_verifactu.download_invoices,start,update:"
+msgid "Update Invoices"
+msgstr "Actualitza factures"

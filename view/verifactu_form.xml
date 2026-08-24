@@ -9,6 +9,8 @@
             <newline/>
             <label name="state"/>
             <field name="state"/>
+            <label name="fingerprint"/>
+            <field name="fingerprint"/>
             <label name="error_message"/>
             <field name="error_message"/>
         </page>
