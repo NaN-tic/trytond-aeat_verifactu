@@ -4,14 +4,17 @@ import time
 from decimal import Decimal
 import datetime
 import hashlib
+from logging import getLogger
 import pytz
 from sql import Literal, Null
 from sql.aggregate import Max
 from sql.functions import Substring
 from sql.conditionals import Case, Coalesce
 from requests import Session
+from requests.exceptions import RequestException
 from urllib.parse import urlencode
 from zeep import Client
+from zeep.exceptions import TransportError, XMLSyntaxError
 from zeep.transports import Transport
 from zeep.settings import Settings
 from zeep.plugins import HistoryPlugin
@@ -39,12 +42,18 @@ WSDL_TEST = 'https://prewww2.aeat.es/static_files/common/internet/dep/aplicacion
 VERSION = trytond.__version__
 VERSION = '.'.join(VERSION.split('.')[:2])
 
+_logger = getLogger(__name__)
+
 AEAT_INVOICE_STATE = [
     (None, ''),
     ('Correcto', 'Accepted'),
     ('AceptadoConErrores', 'Accepted with Errors'),
     ('Incorrecto', 'Rejected'),
     ]
+
+
+class VerifactuCommunicationError(Exception):
+    pass
 
 OPERATION_KEY = [ # L2
     ('F1', 'Invoice (Art 6.7.3 y 7.3 of RD1619/2012)'),
@@ -487,6 +496,19 @@ class Invoice(metaclass=PoolMeta):
         return client.bind('sfVerifactu', port_name)
 
     @classmethod
+    def _raise_verifactu_communication_error(cls, operation, exception,
+            **context):
+        context_text = ', '.join(
+            f'{key}={value}' for key, value in context.items()
+            if value is not None)
+        if context_text:
+            context_text = f' ({context_text})'
+        _logger.warning(
+            'Verifactu communication failed during %s%s: %s',
+            operation, context_text, exception)
+        raise VerifactuCommunicationError() from exception
+
+    @classmethod
     def verifactu_submit(cls, service, invoices, previous_fingerprint=None, last_line=None):
         pool = Pool()
         Company = pool.get('company.company')
@@ -503,7 +525,13 @@ class Invoice(metaclass=PoolMeta):
         responses = []
         for batch in grouped_slice(body, 1):
             batch = list(batch)
-            responses += service.RegFactuSistemaFacturacion(headers, batch).RespuestaLinea
+            try:
+                response = service.RegFactuSistemaFacturacion(headers, batch)
+            except (RequestException, TransportError, XMLSyntaxError) as exception:
+                invoice = batch[0]['RegistroAlta']['IDFactura']['NumSerieFactura']
+                cls._raise_verifactu_communication_error(
+                    'RegFactuSistemaFacturacion', exception, invoice=invoice)
+            responses += response.RespuestaLinea
         return responses
 
     @classmethod
@@ -522,7 +550,12 @@ class Invoice(metaclass=PoolMeta):
             }
         if clave_paginacion:
             filter_['ClavePaginacion'] = clave_paginacion
-        return service.ConsultaFactuSistemaFacturacion(headers, filter_)
+        try:
+            return service.ConsultaFactuSistemaFacturacion(headers, filter_)
+        except (RequestException, TransportError, XMLSyntaxError) as exception:
+            cls._raise_verifactu_communication_error(
+                'ConsultaFactuSistemaFacturacion', exception, year=year,
+                period=period)
 
     @classmethod
     def send_verifactu(cls, invoices=None):
@@ -552,14 +585,20 @@ class Invoice(metaclass=PoolMeta):
                 ('verifactu_to_send', '=', True),
                 ], order=[('invoice_date', 'ASC')])
         # TODO: Synchronize invoices missing since last_line
-        fingerprint, last_line = cls.synchro_query(company)
+        try:
+            fingerprint, last_line = cls.synchro_query(company)
+        except VerifactuCommunicationError:
+            return
         if not invoices:
             return
         certificate = cls._get_verifactu_certificate()
         with certificate.tmp_ssl_credentials() as (crt, key):
             service = cls.verifactu_service(crt, key)
-            responses = cls.verifactu_submit(service, invoices,
-                previous_fingerprint=fingerprint, last_line=last_line)
+            try:
+                responses = cls.verifactu_submit(service, invoices,
+                    previous_fingerprint=fingerprint, last_line=last_line)
+            except VerifactuCommunicationError:
+                return
             lines_to_save = []
             invoices_to_save = []
             for x in responses:
@@ -579,7 +618,10 @@ class Invoice(metaclass=PoolMeta):
                 lines_to_save.append(new_line)
             Verifactu.save(lines_to_save)
             cls.save(invoices_to_save)
-        cls.synchro_query(company)
+        try:
+            cls.synchro_query(company)
+        except VerifactuCommunicationError:
+            return
 
     @classmethod
     def get_verifactu_invoices(cls, company, year, period):
