@@ -71,7 +71,6 @@ class Test(unittest.TestCase):
         self.assertEqual(invoice.verifactu_operation_key, None)
         self.assertEqual(invoice.verifactu_state, None)
         self.assertEqual(invoice.verifactu_to_send, False)
-
         invoice.click('post')
         self.assertEqual(invoice.state, 'posted')
         self.assertEqual(invoice.is_verifactu, True)

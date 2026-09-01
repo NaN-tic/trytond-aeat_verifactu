@@ -32,7 +32,7 @@ msgstr "Enviar factures a Verifactu"
 
 msgctxt "field:account.invoice,is_verifactu:"
 msgid "Is Verifactu"
-msgstr "És verificable"
+msgstr "És Verifactu"
 
 msgctxt "field:account.invoice,verifactu_operation_key:"
 msgid "Verifactu Operation Key"
@@ -44,7 +44,7 @@ msgstr "Línies d'informe Verifactu"
 
 msgctxt "field:account.invoice,verifactu_state:"
 msgid "Verifactu State"
-msgstr "Estat verificat"
+msgstr "Estat Verifactu"
 
 msgctxt "field:account.invoice,verifactu_to_send:"
 msgid "Verifactu Pending Sending"
@@ -217,6 +217,10 @@ msgid ""
 msgstr ""
 "La factura \"%(invoice)s\" no té les claus Verifactu necessàries emplenades."
 
+msgctxt "model:ir.message,text:msg_verifactu_communication_failed"
+msgid "Verifactu communication has been failing for more than two hours for invoice \"%(invoice)s\"."
+msgstr "La comunicació amb Verifactu ha estat fallant durant més de dues hores per a la factura \"%(invoice)s\"."
+
 msgctxt "model:ir.message,text:msg_posted_invoices"
 msgid ""
 "Are you sure you want to change the Verifactu setting for period "
@@ -357,6 +361,10 @@ msgstr "Acceptat amb errors"
 msgctxt "selection:account.invoice,verifactu_state:"
 msgid "Rejected"
 msgstr "Rebutjat"
+
+msgctxt "selection:account.invoice,verifactu_state:"
+msgid "Communication failed"
+msgstr "Comunicació fallida"
 
 msgctxt "selection:account.tax,verifactu_exemption_cause:"
 msgid "Exempt on account of Article 20"
@@ -701,6 +709,10 @@ msgstr "Acceptat amb errors"
 msgctxt "selection:aeat.verifactu,state:"
 msgid "Rejected"
 msgstr "Rebutjat"
+
+msgctxt "selection:aeat.verifactu,state:"
+msgid "Communication failed"
+msgstr "Comunicació fallida"
 
 msgctxt "selection:ir.cron,method:"
 msgid "AEAT Verifactu"

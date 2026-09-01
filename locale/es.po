@@ -32,7 +32,7 @@ msgstr "Enviar facturas a Verifactu"
 
 msgctxt "field:account.invoice,is_verifactu:"
 msgid "Is Verifactu"
-msgstr "¿Es Verifactu?"
+msgstr "Es Verifactu"
 
 msgctxt "field:account.invoice,verifactu_operation_key:"
 msgid "Verifactu Operation Key"
@@ -217,6 +217,10 @@ msgstr ""
 "La factura \"%(invoice)s\" no tiene las claves Verifactu necesarias "
 "rellenadas."
 
+msgctxt "model:ir.message,text:msg_verifactu_communication_failed"
+msgid "Verifactu communication has been failing for more than two hours for invoice \"%(invoice)s\"."
+msgstr "La comunicación con Verifactu ha estado fallando durante más de dos horas para la factura \"%(invoice)s\"."
+
 msgctxt "model:ir.message,text:msg_posted_invoices"
 msgid ""
 "Are you sure you want to change the Verifactu setting for period "
@@ -359,6 +363,10 @@ msgstr "Aceptado con errores"
 msgctxt "selection:account.invoice,verifactu_state:"
 msgid "Rejected"
 msgstr "Rechazado"
+
+msgctxt "selection:account.invoice,verifactu_state:"
+msgid "Communication failed"
+msgstr "Comunicación fallida"
 
 msgctxt "selection:account.tax,verifactu_exemption_cause:"
 msgid "Exempt on account of Article 20"
@@ -709,6 +717,10 @@ msgstr "Aceptado con errores"
 msgctxt "selection:aeat.verifactu,state:"
 msgid "Rejected"
 msgstr "Rechazado"
+
+msgctxt "selection:aeat.verifactu,state:"
+msgid "Communication failed"
+msgstr "Comunicación fallida"
 
 msgctxt "selection:ir.cron,method:"
 msgid "AEAT Verifactu"
