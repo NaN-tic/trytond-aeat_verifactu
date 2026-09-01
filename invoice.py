@@ -4,14 +4,15 @@ import time
 from decimal import Decimal
 import datetime
 import hashlib
+from logging import getLogger
 import pytz
-from sql import Literal, Null
+from sql import Literal
 from sql.aggregate import Max
-from sql.functions import Substring
-from sql.conditionals import Case, Coalesce
 from requests import Session
+from requests.exceptions import RequestException
 from urllib.parse import urlencode
 from zeep import Client
+from zeep.exceptions import TransportError, XMLSyntaxError
 from zeep.transports import Transport
 from zeep.settings import Settings
 from zeep.plugins import HistoryPlugin
@@ -39,12 +40,21 @@ WSDL_TEST = 'https://prewww2.aeat.es/static_files/common/internet/dep/aplicacion
 VERSION = trytond.__version__
 VERSION = '.'.join(VERSION.split('.')[:2])
 
+_logger = getLogger(__name__)
+
 AEAT_INVOICE_STATE = [
     (None, ''),
     ('Correcto', 'Accepted'),
     ('AceptadoConErrores', 'Accepted with Errors'),
     ('Incorrecto', 'Rejected'),
+    ('ComunicaciónFallida', 'Communication failed'),
     ]
+
+VERIFACTU_COMMUNICATION_RETRY = datetime.timedelta(hours=2)
+
+
+class VerifactuCommunicationError(Exception):
+    pass
 
 OPERATION_KEY = [ # L2
     ('F1', 'Invoice (Art 6.7.3 y 7.3 of RD1619/2012)'),
@@ -222,10 +232,12 @@ class Invoice(metaclass=PoolMeta):
             return False
         if not self.number:
             return False
-        if self.verifactu_state in (None, 'Incorrecto'):
+        if self.verifactu_state in (
+                None, 'Incorrecto', 'ComunicaciónFallida'):
             if self.verifactu_records:
                 record = self.verifactu_records[0]
-                if 'duplicad' in record.error_message.lower():
+                error_message = (record.error_message or '').lower()
+                if 'duplicad' in error_message:
                     return False
             return True
         return False
@@ -236,12 +248,11 @@ class Invoice(metaclass=PoolMeta):
         if operator not in ('=', '!='):
             return []
         if (operator == '=' and not value) or (operator == '!=' and value):
-            domain = ['OR',
-                ('verifactu_state', 'in', ('Correcto', 'AceptadoConErrores')),
-                ('verifactu_state', '=', None),
-                ]
+            domain = [('verifactu_state', 'in',
+                ('Correcto', 'AceptadoConErrores'))]
         else:
-            domain = [('verifactu_state', '=', 'Incorrecto')]
+            domain = [('verifactu_state', 'in',
+                (None, 'Incorrecto', 'ComunicaciónFallida'))]
         return domain
 
     def get_verifactu_state(self, name):
@@ -255,45 +266,41 @@ class Invoice(metaclass=PoolMeta):
         Verifactu = pool.get('aeat.verifactu')
 
         verifactu = Verifactu.__table__()
+        latest_verifactu = Verifactu.__table__()
 
         _, operator, value = clause
+
+        if operator not in ('=', '!=', 'in', 'not in'):
+            return []
+
         invoice = cls.__table__()
 
-        # Assign a sorted value: 'Correcto' always wins
-        ordered_state = Case(
-            (verifactu.state == 'Correcto', '1-Correcto'),
-            (verifactu.state == 'AceptadoConErrores', '2-AceptadoConErrores'),
-            (verifactu.state == 'Incorrecto', '3-Incorrecto'),
-            else_=Null)
+        latest = latest_verifactu.select(
+            latest_verifactu.invoice,
+            Max(latest_verifactu.id).as_('latest_id'),
+            group_by=latest_verifactu.invoice)
 
-        subquery = verifactu.select(verifactu.invoice,
-            Max(ordered_state).as_('best_raw'), group_by=verifactu.invoice)
-
-        # Extract only the state name (after the dash)
-        best_state = Substring(subquery.best_raw, 3)
-
-        # Si no hi ha cap registre → best_state és NULL → 'Incorrecto'
-        final_state = Coalesce(best_state, Literal('Incorrecto'))
-
-        # Construïm la condició segons l'operador
+        # Construïm la condició segons l’operador
         # Tryton normalitza els operadors, però gestionem els més habituals
         if operator in ('=', '!='):
-            if value is None:
-                condition = (final_state == None) if operator == '=' else (final_state != None)
-            else:
-                condition = (final_state == value) if operator == '=' else (final_state != value)
+            condition = (verifactu.state == value
+                if operator == '=' else verifactu.state != value)
         elif operator in ('in', 'not in'):
             if not value:
                 condition = Literal(False) if operator == 'in' else Literal(True)
             else:
-                condition = final_state.in_(value)
+                non_null_values = [
+                    item for item in value if item is not None]
+                condition = verifactu.state.in_(non_null_values)
+                if None in value:
+                    condition |= verifactu.state == None
                 if operator == 'not in':
                     condition = ~condition
-        else:
-            condition = (final_state == value)
 
-        query = invoice.join(subquery, 'LEFT', subquery.invoice == invoice.id
-            ).select(invoice.id, where=condition)
+        query = (invoice
+            .join(latest, 'LEFT', latest.invoice == invoice.id)
+            .join(verifactu, 'LEFT', verifactu.id == latest.latest_id)
+            .select(invoice.id, where=condition))
 
         return [('id', 'in', query)]
 
@@ -487,6 +494,50 @@ class Invoice(metaclass=PoolMeta):
         return client.bind('sfVerifactu', port_name)
 
     @classmethod
+    def _raise_verifactu_communication_error(cls, operation, exception,
+            **context):
+        context_text = ', '.join(
+            f'{key}={value}' for key, value in context.items()
+            if value is not None)
+        if context_text:
+            context_text = f' ({context_text})'
+        _logger.warning(
+            'Verifactu communication failed during %s%s: %s',
+            operation, context_text, exception)
+        raise VerifactuCommunicationError() from exception
+
+    @classmethod
+    def _handle_verifactu_communication_error(cls, invoices):
+        pool = Pool()
+        Verifactu = pool.get('aeat.verifactu')
+        now = datetime.datetime.now()
+        lines = []
+        for invoice in invoices:
+            communication_lines = [
+                line for line in invoice.verifactu_records
+                if line.state == 'ComunicaciónFallida'
+                ]
+            if not communication_lines:
+                error_type = 'ComunicaciónFallida'
+            else:
+                previous_line = communication_lines[0]
+                if (previous_line.create_date
+                        and now - previous_line.create_date
+                        < VERIFACTU_COMMUNICATION_RETRY):
+                    continue
+                raise UserError(gettext(
+                    'aeat_verifactu.msg_verifactu_communication_failed',
+                    invoice=invoice.rec_name))
+
+            line = Verifactu()
+            line.invoice = invoice
+            line.company = invoice.company
+            line.state = error_type
+            lines.append(line)
+        if lines:
+            Verifactu.save(lines)
+
+    @classmethod
     def verifactu_submit(cls, service, invoices, previous_fingerprint=None, last_line=None):
         pool = Pool()
         Company = pool.get('company.company')
@@ -503,7 +554,13 @@ class Invoice(metaclass=PoolMeta):
         responses = []
         for batch in grouped_slice(body, 1):
             batch = list(batch)
-            responses += service.RegFactuSistemaFacturacion(headers, batch).RespuestaLinea
+            try:
+                response = service.RegFactuSistemaFacturacion(headers, batch)
+            except (RequestException, TransportError, XMLSyntaxError) as exception:
+                invoice = batch[0]['RegistroAlta']['IDFactura']['NumSerieFactura']
+                cls._raise_verifactu_communication_error(
+                    'RegFactuSistemaFacturacion', exception, invoice=invoice)
+            responses += response.RespuestaLinea
         return responses
 
     @classmethod
@@ -522,7 +579,12 @@ class Invoice(metaclass=PoolMeta):
             }
         if clave_paginacion:
             filter_['ClavePaginacion'] = clave_paginacion
-        return service.ConsultaFactuSistemaFacturacion(headers, filter_)
+        try:
+            return service.ConsultaFactuSistemaFacturacion(headers, filter_)
+        except (RequestException, TransportError, XMLSyntaxError) as exception:
+            cls._raise_verifactu_communication_error(
+                'ConsultaFactuSistemaFacturacion', exception, year=year,
+                period=period)
 
     @classmethod
     def send_verifactu(cls, invoices=None):
@@ -552,14 +614,22 @@ class Invoice(metaclass=PoolMeta):
                 ('verifactu_to_send', '=', True),
                 ], order=[('invoice_date', 'ASC')])
         # TODO: Synchronize invoices missing since last_line
-        fingerprint, last_line = cls.synchro_query(company)
+        try:
+            fingerprint, last_line = cls.synchro_query(company)
+        except VerifactuCommunicationError:
+            cls._handle_verifactu_communication_error(invoices)
+            return
         if not invoices:
             return
         certificate = cls._get_verifactu_certificate()
         with certificate.tmp_ssl_credentials() as (crt, key):
             service = cls.verifactu_service(crt, key)
-            responses = cls.verifactu_submit(service, invoices,
-                previous_fingerprint=fingerprint, last_line=last_line)
+            try:
+                responses = cls.verifactu_submit(service, invoices,
+                    previous_fingerprint=fingerprint, last_line=last_line)
+            except VerifactuCommunicationError:
+                cls._handle_verifactu_communication_error(invoices)
+                return
             lines_to_save = []
             invoices_to_save = []
             for x in responses:
@@ -579,7 +649,10 @@ class Invoice(metaclass=PoolMeta):
                 lines_to_save.append(new_line)
             Verifactu.save(lines_to_save)
             cls.save(invoices_to_save)
-        cls.synchro_query(company)
+        try:
+            cls.synchro_query(company)
+        except VerifactuCommunicationError:
+            return
 
     @classmethod
     def get_verifactu_invoices(cls, company, year, period):
@@ -833,7 +906,8 @@ class Invoice(metaclass=PoolMeta):
     def get_aeat_qr_url(self, name):
         res = super().get_aeat_qr_url(name)
         if (not self.is_verifactu
-                or self.verifactu_state in (None, 'Incorrecto')):
+                or self.verifactu_state in (
+                    None, 'Incorrecto', 'ComunicaciónFallida')):
             return res
 
         if PRODUCTION_ENV:
