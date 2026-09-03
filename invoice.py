@@ -669,11 +669,12 @@ class Invoice(metaclass=PoolMeta):
         # 'invoices' parameter is not used, because all pending invoices are
         # sent but we need it to be compatible with the queue system
         pool = Pool()
-        Verifactu = pool.get('aeat.verifactu')
         VerifactuConfig = pool.get('account.configuration.default_verifactu')
         Company = pool.get('company.company')
 
-        company = Company(Transaction().context.get('company'))
+        company_id = Transaction().context.get('company', -1)
+        company = Company(company_id)
+
         configs = VerifactuConfig.search([
                 ('company', '=', company),
                 ], limit=1)
@@ -684,38 +685,51 @@ class Invoice(metaclass=PoolMeta):
         config, = configs
         if not config.aeat_certificate_verifactu:
             return
+        cls._send_verifactu(invoices)
 
-        invoices = cls.search([
-                ('company', '=', company),
+    @classmethod
+    def _send_verifactu(cls, invoices=None):
+        domain = [
                 ('move.period.es_verifactu_send_invoices', '=', True),
                 ('journal.exclude_verifactu', '!=', True),
                 ('type', '=', 'out'),
                 ('verifactu_to_send', '=', True),
-                ], order=[('sequence', 'ASC'), ('number_digit', 'ASC'),
+                ]
+        if invoices:
+            domain += [('id', 'in', [i.id for i in invoices])]
+        invoices = cls.search(domain,
+                    order=[('sequence', 'ASC'), ('number_digit', 'ASC'),
                     ('invoice_date', 'ASC'), ('id', 'ASC')])
         if not invoices:
             return
+
+        invoices_by_company = {}
+        for invoice in invoices:
+            invoices_by_company.setdefault(invoice.company, []).append(invoice)
+
         certificate = cls._get_verifactu_certificate()
         with certificate.tmp_ssl_credentials() as (crt, key):
             service = cls.verifactu_service(crt, key)
-            last_line = cls.get_batch_start_verifactu_info(service, company)
-            records = cls.build_verifactu_records(
-                invoices, last_line=last_line)
-            responses = cls.verifactu_submit_records(
-                service, get_headers(company), records)
             lines_to_save = []
-            for invoice, record, response in zip(invoices, records, responses):
-                state = response['EstadoRegistro']
-                new_line = Verifactu()
-                new_line.invoice = invoice
-                new_line.company = company
-                new_line.state = state
-                new_line.fingerprint = record['RegistroAlta']['Huella']
-                new_line.error_message = (
-                    response['DescripcionErrorRegistro']
-                    if 'DescripcionErrorRegistro' in response
-                    else None)
-                lines_to_save.append(new_line)
+            for company, company_invoices in invoices_by_company.items():
+                last_line = cls.get_batch_start_verifactu_info(service, company)
+                records = cls.build_verifactu_records(
+                    company_invoices, last_line=last_line)
+                responses = cls.verifactu_submit_records(
+                    service, get_headers(company), records)
+                for invoice, record, response in zip(
+                        company_invoices, records, responses):
+                    state = response['EstadoRegistro']
+                    new_line = Verifactu()
+                    new_line.invoice = invoice
+                    new_line.company = invoice.company
+                    new_line.state = state
+                    new_line.fingerprint = record['RegistroAlta']['Huella']
+                    new_line.error_message = (
+                        response['DescripcionErrorRegistro']
+                        if 'DescripcionErrorRegistro' in response
+                        else None)
+                    lines_to_save.append(new_line)
             Verifactu.save(lines_to_save)
 
     @classmethod
@@ -1002,6 +1016,7 @@ class Invoice(metaclass=PoolMeta):
             company, date_from, date_to, create_missing=False)
 
     def verifactu_build_invoice(self, last_line=None):
+        Verifactu = Pool().get('aeat.verifactu')
 
         def verifactu_taxes():
             return [invoice_tax for invoice_tax in self.taxes if
@@ -1154,8 +1169,10 @@ class Invoice(metaclass=PoolMeta):
             'Huella': fingerprint_hash,
             }
 
-        # TODO
-        if (self.verifactu_records
+        previous_records = Verifactu.search([
+                ('invoice', '=', self.id),
+                ], limit=1)
+        if (previous_records
                 and self.verifactu_state == 'PendienteEnvioSubsanacion'):
 
             ret['Subsanacion'] = 'S'
