@@ -544,6 +544,7 @@ class Invoice(metaclass=PoolMeta):
                         invoice.verifactu_state = 'Correcto'
                         break
                 else:
+                    # TODO verifactu_state field has not PendienteEnvioSubsanacion option
                     invoice.verifactu_state = 'PendienteEnvioSubsanacion'
 
         super()._post(invoices)
@@ -1172,6 +1173,7 @@ class Invoice(metaclass=PoolMeta):
         previous_records = Verifactu.search([
                 ('invoice', '=', self.id),
                 ], limit=1)
+        # TODO verifactu_state field has not PendienteEnvioSubsanacion option
         if (previous_records
                 and self.verifactu_state == 'PendienteEnvioSubsanacion'):
 
