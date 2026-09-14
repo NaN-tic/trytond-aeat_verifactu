@@ -498,7 +498,6 @@ class Invoice(metaclass=PoolMeta):
                     or invoice.verifactu_handled_externally):
                 continue
 
-            invoice.verifactu_state = 'PendienteEnvio'
             if not invoice.move or invoice.move.state == 'draft':
                 to_check.append(invoice)
 
@@ -536,22 +535,15 @@ class Invoice(metaclass=PoolMeta):
                         gettext('aeat_verifactu.msg_verifactu_operation_key_wrong',
                             invoice=invoice))
 
-            if not invoice.verifactu_records:
-                invoice.verifactu_state = 'PendienteEnvio'
-            else:
-                for x in invoice.verifactu_records:
-                    if x.state == 'Correcto':
-                        invoice.verifactu_state = 'Correcto'
-                        break
-                else:
-                    invoice.verifactu_state = 'PendienteEnvioSubsanacion'
-
         super()._post(invoices)
 
         to_send = [
             invoice for invoice in invoices
             if invoice.is_verifactu and invoice.verifactu_to_send]
         if to_send:
+            #to_send invoices aren't actually used during send_verifactu execution
+            #However, it is a Tryton requierement for queues to get their objects,
+            #as parameters, so it is kept for functionality purposes.
             cls.__queue__.send_verifactu(to_send)
 
     @staticmethod
@@ -705,11 +697,10 @@ class Invoice(metaclass=PoolMeta):
                 service, get_headers(company), records)
             lines_to_save = []
             for invoice, record, response in zip(invoices, records, responses):
-                state = response['EstadoRegistro']
                 new_line = Verifactu()
                 new_line.invoice = invoice
                 new_line.company = company
-                new_line.state = state
+                new_line.state = response['EstadoRegistro']
                 new_line.fingerprint = record['RegistroAlta']['Huella']
                 new_line.error_message = (
                     response['DescripcionErrorRegistro']
@@ -764,8 +755,6 @@ class Invoice(metaclass=PoolMeta):
             invoice_date = datetime.datetime.strptime(
                 invoice_date, '%d-%m-%Y').date()
         state = estado.get('EstadoRegistro')
-        if state == 'Correcta':
-            state = 'Correcto'
 
         return {
             'invoice_number': id_factura.get('NumSerieFactura'),
