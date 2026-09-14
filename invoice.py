@@ -4,15 +4,16 @@ import time
 from decimal import Decimal
 import datetime
 import hashlib
+from logging import getLogger
 from types import SimpleNamespace
 import pytz
-from sql import Literal, Null
+from sql import Literal
 from sql.aggregate import Max
-from sql.functions import Substring
-from sql.conditionals import Case, Coalesce
 from requests import Session
+from requests.exceptions import RequestException
 from urllib.parse import urlencode
 from zeep import Client
+from zeep.exceptions import TransportError, XMLSyntaxError
 from zeep.helpers import serialize_object
 from zeep.transports import Transport
 from zeep.settings import Settings
@@ -42,12 +43,24 @@ WSDL_TEST = 'https://prewww2.aeat.es/static_files/common/internet/dep/aplicacion
 VERSION = trytond.__version__
 VERSION = '.'.join(VERSION.split('.')[:2])
 
+_logger = getLogger(__name__)
+
 AEAT_INVOICE_STATE = [
     (None, ''),
     ('Correcto', 'Accepted'),
     ('AceptadoConErrores', 'Accepted with Errors'),
     ('Incorrecto', 'Rejected'),
+    ('ComunicaciónFallida', 'Communication failed'),
     ]
+
+VERIFACTU_COMMUNICATION_RETRY = datetime.timedelta(hours=2)
+
+
+class VerifactuCommunicationError(Exception):
+
+    def __init__(self, responses=None):
+        self.responses = responses or []
+
 
 OPERATION_KEY = [ # L2
     ('F1', 'Invoice (Art 6.7.3 y 7.3 of RD1619/2012)'),
@@ -291,7 +304,8 @@ class Invoice(metaclass=PoolMeta):
                 if (is_verifactu and invoice.number
                         and not invoice.verifactu_handled_externally):
                     state = record.state if record else None
-                    if state in {None, 'Incorrecto'}:
+                    if state in {
+                            None, 'Incorrecto', 'ComunicaciónFallida'}:
                         error_message = (
                             (record.error_message or '').lower()
                             if record else '')
@@ -343,13 +357,27 @@ class Invoice(metaclass=PoolMeta):
         if operator not in ('=', '!='):
             return []
         if (operator == '=' and not value) or (operator == '!=' and value):
-            domain = ['OR',
-                ('verifactu_state', 'in', ('Correcto', 'AceptadoConErrores')),
-                ('verifactu_state', '=', None),
-                ]
-        else:
-            domain = [('verifactu_state', '=', 'Incorrecto')]
-        return domain
+            return [('verifactu_state', 'in',
+                    ('Correcto', 'AceptadoConErrores'))]
+
+        Verifactu = Pool().get('aeat.verifactu')
+        invoice = cls.__table__()
+        verifactu = Verifactu.__table__()
+        latest_verifactu = Verifactu.__table__()
+        latest = latest_verifactu.select(
+            latest_verifactu.invoice,
+            Max(latest_verifactu.id).as_('latest_id'),
+            group_by=latest_verifactu.invoice)
+        pending = ((verifactu.id == None)
+            | (verifactu.state.in_(
+                    ['Incorrecto', 'ComunicaciónFallida'])
+                & ((verifactu.error_message == None)
+                    | ~verifactu.error_message.ilike('%duplicad%'))))
+        query = (invoice
+            .join(latest, 'LEFT', latest.invoice == invoice.id)
+            .join(verifactu, 'LEFT', verifactu.id == latest.latest_id)
+            .select(invoice.id, where=pending))
+        return [('id', 'in', query)]
 
     def get_verifactu_state(self, name):
         return self.__class__.get_verifactu_fields([self], [name])[name][self.id]
@@ -360,46 +388,35 @@ class Invoice(metaclass=PoolMeta):
         Verifactu = pool.get('aeat.verifactu')
 
         verifactu = Verifactu.__table__()
+        latest_verifactu = Verifactu.__table__()
         _, operator, value = clause
+        if operator not in ('=', '!=', 'in', 'not in'):
+            return []
+
         invoice = cls.__table__()
-
-        # Assign a sorted value: 'Correcto' always wins
-        ordered_state = Case(
-            (verifactu.state == 'Correcto', '1-Correcto'),
-            (verifactu.state == 'AceptadoConErrores', '2-AceptadoConErrores'),
-            (verifactu.state == 'Incorrecto', '3-Incorrecto'),
-            else_=Null)
-
-        subquery = verifactu.select(verifactu.invoice,
-            Max(ordered_state).as_('best_raw'), group_by=verifactu.invoice)
-
-        # Extract only the state name (after the dash)
-        best_state = Substring(subquery.best_raw, 3)
-
-        # Si no hi ha cap registre → best_state és NULL → 'Incorrecto'
-        final_state = Coalesce(best_state, Literal('Incorrecto'))
+        latest = latest_verifactu.select(
+            latest_verifactu.invoice,
+            Max(latest_verifactu.id).as_('latest_id'),
+            group_by=latest_verifactu.invoice)
 
         if operator in ('=', '!='):
-            if value is None:
-                condition = (
-                    final_state == None if operator == '='
-                    else final_state != None)
-            else:
-                condition = (
-                    final_state == value if operator == '='
-                    else final_state != value)
+            condition = (verifactu.state == value
+                if operator == '=' else verifactu.state != value)
         elif operator in ('in', 'not in'):
             if not value:
                 condition = Literal(False) if operator == 'in' else Literal(True)
             else:
-                condition = final_state.in_(value)
+                non_null_values = [item for item in value if item is not None]
+                condition = verifactu.state.in_(non_null_values)
+                if None in value:
+                    condition |= verifactu.state == None
                 if operator == 'not in':
                     condition = ~condition
-        else:
-            condition = (final_state == value)
 
-        query = invoice.join(subquery, 'LEFT', subquery.invoice == invoice.id
-            ).select(invoice.id, where=condition)
+        query = (invoice
+            .join(latest, 'LEFT', latest.invoice == invoice.id)
+            .join(verifactu, 'LEFT', verifactu.id == latest.latest_id)
+            .select(invoice.id, where=condition))
 
         return [('id', 'in', query)]
 
@@ -575,6 +592,45 @@ class Invoice(metaclass=PoolMeta):
         return client.bind('sfVerifactu', port_name)
 
     @classmethod
+    def _raise_verifactu_communication_error(cls, operation, exception,
+            responses=None, **context):
+        context_text = ', '.join(
+            f'{key}={value}' for key, value in context.items()
+            if value is not None)
+        if context_text:
+            context_text = f' ({context_text})'
+        _logger.warning(
+            'Verifactu communication failed during %s%s: %s',
+            operation, context_text, exception)
+        raise VerifactuCommunicationError(responses) from exception
+
+    @classmethod
+    def _handle_verifactu_communication_error(cls, invoices):
+        Verifactu = Pool().get('aeat.verifactu')
+        now = datetime.datetime.now()
+        lines = []
+        for invoice in invoices:
+            latest = Verifactu.search([
+                    ('invoice', '=', invoice.id),
+                    ], limit=1)
+            if (latest and latest[0].state == 'ComunicaciónFallida'):
+                if (latest[0].create_date
+                        and now - latest[0].create_date
+                        < VERIFACTU_COMMUNICATION_RETRY):
+                    continue
+                raise UserError(gettext(
+                        'aeat_verifactu.msg_verifactu_communication_failed',
+                        invoice=invoice.rec_name))
+
+            line = Verifactu()
+            line.invoice = invoice
+            line.company = invoice.company
+            line.state = 'ComunicaciónFallida'
+            lines.append(line)
+        if lines:
+            Verifactu.save(lines)
+
+    @classmethod
     def build_verifactu_records(cls, invoices, last_line=None):
         body = []
         for invoice in invoices:
@@ -590,7 +646,14 @@ class Invoice(metaclass=PoolMeta):
         responses = []
         for batch in grouped_slice(records, 1):
             batch = list(batch)
-            responses += service.RegFactuSistemaFacturacion(headers, batch).RespuestaLinea
+            try:
+                response = service.RegFactuSistemaFacturacion(headers, batch)
+            except (RequestException, TransportError, XMLSyntaxError) as exception:
+                invoice = batch[0]['RegistroAlta']['IDFactura']['NumSerieFactura']
+                cls._raise_verifactu_communication_error(
+                    'RegFactuSistemaFacturacion', exception,
+                    responses=responses, invoice=invoice)
+            responses += response.RespuestaLinea
         return responses
 
     @classmethod
@@ -610,7 +673,29 @@ class Invoice(metaclass=PoolMeta):
             }
         if clave_paginacion:
             filter_['ClavePaginacion'] = clave_paginacion
-        return service.ConsultaFactuSistemaFacturacion(headers, filter_)
+        try:
+            return service.ConsultaFactuSistemaFacturacion(headers, filter_)
+        except (RequestException, TransportError, XMLSyntaxError) as exception:
+            cls._raise_verifactu_communication_error(
+                'ConsultaFactuSistemaFacturacion', exception, year=year,
+                period=period)
+
+    @classmethod
+    def _get_verifactu_response_lines(cls, company, invoices, records,
+            responses):
+        Verifactu = Pool().get('aeat.verifactu')
+        lines = []
+        for invoice, record, response in zip(invoices, records, responses):
+            line = Verifactu()
+            line.invoice = invoice
+            line.company = company
+            line.state = response['EstadoRegistro']
+            line.fingerprint = record['RegistroAlta']['Huella']
+            line.error_message = (
+                response['DescripcionErrorRegistro']
+                if 'DescripcionErrorRegistro' in response else None)
+            lines.append(line)
+        return lines
 
     @classmethod
     def get_batch_start_verifactu_info(cls, service, company):
@@ -690,23 +775,28 @@ class Invoice(metaclass=PoolMeta):
         certificate = cls._get_verifactu_certificate()
         with certificate.tmp_ssl_credentials() as (crt, key):
             service = cls.verifactu_service(crt, key)
-            last_line = cls.get_batch_start_verifactu_info(service, company)
+            try:
+                last_line = cls.get_batch_start_verifactu_info(service, company)
+            except VerifactuCommunicationError:
+                cls._handle_verifactu_communication_error(invoices)
+                return
             records = cls.build_verifactu_records(
                 invoices, last_line=last_line)
-            responses = cls.verifactu_submit_records(
-                service, get_headers(company), records)
-            lines_to_save = []
-            for invoice, record, response in zip(invoices, records, responses):
-                new_line = Verifactu()
-                new_line.invoice = invoice
-                new_line.company = company
-                new_line.state = response['EstadoRegistro']
-                new_line.fingerprint = record['RegistroAlta']['Huella']
-                new_line.error_message = (
-                    response['DescripcionErrorRegistro']
-                    if 'DescripcionErrorRegistro' in response
-                    else None)
-                lines_to_save.append(new_line)
+            try:
+                responses = cls.verifactu_submit_records(
+                    service, get_headers(company), records)
+            except VerifactuCommunicationError as exception:
+                responses = exception.responses
+                lines_to_save = cls._get_verifactu_response_lines(
+                    company, invoices[:len(responses)], records[:len(responses)],
+                    responses)
+                if lines_to_save:
+                    Verifactu.save(lines_to_save)
+                cls._handle_verifactu_communication_error(
+                    invoices[len(responses):])
+                return
+            lines_to_save = cls._get_verifactu_response_lines(
+                company, invoices, records, responses)
             Verifactu.save(lines_to_save)
 
     @classmethod
@@ -1171,7 +1261,9 @@ class Invoice(metaclass=PoolMeta):
 
     def get_aeat_qr_url(self, name):
         res = super().get_aeat_qr_url(name)
-        if (not self.is_verifactu or self.state not in {'posted', 'paid'}
+        if (not self.is_verifactu
+                or self.verifactu_state == 'ComunicaciónFallida'
+                or self.state not in {'posted', 'paid'}
                 or not self.number or not self.invoice_date):
             return res
 

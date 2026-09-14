@@ -306,6 +306,11 @@ msgstr ""
 "rellenadas."
 
 #, python-format
+msgctxt "model:ir.message,text:msg_verifactu_communication_failed"
+msgid "Verifactu communication has been failing for more than two hours for invoice \"%(invoice)s\"."
+msgstr "La comunicación con Verifactu ha estado fallando durante más de dos horas para la factura \"%(invoice)s\"."
+
+#, python-format
 msgctxt "model:ir.message,text:msg_missing_verifactu_party"
 msgid ""
 "Unable to resolve the party for downloaded Verifactu invoice \"%(invoice)s\""
@@ -518,6 +523,10 @@ msgstr "Aceptado con errores"
 msgctxt "selection:account.invoice,verifactu_state:"
 msgid "Rejected"
 msgstr "Rechazado"
+
+msgctxt "selection:account.invoice,verifactu_state:"
+msgid "Communication failed"
+msgstr "Comunicación fallida"
 
 msgctxt "selection:account.tax,verifactu_exemption_cause:"
 msgid "Exempt on account of Article 20"
@@ -868,6 +877,10 @@ msgstr "Aceptado con errores"
 msgctxt "selection:aeat.verifactu,state:"
 msgid "Rejected"
 msgstr "Rechazado"
+
+msgctxt "selection:aeat.verifactu,state:"
+msgid "Communication failed"
+msgstr "Comunicación fallida"
 
 msgctxt "selection:ir.cron,method:"
 msgid "AEAT Verifactu"
