@@ -51,6 +51,9 @@ If you edit them be careful that information will NOT be sent to Verifactu again
         <record model="ir.message" id="msg_missing_verifactu_keys">
             <field name="text">The invoice "%(invoice)s" does not have the necessary Verifactu keys filled.</field>
         </record>
+        <record model="ir.message" id="msg_verifactu_communication_failed">
+            <field name="text">Verifactu communication has been failing for more than two hours for invoice "%(invoice)s".</field>
+        </record>
         <record model="ir.message" id="msg_posted_invoices">
             <field name="text">Are you sure you want to change the Verifactu setting for period "%(period)s"? Take into account that there are already posted invoices in this period.</field>
         </record>
