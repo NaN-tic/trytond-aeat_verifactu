@@ -51,6 +51,7 @@ class Test(unittest.TestCase):
 
         # Create invoice
         Invoice = Model.get('account.invoice')
+        Journal = Model.get('account.journal')
         invoice = Invoice()
         invoice.party = party
         invoice.payment_term = payment_term
@@ -76,11 +77,40 @@ class Test(unittest.TestCase):
         self.assertEqual(invoice.state, 'posted')
         self.assertEqual(invoice.is_verifactu, True)
         self.assertEqual(invoice.verifactu_operation_key, 'F1')
+        self.assertTrue(invoice.aeat_qr_url)
         self.assertEqual(invoice.verifactu_to_send, True)
         invoices_to_send = Invoice.find([('verifactu_to_send', '=', True)])
         self.assertIn(invoice, invoices_to_send)
         invoices_not_to_send = Invoice.find([('verifactu_to_send', '=', False)])
         self.assertNotIn(invoice, invoices_not_to_send)
+
+        revenue_journal, = Journal.find([('type', '=', 'revenue')], limit=1)
+        revenue_journal.exclude_verifactu = True
+        revenue_journal.save()
+
+        blocked_invoice = Invoice()
+        blocked_invoice.party = party
+        blocked_invoice.payment_term = payment_term
+        blocked_invoice.type = 'out'
+        blocked_invoice.journal = revenue_journal
+
+        line = blocked_invoice.lines.new()
+        line.product = product
+        line.account = vars.accounts['revenue']
+        line.description = 'Blocked'
+        line.quantity = 1
+        line.unit_price = Decimal('10.0000')
+
+        blocked_invoice.save()
+        self.assertEqual(blocked_invoice.is_verifactu, False)
+        self.assertEqual(blocked_invoice.verifactu_to_send, False)
+
+        blocked_invoice.click('post')
+        self.assertEqual(blocked_invoice.state, 'posted')
+        self.assertEqual(blocked_invoice.is_verifactu, False)
+        self.assertEqual(blocked_invoice.verifactu_operation_key, None)
+        self.assertFalse(blocked_invoice.aeat_qr_url)
+        self.assertEqual(blocked_invoice.verifactu_to_send, False)
 
         vars.fiscalyear.es_verifactu_send_invoices = False
         with self.assertRaises(UserWarning):

@@ -4,14 +4,17 @@ import time
 from decimal import Decimal
 import datetime
 import hashlib
+from logging import getLogger
+from types import SimpleNamespace
 import pytz
-from sql import Literal, Null
+from sql import Literal
 from sql.aggregate import Max
-from sql.functions import Substring
-from sql.conditionals import Case, Coalesce
 from requests import Session
+from requests.exceptions import RequestException
 from urllib.parse import urlencode
 from zeep import Client
+from zeep.exceptions import TransportError, XMLSyntaxError
+from zeep.helpers import serialize_object
 from zeep.transports import Transport
 from zeep.settings import Settings
 from zeep.plugins import HistoryPlugin
@@ -26,6 +29,7 @@ from trytond.i18n import gettext
 from trytond.exceptions import UserError, UserWarning
 from trytond.tools import grouped_slice
 from trytond.modules.account.exceptions import PeriodNotFoundError
+from trytond.wizard import Wizard, StateView, StateTransition, Button
 from . import tools
 
 PRODUCTION_QR_URL = "https://www2.agenciatributaria.gob.es/wlpl/TIKE-CONT/ValidarQR"
@@ -39,12 +43,24 @@ WSDL_TEST = 'https://prewww2.aeat.es/static_files/common/internet/dep/aplicacion
 VERSION = trytond.__version__
 VERSION = '.'.join(VERSION.split('.')[:2])
 
+_logger = getLogger(__name__)
+
 AEAT_INVOICE_STATE = [
     (None, ''),
     ('Correcto', 'Accepted'),
     ('AceptadoConErrores', 'Accepted with Errors'),
     ('Incorrecto', 'Rejected'),
+    ('ComunicaciónFallida', 'Communication failed'),
     ]
+
+VERIFACTU_COMMUNICATION_RETRY = datetime.timedelta(hours=2)
+
+
+class VerifactuCommunicationError(Exception):
+
+    def __init__(self, responses=None):
+        self.responses = responses or []
+
 
 OPERATION_KEY = [ # L2
     ('F1', 'Invoice (Art 6.7.3 y 7.3 of RD1619/2012)'),
@@ -99,6 +115,20 @@ def get_headers(company):
     }
 
 
+def iter_month_ranges(date_from, date_to):
+    current = date_from.replace(day=1)
+    while current <= date_to:
+        if current.month == 12:
+            month_end = current.replace(day=31)
+            next_month = current.replace(year=current.year + 1, month=1, day=1)
+        else:
+            next_month = current.replace(month=current.month + 1, day=1)
+            month_end = next_month - datetime.timedelta(days=1)
+        yield current.year, current.month, max(current, date_from), min(
+            month_end, date_to)
+        current = next_month
+
+
 class Verifactu(ModelSQL, ModelView):
     '''
     AEAT Verifactu
@@ -112,6 +142,7 @@ class Verifactu(ModelSQL, ModelView):
     invoice_operation_key = fields.Function(fields.Selection(OPERATION_KEY,
             'Operation Key'), 'get_invoice_operation_key')
     fingerprint = fields.Text('Fingerprint', readonly=True)
+    presenter = fields.Char('Presenter VAT', readonly=True)
     error_message = fields.Char('Error Message', readonly=True)
 
     def get_invoice_operation_key(self, name):
@@ -135,6 +166,7 @@ class Verifactu(ModelSQL, ModelView):
             default = default.copy()
         default['state'] = None
         default['fingerprint'] = None
+        default['presenter'] = None
         default['error_message'] = None
         return super().copy(records, default=default)
 
@@ -145,23 +177,35 @@ class Invoice(metaclass=PoolMeta):
     verifactu_operation_key = fields.Selection([(None, '')] + OPERATION_KEY,
         'Verifactu Operation Key', states={
             'required': (Eval('is_verifactu', False)
+                & ~Bool(Eval('verifactu_handled_externally', False))
                 & Eval('state').in_(['posted', 'paid'])),
             })
+    verifactu_handled_externally = fields.Boolean(
+        'Handled externally in Verifactu')
+    verifactu_issuing_nif = fields.Char('Nif emisor verifactu',
+        readonly=True)
+    verifactu_issuing_party = fields.Function(fields.Many2One('party.party',
+            'Emisor verifactu', context={'company': Eval('company', -1)},
+            depends=['company']), 'get_verifactu_presenter_party')
     verifactu_to_send = fields.Function(fields.Boolean(
-            'Verifactu Pending Sending'), 'get_verifactu_to_send',
+            'Verifactu Pending Sending'), 'get_verifactu_fields',
         searcher='search_verifactu_to_send')
     verifactu_state = fields.Function(fields.Selection(AEAT_INVOICE_STATE,
-            'Verifactu State'), 'get_verifactu_state',
+            'Verifactu State'), 'get_verifactu_fields',
         searcher='search_verifactu_state')
     is_verifactu = fields.Function(fields.Boolean('Is Verifactu'),
-            'get_is_verifactu', searcher='search_is_verifactu')
+            'get_verifactu_fields', searcher='search_is_verifactu')
     verifactu_records = fields.One2Many('aeat.verifactu', 'invoice',
         "Verifactu Report Lines")
 
     @classmethod
     def __setup__(cls):
         super().__setup__()
-        verifactu_fields = {'verifactu_operation_key'}
+        verifactu_fields = {
+            'verifactu_handled_externally',
+            'verifactu_operation_key',
+            'verifactu_issuing_nif',
+            }
         cls._check_modify_exclude |= verifactu_fields
         if hasattr(cls, '_intercompany_excluded_fields'):
             cls._intercompany_excluded_fields += verifactu_fields
@@ -179,56 +223,133 @@ class Invoice(metaclass=PoolMeta):
     def view_attributes(cls):
         return super().view_attributes() + [
             ('//page[@id="verifactu"]', 'states', {
-                'invisible': ~Eval('is_verifactu', False),
+                'invisible': (~Eval('is_verifactu', False)
+                    & ~Bool(Eval('verifactu_records', []))),
             }),
             ]
 
-    def get_is_verifactu(self, name):
+    @classmethod
+    def get_verifactu_fields(cls, invoices, names):
         pool = Pool()
         Period = pool.get('account.period')
         Date = pool.get('ir.date')
+        Verifactu = pool.get('aeat.verifactu')
+        cursor = Transaction().connection.cursor()
 
-        if self.type != 'out':
-            return False
+        result = {name: {} for name in names}
+        invoice_ids = [invoice.id for invoice in invoices if invoice.id]
 
-        if self.move:
-            period = self.move.period
-        else:
-            accounting_date = (self.accounting_date or self.invoice_date
-                or Date.today())
-            with Transaction().set_context(company=self.company.id):
-                try:
-                    period = Period.find(self.company, date=accounting_date,
-                        test_state=False)
-                except PeriodNotFoundError:
-                    return False
-        return period.es_verifactu_send_invoices
+        latest_verifactu = {}
+        if invoice_ids and {'verifactu_state', 'verifactu_to_send'} & set(names):
+            verifactu = Verifactu.__table__()
+            query = verifactu.select(
+                verifactu.invoice,
+                Max(verifactu.id).as_('id'),
+                where=verifactu.invoice.in_(invoice_ids),
+                group_by=verifactu.invoice)
+            cursor.execute(*query)
+            latest_ids = dict(cursor.fetchall())
+            if latest_ids:
+                records = Verifactu.browse(list(latest_ids.values()))
+                by_id = {record.id: record for record in records}
+                for invoice_id, record_id in latest_ids.items():
+                    latest_verifactu[invoice_id] = by_id[record_id]
+
+        period_cache = {}
+        today = None
+        for invoice in invoices:
+            is_verifactu = False
+            if invoice.type == 'out':
+                if invoice.journal and invoice.journal.exclude_verifactu:
+                    is_verifactu = False
+                elif invoice.move and invoice.move.period:
+                    is_verifactu = bool(
+                        invoice.move.period.es_verifactu_send_invoices)
+                else:
+                    if today is None:
+                        today = Date.today()
+                    accounting_date = (
+                        invoice.accounting_date or invoice.invoice_date
+                        or today)
+                    key = (
+                        invoice.company.id if invoice.company else None,
+                        accounting_date,
+                        )
+                    if key not in period_cache:
+                        period_cache[key] = False
+                        if invoice.company:
+                            with Transaction().set_context(
+                                    company=invoice.company.id):
+                                try:
+                                    period = Period.find(
+                                        invoice.company,
+                                        date=accounting_date,
+                                        test_state=False)
+                                except PeriodNotFoundError:
+                                    pass
+                                else:
+                                    period_cache[key] = bool(
+                                        period.es_verifactu_send_invoices)
+                    is_verifactu = period_cache[key]
+
+            record = latest_verifactu.get(invoice.id)
+
+            if 'is_verifactu' in result:
+                result['is_verifactu'][invoice.id] = is_verifactu
+            if 'verifactu_state' in result:
+                result['verifactu_state'][invoice.id] = (
+                    record.state if record else None)
+            if 'verifactu_to_send' in result:
+                to_send = False
+                if (is_verifactu and invoice.number
+                        and not invoice.verifactu_handled_externally):
+                    state = record.state if record else None
+                    if state in {
+                            None, 'Incorrecto', 'ComunicaciónFallida'}:
+                        error_message = (
+                            (record.error_message or '').lower()
+                            if record else '')
+                        to_send = 'duplicad' not in error_message
+                result['verifactu_to_send'][invoice.id] = to_send
+        return result
+
+    def get_is_verifactu(self, name):
+        return self.__class__.get_verifactu_fields([self], [name])[name][self.id]
+
+    @classmethod
+    def get_verifactu_party_by_nif(cls, nif):
+        Identifier = Pool().get('party.identifier')
+
+        if not nif:
+            return
+        if not nif.startswith('ES'):
+            nif = 'ES' + nif
+        identifiers = Identifier.search([('code', '=', nif),], limit=1)
+        return identifiers[0].party if identifiers else None
+
+    def get_verifactu_presenter_party(self, name):
+        party = self.get_verifactu_party_by_nif(self.verifactu_issuing_nif)
+        return party.id if party else None
 
     @classmethod
     def search_is_verifactu(cls, name, clause):
         _, operator, value = clause
         if operator not in ('=', '!='):
             return []
-        domain = [('move.period.es_verifactu_send_invoices', '=', True),
-                  ('type', '=', 'out')]
+        domain = [
+            ('move.period.es_verifactu_send_invoices', '=', True),
+            ('journal.exclude_verifactu', '!=', True),
+            ('type', '=', 'out'),
+            ]
         if (operator == '=' and not value) or (operator == '!=' and value):
             domain = ['OR',
                 ('move.period.es_verifactu_send_invoices', '!=', True),
+                ('journal.exclude_verifactu', '=', True),
                 ('type', '!=', 'out')]
         return domain
 
     def get_verifactu_to_send(self, name):
-        if not self.is_verifactu:
-            return False
-        if not self.number:
-            return False
-        if self.verifactu_state in (None, 'Incorrecto'):
-            if self.verifactu_records:
-                record = self.verifactu_records[0]
-                if 'duplicad' in record.error_message.lower():
-                    return False
-            return True
-        return False
+        return self.__class__.get_verifactu_fields([self], [name])[name][self.id]
 
     @classmethod
     def search_verifactu_to_send(cls, name, clause):
@@ -236,18 +357,30 @@ class Invoice(metaclass=PoolMeta):
         if operator not in ('=', '!='):
             return []
         if (operator == '=' and not value) or (operator == '!=' and value):
-            domain = ['OR',
-                ('verifactu_state', 'in', ('Correcto', 'AceptadoConErrores')),
-                ('verifactu_state', '=', None),
-                ]
-        else:
-            domain = [('verifactu_state', '=', 'Incorrecto')]
-        return domain
+            return [('verifactu_state', 'in',
+                    ('Correcto', 'AceptadoConErrores'))]
+
+        Verifactu = Pool().get('aeat.verifactu')
+        invoice = cls.__table__()
+        verifactu = Verifactu.__table__()
+        latest_verifactu = Verifactu.__table__()
+        latest = latest_verifactu.select(
+            latest_verifactu.invoice,
+            Max(latest_verifactu.id).as_('latest_id'),
+            group_by=latest_verifactu.invoice)
+        pending = ((verifactu.id == None)
+            | (verifactu.state.in_(
+                    ['Incorrecto', 'ComunicaciónFallida'])
+                & ((verifactu.error_message == None)
+                    | ~verifactu.error_message.ilike('%duplicad%'))))
+        query = (invoice
+            .join(latest, 'LEFT', latest.invoice == invoice.id)
+            .join(verifactu, 'LEFT', verifactu.id == latest.latest_id)
+            .select(invoice.id, where=pending))
+        return [('id', 'in', query)]
 
     def get_verifactu_state(self, name):
-        if not self.verifactu_records:
-            return
-        return self.verifactu_records[0].state
+        return self.__class__.get_verifactu_fields([self], [name])[name][self.id]
 
     @classmethod
     def search_verifactu_state(cls, name, clause):
@@ -255,45 +388,35 @@ class Invoice(metaclass=PoolMeta):
         Verifactu = pool.get('aeat.verifactu')
 
         verifactu = Verifactu.__table__()
-
+        latest_verifactu = Verifactu.__table__()
         _, operator, value = clause
+        if operator not in ('=', '!=', 'in', 'not in'):
+            return []
+
         invoice = cls.__table__()
+        latest = latest_verifactu.select(
+            latest_verifactu.invoice,
+            Max(latest_verifactu.id).as_('latest_id'),
+            group_by=latest_verifactu.invoice)
 
-        # Assign a sorted value: 'Correcto' always wins
-        ordered_state = Case(
-            (verifactu.state == 'Correcto', '1-Correcto'),
-            (verifactu.state == 'AceptadoConErrores', '2-AceptadoConErrores'),
-            (verifactu.state == 'Incorrecto', '3-Incorrecto'),
-            else_=Null)
-
-        subquery = verifactu.select(verifactu.invoice,
-            Max(ordered_state).as_('best_raw'), group_by=verifactu.invoice)
-
-        # Extract only the state name (after the dash)
-        best_state = Substring(subquery.best_raw, 3)
-
-        # Si no hi ha cap registre → best_state és NULL → 'Incorrecto'
-        final_state = Coalesce(best_state, Literal('Incorrecto'))
-
-        # Construïm la condició segons l'operador
-        # Tryton normalitza els operadors, però gestionem els més habituals
         if operator in ('=', '!='):
-            if value is None:
-                condition = (final_state == None) if operator == '=' else (final_state != None)
-            else:
-                condition = (final_state == value) if operator == '=' else (final_state != value)
+            condition = (verifactu.state == value
+                if operator == '=' else verifactu.state != value)
         elif operator in ('in', 'not in'):
             if not value:
                 condition = Literal(False) if operator == 'in' else Literal(True)
             else:
-                condition = final_state.in_(value)
+                non_null_values = [item for item in value if item is not None]
+                condition = verifactu.state.in_(non_null_values)
+                if None in value:
+                    condition |= verifactu.state == None
                 if operator == 'not in':
                     condition = ~condition
-        else:
-            condition = (final_state == value)
 
-        query = invoice.join(subquery, 'LEFT', subquery.invoice == invoice.id
-            ).select(invoice.id, where=condition)
+        query = (invoice
+            .join(latest, 'LEFT', latest.invoice == invoice.id)
+            .join(verifactu, 'LEFT', verifactu.id == latest.latest_id)
+            .select(invoice.id, where=condition))
 
         return [('id', 'in', query)]
 
@@ -305,11 +428,6 @@ class Invoice(metaclass=PoolMeta):
         credit.verifactu_operation_key = 'R1'
         return credit
 
-    @property
-    def verifactu_keys_filled(self):
-        if self.verifactu_operation_key and self.type == 'out':
-            return True
-        return False
 
     @classmethod
     def copy(cls, records, default=None):
@@ -324,18 +442,6 @@ class Invoice(metaclass=PoolMeta):
         return 'R1' if self.untaxed_amount < Decimal(0) else 'F1'
 
     @classmethod
-    def reset_verifactu_keys(cls, invoices):
-        for invoice in invoices:
-            if invoice.state == 'cancelled':
-                continue
-            invoice.verifactu_operation_key = None
-            invoice._set_verifactu_keys()
-            if not invoice.verifactu_operation_key:
-                invoice.verifactu_operation_key = invoice._get_verifactu_operation_key()
-
-        cls.save(invoices)
-
-    @classmethod
     def process(cls, invoices):
         pool = Pool()
         Warning = pool.get('res.user.warning')
@@ -344,7 +450,8 @@ class Invoice(metaclass=PoolMeta):
 
         invoices_verifactu = ''
         for invoice in invoices:
-            if invoice.state != 'draft' or not invoice.is_verifactu:
+            if (invoice.state != 'draft' or not invoice.is_verifactu
+                    or invoice.verifactu_handled_externally):
                 continue
             if invoice.verifactu_state:
                 invoices_verifactu += '\n%s: %s' % (
@@ -364,7 +471,8 @@ class Invoice(metaclass=PoolMeta):
 
         invoices_verifactu = []
         for invoice in invoices:
-            if not invoice.is_verifactu:
+            if (not invoice.is_verifactu
+                    or invoice.verifactu_handled_externally):
                 continue
             if invoice.verifactu_state:
                 invoices_verifactu.append('%s: %s' % (
@@ -403,10 +511,10 @@ class Invoice(metaclass=PoolMeta):
     def _post(cls, invoices):
         to_check = []
         for invoice in invoices:
-            if not invoice.is_verifactu:
+            if (not invoice.is_verifactu
+                    or invoice.verifactu_handled_externally):
                 continue
 
-            invoice.verifactu_state = 'PendienteEnvio'
             if not invoice.move or invoice.move.state == 'draft':
                 to_check.append(invoice)
 
@@ -414,7 +522,8 @@ class Invoice(metaclass=PoolMeta):
         # know it automatically which basically only does not include
         # credit notes for non-simplified invoices
         for invoice in invoices:
-            if not invoice.is_verifactu:
+            if (not invoice.is_verifactu
+                    or invoice.verifactu_handled_externally):
                 continue
             if invoice.simplified:
                 first_invoice = invoice.simplified_serial_number('first')
@@ -443,20 +552,16 @@ class Invoice(metaclass=PoolMeta):
                         gettext('aeat_verifactu.msg_verifactu_operation_key_wrong',
                             invoice=invoice))
 
-            if not invoice.verifactu_records:
-                invoice.verifactu_state = 'PendienteEnvio'
-            else:
-                for x in invoice.verifactu_records:
-                    if x.state == 'Correcto':
-                        invoice.verifactu_state = 'Correcto'
-                        break
-                else:
-                    invoice.verifactu_state = 'PendienteEnvioSubsanacion'
-
         super()._post(invoices)
 
-        if any(x.is_verifactu for x in invoices):
-            cls.__queue__.send_verifactu(invoices)
+        to_send = [
+            invoice for invoice in invoices
+            if invoice.is_verifactu and invoice.verifactu_to_send]
+        if to_send:
+            #to_send invoices aren't actually used during send_verifactu execution
+            #However, it is a Tryton requierement for queues to get their objects,
+            #as parameters, so it is kept for functionality purposes.
+            cls.__queue__.send_verifactu(to_send)
 
     @staticmethod
     def verifactu_service(crt, pkey):
@@ -487,27 +592,73 @@ class Invoice(metaclass=PoolMeta):
         return client.bind('sfVerifactu', port_name)
 
     @classmethod
-    def verifactu_submit(cls, service, invoices, previous_fingerprint=None, last_line=None):
-        pool = Pool()
-        Company = pool.get('company.company')
+    def _raise_verifactu_communication_error(cls, operation, exception,
+            responses=None, **context):
+        context_text = ', '.join(
+            f'{key}={value}' for key, value in context.items()
+            if value is not None)
+        if context_text:
+            context_text = f' ({context_text})'
+        _logger.warning(
+            'Verifactu communication failed during %s%s: %s',
+            operation, context_text, exception)
+        raise VerifactuCommunicationError(responses) from exception
 
-        company = Company(Transaction().context.get('company'))
-        headers = get_headers(company)
+    @classmethod
+    def _handle_verifactu_communication_error(cls, invoices):
+        Verifactu = Pool().get('aeat.verifactu')
+        now = datetime.datetime.now()
+        lines = []
+        for invoice in invoices:
+            latest = Verifactu.search([
+                    ('invoice', '=', invoice.id),
+                    ], limit=1)
+            if (latest and latest[0].state == 'ComunicaciónFallida'):
+                if (latest[0].create_date
+                        and now - latest[0].create_date
+                        < VERIFACTU_COMMUNICATION_RETRY):
+                    continue
+                raise UserError(gettext(
+                        'aeat_verifactu.msg_verifactu_communication_failed',
+                        invoice=invoice.rec_name))
+
+            line = Verifactu()
+            line.invoice = invoice
+            line.company = invoice.company
+            line.state = 'ComunicaciónFallida'
+            lines.append(line)
+        if lines:
+            Verifactu.save(lines)
+
+    @classmethod
+    def build_verifactu_records(cls, invoices, last_line=None):
         body = []
         for invoice in invoices:
-            body.append({
-                    'RegistroAlta': invoice.verifactu_build_invoice(
-                        previous_fingerprint, last_line),
-                    })
+            record = invoice.verifactu_build_invoice(
+                last_line=last_line)
+            body.append({'RegistroAlta': record})
+            last_line = SimpleNamespace(
+                invoice=invoice, fingerprint=record['Huella'])
+        return body
 
+    @classmethod
+    def verifactu_submit_records(cls, service, headers, records):
         responses = []
-        for batch in grouped_slice(body, 1):
+        for batch in grouped_slice(records, 1):
             batch = list(batch)
-            responses += service.RegFactuSistemaFacturacion(headers, batch).RespuestaLinea
+            try:
+                response = service.RegFactuSistemaFacturacion(headers, batch)
+            except (RequestException, TransportError, XMLSyntaxError) as exception:
+                invoice = batch[0]['RegistroAlta']['IDFactura']['NumSerieFactura']
+                cls._raise_verifactu_communication_error(
+                    'RegFactuSistemaFacturacion', exception,
+                    responses=responses, invoice=invoice)
+            responses += response.RespuestaLinea
         return responses
 
     @classmethod
-    def verifactu_query(cls, service, year=None, period=None, clave_paginacion=None):
+    def verifactu_query(cls, service, year=None, period=None,
+            clave_paginacion=None):
         pool = Pool()
         Company = pool.get('company.company')
 
@@ -522,7 +673,73 @@ class Invoice(metaclass=PoolMeta):
             }
         if clave_paginacion:
             filter_['ClavePaginacion'] = clave_paginacion
-        return service.ConsultaFactuSistemaFacturacion(headers, filter_)
+        try:
+            return service.ConsultaFactuSistemaFacturacion(headers, filter_)
+        except (RequestException, TransportError, XMLSyntaxError) as exception:
+            cls._raise_verifactu_communication_error(
+                'ConsultaFactuSistemaFacturacion', exception, year=year,
+                period=period)
+
+    @classmethod
+    def _get_verifactu_response_lines(cls, company, invoices, records,
+            responses):
+        Verifactu = Pool().get('aeat.verifactu')
+        lines = []
+        for invoice, record, response in zip(invoices, records, responses):
+            line = Verifactu()
+            line.invoice = invoice
+            line.company = company
+            line.state = response['EstadoRegistro']
+            line.fingerprint = record['RegistroAlta']['Huella']
+            line.error_message = (
+                response['DescripcionErrorRegistro']
+                if 'DescripcionErrorRegistro' in response else None)
+            lines.append(line)
+        return lines
+
+    @classmethod
+    def get_batch_start_verifactu_info(cls, service, company):
+        pool = Pool()
+        Date = pool.get('ir.date')
+
+        today = Date.today()
+        year = today.year
+        period = today.month
+        attempts = 24
+        while attempts > 0:
+            # Walk the remote period pages until we find the latest submitted
+            # VeriFactu record that can anchor the current local batch.
+            pagination = 'S'
+            clave_paginacion = None
+            while pagination == 'S':
+                response = cls.verifactu_query(service,
+                    year=year, period=period,
+                    clave_paginacion=clave_paginacion)
+                records = (
+                    response.RegistroRespuestaConsultaFactuSistemaFacturacion
+                    or [])
+                if records:
+                    # Recreate only the minimum invoice data needed to build
+                    # the local chaining block for the first invoice.
+                    record = records[0]
+                    previous_invoice = SimpleNamespace(
+                        company=company,
+                        number=record['IDFactura']['NumSerieFactura'],
+                        invoice_date=datetime.datetime.strptime(
+                            record['IDFactura']['FechaExpedicionFactura'],
+                            '%d-%m-%Y').date())
+                    return SimpleNamespace(
+                        invoice=previous_invoice,
+                        fingerprint=record['DatosRegistroFacturacion']['Huella'])
+                pagination = response.IndicadorPaginacion
+                if pagination == 'S':
+                    clave_paginacion = response.ClavePaginacion
+            # No remote records in this period; keep looking backwards.
+            period -= 1
+            if period == 0:
+                period = 12
+                year -= 1
+            attempts -= 1
 
     @classmethod
     def send_verifactu(cls, invoices=None):
@@ -548,38 +765,39 @@ class Invoice(metaclass=PoolMeta):
         invoices = cls.search([
                 ('company', '=', company),
                 ('move.period.es_verifactu_send_invoices', '=', True),
+                ('journal.exclude_verifactu', '!=', True),
                 ('type', '=', 'out'),
                 ('verifactu_to_send', '=', True),
-                ], order=[('invoice_date', 'ASC')])
-        # TODO: Synchronize invoices missing since last_line
-        fingerprint, last_line = cls.synchro_query(company)
+                ], order=[('sequence', 'ASC'), ('number_digit', 'ASC'),
+                    ('invoice_date', 'ASC'), ('id', 'ASC')])
         if not invoices:
             return
         certificate = cls._get_verifactu_certificate()
         with certificate.tmp_ssl_credentials() as (crt, key):
             service = cls.verifactu_service(crt, key)
-            responses = cls.verifactu_submit(service, invoices,
-                previous_fingerprint=fingerprint, last_line=last_line)
-            lines_to_save = []
-            invoices_to_save = []
-            for x in responses:
-                state = x['EstadoRegistro']
-                if state in ('Correcto', 'AceptadoConErrores'):
-                    continue
-
-                invoice = cls.search([
-                        ('number', '=', x['IDFactura']['NumSerieFactura']),
-                        ])[0]
-                invoice.verifactu_state = state
-                invoices_to_save.append(invoice)
-                new_line = Verifactu()
-                new_line.invoice = invoice
-                new_line.state = state
-                new_line.error_message = x['DescripcionErrorRegistro']
-                lines_to_save.append(new_line)
+            try:
+                last_line = cls.get_batch_start_verifactu_info(service, company)
+            except VerifactuCommunicationError:
+                cls._handle_verifactu_communication_error(invoices)
+                return
+            records = cls.build_verifactu_records(
+                invoices, last_line=last_line)
+            try:
+                responses = cls.verifactu_submit_records(
+                    service, get_headers(company), records)
+            except VerifactuCommunicationError as exception:
+                responses = exception.responses
+                lines_to_save = cls._get_verifactu_response_lines(
+                    company, invoices[:len(responses)], records[:len(responses)],
+                    responses)
+                if lines_to_save:
+                    Verifactu.save(lines_to_save)
+                cls._handle_verifactu_communication_error(
+                    invoices[len(responses):])
+                return
+            lines_to_save = cls._get_verifactu_response_lines(
+                company, invoices, records, responses)
             Verifactu.save(lines_to_save)
-            cls.save(invoices_to_save)
-        cls.synchro_query(company)
 
     @classmethod
     def get_verifactu_invoices(cls, company, year, period):
@@ -599,7 +817,270 @@ class Invoice(metaclass=PoolMeta):
                 clave_paginacion = response.ClavePaginacion
         return records
 
-    def verifactu_build_invoice(self, previous_fingerprint=None, last_line=None):
+    @classmethod
+    def get_verifactu_invoice_data(cls, record):
+        record = serialize_object(record, target_cls=dict)
+
+        id_factura = record['IDFactura']
+        datos = record['DatosRegistroFacturacion']
+        presentacion = record['DatosPresentacion']
+        estado = record['EstadoRegistro']
+
+        destinatarios = datos.get('Destinatarios') or []
+        if not isinstance(destinatarios, list):
+            destinatarios = [destinatarios]
+        destinatario = destinatarios[0] if destinatarios else {}
+        if destinatario and 'IDDestinatario' in destinatario:
+            destinatario = destinatario['IDDestinatario']
+        if isinstance(destinatario, list):
+            destinatario = destinatario[0] if destinatario else {}
+
+        desglose = datos.get('Desglose') or {}
+        detalle = desglose.get('DetalleDesglose') or []
+        if not isinstance(detalle, list):
+            detalle = [detalle]
+
+        invoice_date = id_factura.get('FechaExpedicionFactura')
+        if isinstance(invoice_date, str):
+            invoice_date = datetime.datetime.strptime(
+                invoice_date, '%d-%m-%Y').date()
+        state = estado.get('EstadoRegistro')
+
+        return {
+            'invoice_number': id_factura.get('NumSerieFactura'),
+            'issuing_nif': id_factura.get('IDEmisorFactura'),
+            'invoice_date': invoice_date,
+            'invoice_type': datos.get('TipoFactura'),
+            'description': datos.get('DescripcionOperacion'),
+            'party_name': destinatario.get('NombreRazon'),
+            'party_nif': destinatario.get('NIF'),
+            'total_amount': Decimal(str(datos.get('ImporteTotal', '0'))),
+            'total_tax': Decimal(str(datos.get('CuotaTotal', '0'))),
+            'fingerprint': datos.get('Huella'),
+            'state': state,
+            'presenter': presentacion.get('NIFPresentador'),
+            'taxes': detalle,
+        }
+
+    @classmethod
+    def get_verifactu_default_dates(cls):
+        Date = Pool().get('ir.date')
+        Configuration = Pool().get('account.configuration')
+
+        configuration = Configuration(1)
+        today = Date.today()
+        offset = configuration.verifactu_default_offset_days or 0
+        return (today - datetime.timedelta(days=offset), today)
+
+    @classmethod
+    def matching_verifactu_tax(cls, company, detail):
+        pool = Pool()
+        Tax = pool.get('account.tax')
+
+        rate = detail.get('TipoImpositivo')
+        regime = detail.get('ClaveRegimen', '')
+        operation = detail.get('CalificacionOperacion', '')
+        exemption = detail.get('OperacionExenta', '')
+        surcharge = detail.get('TipoRecargoEquivalencia')
+
+        if rate is None and not any([regime, operation, exemption]):
+            raise UserError(gettext(
+                    'aeat_verifactu.msg_verifactu_missing_tax_data'))
+
+        domain = [('company', '=', company.id)]
+        if rate is not None:
+            domain.append(('rate', '=', Decimal(str(rate)) / Decimal('100')))
+        if regime:
+            domain.append(('verifactu_issued_key', '=', regime))
+        if operation:
+            domain.append(('verifactu_subjected_key', '=', operation))
+        if exemption:
+            domain.append(('verifactu_exemption_cause', '=', exemption))
+
+        taxes = Tax.search(domain)
+        if len(taxes) != 1:
+            raise UserError(gettext(
+                    'aeat_verifactu.msg_verifactu_matching_tax',
+                    regime=regime,
+                    operation=operation,
+                    exemption=exemption,
+                    rate=rate if rate is not None else ''))
+        tax, = taxes
+
+        if surcharge is not None and not tax.recargo_equivalencia_related_tax:
+            raise UserError(gettext(
+                    'aeat_verifactu.msg_verifactu_missing_surcharge_tax',
+                    tax=tax.rec_name))
+        return tax
+
+    @classmethod
+    def find_verifactu_party(cls, verifactu_invoice_data):
+        party = cls.get_verifactu_party_by_nif(
+            verifactu_invoice_data['party_nif'])
+        if party:
+            return party
+        raise UserError(gettext(
+                'aeat_verifactu.msg_missing_verifactu_party',
+                invoice=verifactu_invoice_data['invoice_number'],
+                nif=verifactu_invoice_data['party_nif']))
+
+    @classmethod
+    def build_verifactu_download_line(cls, invoice, detail):
+        pool = Pool()
+        InvoiceLine = pool.get('account.invoice.line')
+        TaxAccount = pool.get('aeat.verifactu.tax_account')
+
+        tax = cls.matching_verifactu_tax(invoice.company, detail)
+        mappings = TaxAccount.search([
+                ('company', '=', invoice.company.id),
+                ('tax', '=', tax.id),
+                ], limit=2)
+        if len(mappings) != 1 or not mappings[0].account:
+            raise UserError(gettext(
+                    'aeat_verifactu.msg_missing_verifactu_tax_account',
+                    tax=tax.rec_name))
+        account = mappings[0].account
+        base = Decimal(str(detail.get('BaseImponibleOimporteNoSujeto', '0')))
+        line = InvoiceLine()
+        line.invoice = invoice
+        line.type = 'line'
+        line.quantity = 1
+        line.unit_price = base
+        line.account = account
+        taxes = [tax]
+        if detail.get('TipoRecargoEquivalencia') is not None:
+            taxes.append(tax.recargo_equivalencia_related_tax)
+        line.taxes = taxes
+        return line
+
+    @classmethod
+    def create_verifactu_record(cls, invoice, verifactu_invoice_data):
+        Verifactu = Pool().get('aeat.verifactu')
+
+        if (verifactu_invoice_data['fingerprint']
+                and Verifactu.search([
+                        ('invoice', '=', invoice.id),
+                        ('fingerprint', '=',
+                            verifactu_invoice_data['fingerprint']),
+                        ], limit=1)):
+            return
+
+        verifactu = Verifactu()
+        verifactu.invoice = invoice
+        verifactu.company = invoice.company
+        verifactu.state = verifactu_invoice_data['state'] or 'Correcto'
+        verifactu.fingerprint = verifactu_invoice_data['fingerprint']
+        verifactu.presenter = verifactu_invoice_data['presenter']
+        verifactu.save()
+
+    @classmethod
+    def update_verifactu_invoice(cls, invoice, verifactu_invoice_data):
+        updated = False
+        if not invoice.verifactu_handled_externally:
+            invoice.verifactu_handled_externally = True
+            updated = True
+        if (not invoice.verifactu_operation_key
+                and verifactu_invoice_data['invoice_type']):
+            invoice.verifactu_operation_key = verifactu_invoice_data[
+                'invoice_type']
+            updated = True
+        presenter = verifactu_invoice_data['presenter']
+        presenter = (
+            presenter if presenter != invoice.company.party.verifactu_vat_code
+            else None)
+        if invoice.verifactu_issuing_nif != presenter:
+            invoice.verifactu_issuing_nif = presenter
+            updated = True
+        if updated:
+            invoice.save()
+        cls.create_verifactu_record(invoice, verifactu_invoice_data)
+        return invoice
+
+    @classmethod
+    def create_downloaded_verifactu_invoice(cls, company, verifactu_invoice_data):
+        pool = Pool()
+        InvoiceLine = pool.get('account.invoice.line')
+        Configuration = Pool().get('account.configuration')
+
+        configuration = Configuration(1)
+
+        invoice = cls()
+        invoice.company = company
+        invoice.type = 'out'
+        invoice.party = cls.find_verifactu_party(verifactu_invoice_data)
+        invoice.on_change_party()
+
+        journal = configuration.verifactu_journal
+        if not journal:
+            raise UserError(gettext(
+                    'aeat_verifactu.msg_missing_verifactu_journal'))
+        invoice.journal = journal
+        invoice.invoice_date = verifactu_invoice_data['invoice_date']
+        invoice.number = verifactu_invoice_data['invoice_number']
+        invoice.description = verifactu_invoice_data['description']
+        invoice.verifactu_handled_externally = True
+        invoice.verifactu_operation_key = verifactu_invoice_data[
+            'invoice_type']
+        presenter = verifactu_invoice_data['presenter']
+        if presenter != company.party.verifactu_vat_code:
+            invoice.verifactu_issuing_nif = presenter
+        invoice.save()
+
+        lines = [cls.build_verifactu_download_line(invoice, detail)
+                 for detail in verifactu_invoice_data['taxes']]
+        if lines:
+            InvoiceLine.save(lines)
+
+        cls.update_taxes([invoice])
+
+        cls.create_verifactu_record(invoice, verifactu_invoice_data)
+        cls.post([invoice])
+        return invoice
+
+    @classmethod
+    def synchronize_verifactu_invoices(cls, company, date_from, date_to,
+            create_missing=False):
+        invoices = []
+        for year, period, month_from, month_to in iter_month_ranges(
+                date_from, date_to):
+            records = cls.get_verifactu_invoices(company, year, period)
+            for record in records:
+                verifactu_invoice_data = cls.get_verifactu_invoice_data(record)
+                if not (month_from <= verifactu_invoice_data['invoice_date'] <=
+                        month_to):
+                    continue
+                existing = cls.search([
+                        ('company', '=', company.id),
+                        ('type', '=', 'out'),
+                        ('number', '=', verifactu_invoice_data['invoice_number']),
+                        ('invoice_date', '=',
+                            verifactu_invoice_data['invoice_date']),
+                        ], limit=1)
+                if existing:
+                    invoice, = existing
+                    if not invoice.verifactu_records:
+                        invoices.append(cls.update_verifactu_invoice(
+                                invoice, verifactu_invoice_data))
+                    continue
+                if create_missing:
+                    invoices.append(cls.create_downloaded_verifactu_invoice(
+                            company, verifactu_invoice_data))
+        return invoices
+
+    @classmethod
+    def cron_update_verifactu_invoices(cls):
+        pool = Pool()
+        Company = pool.get('company.company')
+
+        company_id = Transaction().context.get('company')
+        if not company_id:
+            return
+        company = Company(company_id)
+        date_from, date_to = cls.get_verifactu_default_dates()
+        cls.synchronize_verifactu_invoices(
+            company, date_from, date_to, create_missing=False)
+
+    def verifactu_build_invoice(self, last_line=None):
 
         def verifactu_taxes():
             return [invoice_tax for invoice_tax in self.taxes if
@@ -710,6 +1191,7 @@ class Invoice(metaclass=PoolMeta):
         tz = pytz.timezone('Europe/Madrid')
         dt_now = datetime.datetime.now(tz).replace(microsecond=0)
         formatted_now = dt_now.isoformat()
+        previous_fingerprint = last_line.fingerprint if last_line else None
 
         # TODO: Review CuotaTotal as it is a string. How many digits are we using?
         # TODO: The same for ImporteTotal
@@ -768,59 +1250,6 @@ class Invoice(metaclass=PoolMeta):
         return ret
 
     @classmethod
-    def synchro_query(cls, company):
-        pool = Pool()
-        Verifactu = pool.get('aeat.verifactu')
-        Date = pool.get('ir.date')
-
-        records = []
-        today = Date.today()
-        year = today.year
-        period = today.month
-        attempts = 24
-        last_line = None
-        while attempts > 0:
-            records = cls.get_verifactu_invoices(company, year, period)
-            if not records:
-                return None, None
-            fingerprint = None
-            for record in records:
-                fingerprint = record['DatosRegistroFacturacion']['Huella']
-                verifactu_lines = Verifactu.search([('fingerprint', '=', fingerprint)])
-                if verifactu_lines:
-                    attempts = 0
-                    last_line = verifactu_lines[0]
-                    break
-                else:
-                    new_line = Verifactu()
-                    new_line.fingerprint = fingerprint
-                    start_date = datetime.date(year, period, 1)
-                    if period == 12:
-                        end_date = datetime.date(year + 1, 1, 1)
-                    else:
-                        end_date = datetime.date(year, period + 1, 1)
-                    invoices = cls.search([
-                            ('number', '=', record['IDFactura']['NumSerieFactura']),
-                            ('invoice_date', '>=', start_date),
-                            ('invoice_date', '<', end_date),
-                            ])
-                    if not invoices:
-                        raise UserError(gettext('aeat_verifactu.msg_invoice_not_found'))
-                    invoice = invoices[0]
-                    invoice.verifactu_state = record['EstadoRegistro']['EstadoRegistro']
-                    new_line.invoice = invoice
-                    new_line.state = record['EstadoRegistro']['EstadoRegistro']
-                    new_line.save()
-                    invoice.save()
-
-            period -= 1
-            if period == 0:
-                period = 12
-                year -= 1
-            attempts -= 1
-        return fingerprint, last_line
-
-    @classmethod
     def _get_verifactu_certificate(self):
         Configuration = Pool().get('account.configuration')
         config = Configuration(1)
@@ -833,7 +1262,9 @@ class Invoice(metaclass=PoolMeta):
     def get_aeat_qr_url(self, name):
         res = super().get_aeat_qr_url(name)
         if (not self.is_verifactu
-                or self.verifactu_state in (None, 'Incorrecto')):
+                or self.verifactu_state == 'ComunicaciónFallida'
+                or self.state not in {'posted', 'paid'}
+                or not self.number or not self.invoice_date):
             return res
 
         if PRODUCTION_ENV:
@@ -855,3 +1286,59 @@ class Invoice(metaclass=PoolMeta):
         query = urlencode(params)
         qr_url = f"{url}?{query}"
         return qr_url
+
+
+class DownloadVerifactuInvoicesStart(ModelView):
+    'Synchronize Verifactu Invoices Start'
+    __name__ = 'aeat_verifactu.download_invoices.start'
+
+    date_from = fields.Date('Date From', required=True, domain=[
+            ('date_from', '<=', Eval('date_to')),
+            ], depends=['date_to'])
+    date_to = fields.Date('Date To', required=True, domain=[
+            ('date_to', '>=', Eval('date_from')),
+            ], depends=['date_from'])
+
+    @staticmethod
+    def default_date_from():
+        return Pool().get('account.invoice').get_verifactu_default_dates()[0]
+
+    @staticmethod
+    def default_date_to():
+        return Pool().get('account.invoice').get_verifactu_default_dates()[1]
+
+
+class DownloadVerifactuInvoices(Wizard):
+    'Synchronize Verifactu Invoices'
+    __name__ = 'aeat_verifactu.download_invoices'
+
+    start = StateView('aeat_verifactu.download_invoices.start',
+        'aeat_verifactu.download_verifactu_invoices_start_view', [
+            Button('Cancel', 'end', 'tryton-cancel'),
+            Button('Update Invoices', 'update', 'tryton-refresh',
+                default=True),
+            Button('Create and Update', 'download', 'tryton-ok'),
+            ])
+    update = StateTransition()
+    download = StateTransition()
+
+    def transition_update(self):
+        pool = Pool()
+        Company = pool.get('company.company')
+        Invoice = pool.get('account.invoice')
+
+        company = Company(Transaction().context.get('company'))
+        Invoice.synchronize_verifactu_invoices(
+            company, self.start.date_from, self.start.date_to)
+        return 'end'
+
+    def transition_download(self):
+        pool = Pool()
+        Company = pool.get('company.company')
+        Invoice = pool.get('account.invoice')
+
+        company = Company(Transaction().context.get('company'))
+        Invoice.synchronize_verifactu_invoices(
+            company, self.start.date_from, self.start.date_to,
+            create_missing=True)
+        return 'end'
