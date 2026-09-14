@@ -303,6 +303,11 @@ msgstr ""
 "La factura \"%(invoice)s\" no té les claus Verifactu necessàries emplenades."
 
 #, python-format
+msgctxt "model:ir.message,text:msg_verifactu_communication_failed"
+msgid "Verifactu communication has been failing for more than two hours for invoice \"%(invoice)s\"."
+msgstr "La comunicació amb Verifactu ha estat fallant durant més de dues hores per a la factura \"%(invoice)s\"."
+
+#, python-format
 msgctxt "model:ir.message,text:msg_missing_verifactu_party"
 msgid ""
 "Unable to resolve the party for downloaded Verifactu invoice \"%(invoice)s\""
@@ -513,6 +518,10 @@ msgstr "Acceptat amb errors"
 msgctxt "selection:account.invoice,verifactu_state:"
 msgid "Rejected"
 msgstr "Rebutjat"
+
+msgctxt "selection:account.invoice,verifactu_state:"
+msgid "Communication failed"
+msgstr "Comunicació fallida"
 
 msgctxt "selection:account.tax,verifactu_exemption_cause:"
 msgid "Exempt on account of Article 20"
@@ -857,6 +866,10 @@ msgstr "Acceptat amb errors"
 msgctxt "selection:aeat.verifactu,state:"
 msgid "Rejected"
 msgstr "Rebutjat"
+
+msgctxt "selection:aeat.verifactu,state:"
+msgid "Communication failed"
+msgstr "Comunicació fallida"
 
 msgctxt "selection:ir.cron,method:"
 msgid "AEAT Verifactu"
