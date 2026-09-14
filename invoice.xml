@@ -38,6 +38,21 @@
             parent="menu_aeat_verifactu_report_menu" sequence="1"
             name="AEAT Verifactu Report Lines"/>
 
+        <record model="ir.ui.view" id="download_verifactu_invoices_start_view">
+            <field name="model">aeat_verifactu.download_invoices.start</field>
+            <field name="type">form</field>
+            <field name="name">download_verifactu_invoices_start_form</field>
+        </record>
+
+        <record model="ir.action.wizard" id="wizard_download_verifactu_invoices">
+            <field name="name">Synchronize Verifactu Invoices</field>
+            <field name="wiz_name">aeat_verifactu.download_invoices</field>
+        </record>
+
+        <menuitem id="menu_download_verifactu_invoices"
+            parent="account_invoice.menu_invoices" sequence="100"
+            action="wizard_download_verifactu_invoices"/>
+
         <record model="ir.model.access" id="access_aeat_verifactu">
             <field name="model">aeat.verifactu</field>
             <field name="perm_read" eval="False"/>
