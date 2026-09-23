@@ -26,12 +26,12 @@ class Party(metaclass=PoolMeta):
         'get_verifactu_vat')
 
     def get_verifactu_vat(self, name=None):
-        identifier = self.tax_identifier or (
-            self.identifiers and self.identifiers[0])
-        if identifier:
-            if name == 'verifactu_vat_code':
+        if name == 'verifactu_vat_code':
+            identifier = self.tax_identifier or (
+                self.identifiers and self.identifiers[0])
+            if identifier:
                 if (identifier.type == 'eu_vat' and
                         not identifier.code.startswith('ES') and
                         self.verifactu_identifier_type == '02'):
                     return identifier.code
-                return identifier.code[2:]
+                return identifier.code
