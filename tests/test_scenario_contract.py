@@ -94,6 +94,7 @@ class Test(unittest.TestCase):
         invoices = Invoice.find([])
         invoice = invoices[0]
 
+        invoice._config.skip_warning = True
         invoice.click('post')
         self.assertEqual(invoice.state, 'posted')
         self.assertTrue(invoice.is_verifactu)

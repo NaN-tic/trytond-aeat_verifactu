@@ -73,7 +73,9 @@ class Test(unittest.TestCase):
         self.assertEqual(invoice.verifactu_state, None)
         self.assertEqual(invoice.verifactu_to_send, False)
 
+        invoice._config.skip_warning = True
         invoice.click('post')
+        invoice._config.skip_warning = False
         self.assertEqual(invoice.state, 'posted')
         self.assertEqual(invoice.is_verifactu, True)
         self.assertEqual(invoice.verifactu_operation_key, 'F1')
@@ -105,7 +107,9 @@ class Test(unittest.TestCase):
         self.assertEqual(blocked_invoice.is_verifactu, False)
         self.assertEqual(blocked_invoice.verifactu_to_send, False)
 
+        blocked_invoice._config.skip_warning = True
         blocked_invoice.click('post')
+        blocked_invoice._config.skip_warning = False
         self.assertEqual(blocked_invoice.state, 'posted')
         self.assertEqual(blocked_invoice.is_verifactu, False)
         self.assertEqual(blocked_invoice.verifactu_operation_key, None)
