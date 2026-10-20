@@ -14,3 +14,7 @@ class Cron(metaclass=PoolMeta):
                     "AEAT Verifactu Invoice Synchronization"),
                 ('account.invoice|send_verifactu', "AEAT Verifactu"),
                 ])
+        cls.methods_company_needed.update({
+                'account.invoice|cron_update_verifactu_invoices',
+                'account.invoice|send_verifactu',
+                })
