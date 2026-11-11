@@ -111,4 +111,10 @@
             <field name="name">period_form</field>
         </record>
     </data>
+    <data>
+        <record model="ir.action-res.group" id="sync_tax_account_group_account_admin">
+            <field name="action" ref="wizard_sync_verifactu_tax_account"/>
+            <field name="group" ref="account.group_account_admin"/>
+        </record>
+    </data>
 </tryton>
