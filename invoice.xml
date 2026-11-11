@@ -92,4 +92,14 @@
             <field name="name">invoice_list</field>
         </record>
     </data>
+    <data>
+        <record model="ir.action-res.group" id="download_invoices_group_account">
+            <field name="action" ref="wizard_download_verifactu_invoices"/>
+            <field name="group" ref="account.group_account"/>
+        </record>
+        <record model="ir.action-res.group" id="download_invoices_group_account_admin">
+            <field name="action" ref="wizard_download_verifactu_invoices"/>
+            <field name="group" ref="account.group_account_admin"/>
+        </record>
+    </data>
 </tryton>
