@@ -7,7 +7,15 @@ this repository contains the full copyright notices and license terms. -->
             <field name="verifactu_issued_key">02</field>
             <field name="verifactu_exemption_cause">E2</field>
         </record>
+        <record model="account.tax.template" id="account_es.iva_X0_bi">
+            <field name="verifactu_issued_key">02</field>
+            <field name="verifactu_exemption_cause">E2</field>
+        </record>
         <record model="account.tax.template" id="account_es.iva_X0_spanish_excluded_tax">
+            <field name="verifactu_issued_key">02</field>
+            <field name="verifactu_exemption_cause">E2</field>
+        </record>
+        <record model="account.tax.template" id="account_es.iva_X0_spanish_excluded_tax_bi">
             <field name="verifactu_issued_key">02</field>
             <field name="verifactu_exemption_cause">E2</field>
         </record>
@@ -19,7 +27,19 @@ this repository contains the full copyright notices and license terms. -->
             <field name="verifactu_issued_key">01</field>
             <field name="verifactu_subjected_key">S2</field>
         </record>
+        <record model="account.tax.template" id="account_es.iva_isp_bi">
+            <field name="verifactu_issued_key">01</field>
+            <field name="verifactu_subjected_key">S2</field>
+        </record>
         <record model="account.tax.template" id="account_es.iva_ISP_reciclaje_0">
+            <field name="verifactu_issued_key">01</field>
+            <field name="verifactu_subjected_key">S2</field>
+        </record>
+        <record model="account.tax.template" id="account_es.iva_ISP_reciclaje_0_ser">
+            <field name="verifactu_issued_key">01</field>
+            <field name="verifactu_subjected_key">S2</field>
+        </record>
+        <record model="account.tax.template" id="account_es.iva_ISP_reciclaje_0_bi">
             <field name="verifactu_issued_key">01</field>
             <field name="verifactu_subjected_key">S2</field>
         </record>
@@ -27,7 +47,15 @@ this repository contains the full copyright notices and license terms. -->
             <field name="verifactu_issued_key">01</field>
             <field name="verifactu_subjected_key">S2</field>
         </record>
+        <record model="account.tax.template" id="account_es.iva_ISP_obra_0_ser">
+            <field name="verifactu_issued_key">01</field>
+            <field name="verifactu_subjected_key">S2</field>
+        </record>
         <record model="account.tax.template" id="account_es.iva_IO">
+            <field name="verifactu_issued_key">01</field>
+            <field name="verifactu_exemption_cause">E5</field>
+        </record>
+        <record model="account.tax.template" id="account_es.iva_IO_bi">
             <field name="verifactu_issued_key">01</field>
             <field name="verifactu_exemption_cause">E5</field>
         </record>
@@ -51,6 +79,14 @@ this repository contains the full copyright notices and license terms. -->
     </data>
     <data depends="account_es" grouped="1">
         <record model="account.tax.template" id="account_es.iva_rep_ex">
+            <field name="verifactu_issued_key">01</field>
+            <field name="verifactu_exemption_cause">E6</field>
+        </record>
+        <record model="account.tax.template" id="account_es.iva_rep_ex_ser">
+            <field name="verifactu_issued_key">01</field>
+            <field name="verifactu_exemption_cause">E6</field>
+        </record>
+        <record model="account.tax.template" id="account_es.iva_rep_ex_bi">
             <field name="verifactu_issued_key">01</field>
             <field name="verifactu_exemption_cause">E6</field>
         </record>
@@ -78,6 +114,14 @@ this repository contains the full copyright notices and license terms. -->
             <field name="verifactu_issued_key">01</field>
             <field name="verifactu_subjected_key">S1</field>
         </record>
+        <record model="account.tax.template" id="account_es.iva_rep_4_ser">
+            <field name="verifactu_issued_key">01</field>
+            <field name="verifactu_subjected_key">S1</field>
+        </record>
+        <record model="account.tax.template" id="account_es.iva_rep_4_bi">
+            <field name="verifactu_issued_key">01</field>
+            <field name="verifactu_subjected_key">S1</field>
+        </record>
         <record model="account.tax.template" id="account_es.iva_rep_5">
             <field name="verifactu_issued_key">01</field>
             <field name="verifactu_subjected_key">S1</field>
@@ -90,7 +134,23 @@ this repository contains the full copyright notices and license terms. -->
             <field name="verifactu_issued_key">01</field>
             <field name="verifactu_subjected_key">S1</field>
         </record>
+        <record model="account.tax.template" id="account_es.iva_rep_10_ser">
+            <field name="verifactu_issued_key">01</field>
+            <field name="verifactu_subjected_key">S1</field>
+        </record>
+        <record model="account.tax.template" id="account_es.iva_rep_10_bi">
+            <field name="verifactu_issued_key">01</field>
+            <field name="verifactu_subjected_key">S1</field>
+        </record>
         <record model="account.tax.template" id="account_es.iva_rep_21">
+            <field name="verifactu_issued_key">01</field>
+            <field name="verifactu_subjected_key">S1</field>
+        </record>
+        <record model="account.tax.template" id="account_es.iva_rep_21_ser">
+            <field name="verifactu_issued_key">01</field>
+            <field name="verifactu_subjected_key">S1</field>
+        </record>
+        <record model="account.tax.template" id="account_es.iva_rep_21_bi">
             <field name="verifactu_issued_key">01</field>
             <field name="verifactu_subjected_key">S1</field>
         </record>
