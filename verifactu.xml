@@ -68,7 +68,13 @@ this repository contains the full copyright notices and license terms. -->
         </record>
         <record model="account.tax.template" id="account_es.iva_rep_no_sujeto">
             <field name="verifactu_issued_key">01</field>
-            <field name="verifactu_exemption_cause">NotSubject</field>
+            <field name="verifactu_subjected_key">N1</field>
+            <field name="verifactu_exemption_cause" eval="None"/>
+        </record>
+        <record model="account.tax.template" id="account_es.iva_rep_no_sujeto_ser">
+            <field name="verifactu_issued_key">01</field>
+            <field name="verifactu_subjected_key">N1</field>
+            <field name="verifactu_exemption_cause" eval="None"/>
         </record>
         <record model="account.tax.template" id="account_es.iva_rep_no_sujeto_2">
             <field name="verifactu_issued_key">08</field>
