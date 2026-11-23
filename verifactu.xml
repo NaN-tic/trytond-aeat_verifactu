@@ -96,6 +96,30 @@ this repository contains the full copyright notices and license terms. -->
             <field name="verifactu_issued_key">01</field>
             <field name="verifactu_exemption_cause">E6</field>
         </record>
+        <record model="account.tax.template" id="account_es.iva_ex_art_21_sale">
+            <field name="verifactu_issued_key">02</field>
+            <field name="verifactu_exemption_cause">E2</field>
+        </record>
+        <record model="account.tax.template" id="account_es.iva_ex_art_21_sale_ser">
+            <field name="verifactu_issued_key">02</field>
+            <field name="verifactu_exemption_cause">E2</field>
+        </record>
+        <record model="account.tax.template" id="account_es.iva_ex_art_21_sale_bi">
+            <field name="verifactu_issued_key">02</field>
+            <field name="verifactu_exemption_cause">E2</field>
+        </record>
+        <record model="account.tax.template" id="account_es.iva_ex_art_24_1_sale">
+            <field name="verifactu_issued_key">01</field>
+            <field name="verifactu_exemption_cause">E4</field>
+        </record>
+        <record model="account.tax.template" id="account_es.iva_ex_art_24_1_sale_ser">
+            <field name="verifactu_issued_key">01</field>
+            <field name="verifactu_exemption_cause">E4</field>
+        </record>
+        <record model="account.tax.template" id="account_es.iva_ex_art_24_1_sale_bi">
+            <field name="verifactu_issued_key">01</field>
+            <field name="verifactu_exemption_cause">E4</field>
+        </record>
         <record model="account.tax.template" id="account_es.iva_rep_ex_form">
             <field name="verifactu_issued_key">01</field>
             <field name="verifactu_exemption_cause">E1</field>
