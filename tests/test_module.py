@@ -5,11 +5,24 @@ from types import SimpleNamespace
 from trytond.tests.test_tryton import ModuleTestCase
 
 from trytond.modules.aeat_verifactu.invoice import Invoice
+from trytond.modules.aeat_verifactu.party import Party
 
 
 class GrauTestCase(ModuleTestCase):
     'Test Verifactu module'
     module = 'aeat_verifactu'
+
+    def test_verifactu_vat_code_removes_spanish_country_prefix(self):
+        identifier = SimpleNamespace(type='eu_vat', code='ESB65247983')
+        party = SimpleNamespace(
+            tax_identifier=identifier,
+            identifiers=[identifier],
+            verifactu_identifier_type=None)
+
+        vat_code = Party.get_verifactu_vat(
+            party, name='verifactu_vat_code')
+
+        self.assertEqual(vat_code, 'B65247983')
 
     def test_build_verifactu_records_keeps_local_chain(self):
         invoice_1 = SimpleNamespace(
