@@ -30,8 +30,7 @@ class Party(metaclass=PoolMeta):
             identifier = self.tax_identifier or (
                 self.identifiers and self.identifiers[0])
             if identifier:
-                if (identifier.type == 'eu_vat' and
-                        not identifier.code.startswith('ES') and
-                        self.verifactu_identifier_type == '02'):
-                    return identifier.code
-                return identifier.code
+                code = identifier.code
+                if identifier.type == 'eu_vat' and code.startswith('ES'):
+                    code = code[2:]
+                return code
